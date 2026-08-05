@@ -156,6 +156,8 @@ main {
   border-radius: var(--r); background: #fff; font-family: var(--mono); font-size: 12px;
 }
 .control textarea { min-height: 68px; resize: vertical; line-height: 1.5; }
+/* rows is set from the content in autosize(); height must follow it. */
+.control textarea { height: auto; }
 
 .toggle { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-family: var(--mono); font-size: 12px; }
 .toggle input { width: 34px; height: 18px; appearance: none; background: var(--rule);

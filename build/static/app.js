@@ -446,7 +446,8 @@ function widget(node, get, set) {
     t.value = get() ?? '';
     t.placeholder = node.kind === 'raw' ? 'Nix expression — written verbatim into the file' : '';
     t.spellcheck = false;
-    t.addEventListener('input', () => set(t.value));
+    t.addEventListener('input', () => { set(t.value); autosize(t); });
+    autosize(t);
     wrap.appendChild(t);
     return wrap;
   }
@@ -518,6 +519,15 @@ function widget(node, get, set) {
   i.addEventListener('input', () => set(i.value));
   wrap.appendChild(i);
   return wrap;
+}
+
+/* Grow a text box to fit what is in it. A one-line expression should not take
+   up as much room as an imported package list of twenty entries. The ceiling
+   keeps a very long value from pushing everything else off the screen; the box
+   stays draggable past it. */
+function autosize(t) {
+  const lines = String(t.value || '').split('\n').length;
+  t.rows = Math.min(Math.max(lines, 3), 11);
 }
 
 function packagePicker(initial, onPick, clearAfter) {
