@@ -57,6 +57,40 @@
               <option value="aarch64-linux">aarch64-linux</option>
             </select>
           </label>
+
+          <label>Boot loader
+            <select id="s-bootloader">
+              <option value="systemd-boot">systemd-boot (UEFI)</option>
+              <option value="grub">GRUB (BIOS / legacy)</option>
+              <option value="none">none — set it elsewhere</option>
+            </select>
+          </label>
+          <label id="s-grub-wrap" hidden>Disk for GRUB
+            <input type="text" id="s-grub-device" value="/dev/sda" spellcheck="false">
+          </label>
+          <p class="note" id="s-grub-note" hidden>The whole disk, not a partition —
+             <code>/dev/sda</code>, not <code>/dev/sda1</code>.</p>
+
+          <label class="check"><input type="checkbox" id="s-networkmanager" checked>
+            Manage the network with NetworkManager</label>
+          <label class="check"><input type="checkbox" id="s-flakes" checked>
+            Turn on flakes</label>
+          <label class="check"><input type="checkbox" id="s-make-user" checked>
+            Create the user account</label>
+
+          <label id="s-groups-wrap">Groups
+            <input type="text" id="s-groups" value="wheel networkmanager" spellcheck="false">
+          </label>
+          <p class="note" id="s-groups-note">Separated by spaces or commas.
+             <code>wheel</code> is what lets the account use <code>sudo</code>.</p>
+
+          <label>system.stateVersion
+            <input type="text" id="s-state" value="26.05" spellcheck="false">
+          </label>
+          <p class="warn" id="s-state-warn" hidden></p>
+          <p class="note">The release you first installed. <b>Do not raise it to match
+             a newer NixOS.</b> It keeps stateful data readable across upgrades, and
+             raising it can break things.</p>
           <p class="note">Everything in <code>configuration.nix</code> uses
              <code>lib.mkDefault</code>, so anything you also set here in nixgen
              wins instead of colliding with it.</p>

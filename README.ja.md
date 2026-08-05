@@ -140,7 +140,22 @@ gitリポジトリの中で実行しています。`/etc/nixos` が典型例で�
 
 ### 新規マシン用のスターターファイル
 
-**Setup** タブは、生成モジュールの周りに必要な2つのファイルを出力します。それをimportする `configuration.nix` と、システムをビルドする `flake.nix` です。ホスト名・ユーザー名・アーキテクチャを入力すると、右のタブに `generated.nix` と並んで現れます。
+**Setup** タブは、生成モジュールの周りに必要な2つのファイルを出力します。それをimportする `configuration.nix` と、システムをビルドする `flake.nix` です。右のタブに `generated.nix` と並んで現れ、入力に応じてその場で書き換わります。
+
+**中身はすべて編集できます。**
+
+| 項目 | 補足 |
+|---|---|
+| Host name | `networking.hostName` と、flakeの `nixosConfigurations.<host>` になります |
+| Main user | `isNormalUser` で作られるアカウント。*Create the user account* を外せばユーザー定義ごと省けます |
+| Architecture | `x86_64-linux` / `aarch64-linux` |
+| Boot loader | systemd-boot(UEFI)、GRUB(BIOS・ディスクを指定)、または他のモジュールに任せる「none」 |
+| NetworkManager | 外すと `networking.networkmanager.enable` の行ごと消えます |
+| Flakes | 外すと `nix.settings.experimental-features` の行ごと消えます |
+| Groups | `wheel` が sudo を使うための指定です。`docker`・`libvirtd`・`video` などを追加できます |
+| `system.stateVersion` | インデックス中のリリースが初期値。**新しいNixOSに合わせて上げないでください** |
+
+**オフにした項目はコメントアウトではなく行ごと消えます。** 実際に指定したものだけが残るので、ファイルが無駄に長くなりません。
 
 スターターの `configuration.nix` は、全ての定義を `lib.mkDefault` で包んでいます。これが無いと、同じオプションを両方のファイルで設定したときに次のエラーになります。
 

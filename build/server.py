@@ -453,7 +453,14 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/api/starter":
             return self._json(starter_files(
                 one("host"), one("user"), one("system"),
-                get_meta().get("channel", "nixos-26.05")))
+                get_meta().get("channel", "nixos-26.05"),
+                bootloader=one("bootloader"),
+                grub_device=one("grub_device"),
+                networkmanager=one("networkmanager"),
+                make_user=one("make_user"),
+                groups=one("groups"),
+                flakes=one("flakes"),
+                state_version=one("state_version")))
         if u.path == "/api/option":
             opt = get_option(one("path", ""))
             return self._json(opt or {"error": "not found"}, 200 if opt else 404)

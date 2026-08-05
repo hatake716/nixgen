@@ -172,8 +172,24 @@ exact line. And an option that no longer exists will be rejected by
 
 The **Setup** tab writes the two files that sit around the generated module: a
 `configuration.nix` that imports it, and a `flake.nix` that builds the system.
-Give it a host name, a user name and an architecture; the files appear under
-the tabs on the right, beside `generated.nix`.
+The files appear under the tabs on the right, beside `generated.nix`, and
+update as you type.
+
+Everything in them is editable:
+
+| Field | Notes |
+|---|---|
+| Host name | Becomes `networking.hostName` and the flake's `nixosConfigurations.<host>` |
+| Main user | The account created with `isNormalUser`. Uncheck *Create the user account* to leave users out entirely. |
+| Architecture | `x86_64-linux` or `aarch64-linux` |
+| Boot loader | systemd-boot (UEFI), GRUB (BIOS — asks for the disk), or none if another module sets one |
+| NetworkManager | Off drops `networking.networkmanager.enable` |
+| Flakes | Off drops `nix.settings.experimental-features` |
+| Groups | `wheel` is what lets the account use `sudo`. Add `docker`, `libvirtd`, `video`… as needed. |
+| `system.stateVersion` | Defaults to the indexed release. Do not raise it to match a newer NixOS. |
+
+Switching a block off removes its lines entirely rather than commenting them
+out, so the file stays as short as what you actually asked for.
 
 Everything in the starter `configuration.nix` is wrapped in `lib.mkDefault`.
 Without that, setting the same option in both files gives you

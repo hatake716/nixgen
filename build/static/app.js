@@ -132,8 +132,14 @@ function onSetupChange() {
   clearTimeout(starterTimer);
   starterTimer = setTimeout(loadStarter, 200);
 }
-['s-host', 's-user', 's-system'].forEach(id =>
-  $('#' + id).addEventListener('input', onSetupChange));
+const SETUP_FIELDS = ['s-host', 's-user', 's-system', 's-bootloader',
+  's-grub-device', 's-networkmanager', 's-flakes', 's-make-user',
+  's-groups', 's-state'];
+SETUP_FIELDS.forEach(id => {
+  const n = $('#' + id);
+  n.addEventListener('input', onSetupChange);
+  n.addEventListener('change', onSetupChange);
+});
 
 /* The host name becomes a Nix attribute (nixosConfigurations.<host>) and the
    user name an attribute under users.users, so both have to be plain
@@ -152,12 +158,44 @@ function checkName(id, fallback) {
   return ok;
 }
 
+/* Fields that only matter for one choice are hidden rather than disabled —
+   a GRUB disk path is noise on a UEFI machine. */
+function syncSetupVisibility() {
+  const grub = $('#s-bootloader').value === 'grub';
+  $('#s-grub-wrap').hidden = !grub;
+  $('#s-grub-note').hidden = !grub;
+  const user = $('#s-make-user').checked;
+  $('#s-groups-wrap').hidden = !user;
+  $('#s-groups-note').hidden = !user;
+  $('#s-user').parentElement.hidden = !user;
+}
+
+function checkStateVersion() {
+  const input = $('#s-state');
+  const warn = $('#s-state-warn');
+  const ok = /^\d\d\.\d\d$/.test(input.value.trim());
+  input.classList.toggle('bad', !ok);
+  warn.hidden = ok;
+  if (!ok) warn.textContent = 'Two digits, a dot, two digits — 26.05. Falling back for now.';
+}
+
 async function loadStarter() {
+  syncSetupVisibility();
   checkName('s-host', 'nixos');
-  checkName('s-user', 'user');
+  if ($('#s-make-user').checked) checkName('s-user', 'user');
+  checkStateVersion();
   const host = $('#s-host').value.trim() || 'nixos';
   const q = new URLSearchParams({
-    host, user: $('#s-user').value.trim(), system: $('#s-system').value,
+    host,
+    user: $('#s-user').value.trim(),
+    system: $('#s-system').value,
+    bootloader: $('#s-bootloader').value,
+    grub_device: $('#s-grub-device').value.trim(),
+    networkmanager: $('#s-networkmanager').checked ? '1' : '0',
+    make_user: $('#s-make-user').checked ? '1' : '0',
+    groups: $('#s-groups').value,
+    flakes: $('#s-flakes').checked ? '1' : '0',
+    state_version: $('#s-state').value.trim(),
   });
   state.starter = await fetch('/api/starter?' + q).then(r => r.json());
   state.starterDefines = new Set(state.starter.defines || []);
