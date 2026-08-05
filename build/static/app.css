@@ -255,7 +255,7 @@ pre.nix > span { display: block; padding-left: 3.2em; text-indent: -3.2em; }
 
 /* Import summary */
 #notice { padding: 0 14px; }
-#notice:not(:empty) { padding: 12px 14px; border-bottom: 1px solid var(--rule); background: var(--panel-2); }
+#notice:not(:empty) { padding: 12px 14px; border-top: 1px solid var(--rule); background: var(--panel-2); }
 .notice { border-left: 3px solid var(--rule); padding: 6px 0 6px 10px; margin-bottom: 8px; }
 .notice.ok   { border-left-color: var(--accent); }
 .notice.warn { border-left-color: var(--signal); }

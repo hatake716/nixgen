@@ -369,7 +369,19 @@ async function addPackage(attr, unfree) {
   }
 
   state.lastTouched = e.path;
-  renderEditor(); pushRender();
+
+  /* Rebuilding the card would reset a box the user had dragged taller, so when
+     the control is a text box just update its text in place. Chip lists have
+     no size of their own and are rebuilt as before. */
+  const card = $(`.card[data-path="${CSS.escape(e.path)}"]`);
+  const ta = card && card.querySelector('textarea');
+  if (ta && !Array.isArray(e.value)) {
+    ta.value = e.value;
+    autosize(ta);
+  } else {
+    renderEditor();
+  }
+  pushRender();
 }
 
 function seed(node, defTxt) {
