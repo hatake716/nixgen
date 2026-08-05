@@ -2,7 +2,7 @@
 <!--
   GitHub Pages landing page for nixgen.
 
-  Before publishing, replace hatake716 below with your account name,
+  Before publishing, replace YOUR-GITHUB-NAME below with your account name,
   then enable Pages in the repository settings with the source set to
   "Deploy from a branch" -> main -> /docs.
 -->
@@ -138,7 +138,7 @@ footer a { margin-right: 14px; }
     <div class="brand">nix<span>gen</span></div>
     <nav>
       <button class="btn" id="lang">日本語</button>
-      <a class="btn primary" href="https://github.com/hatake716/nixgen">GitHub</a>
+      <a class="btn primary" href="https://github.com/YOUR-GITHUB-NAME/nixgen">GitHub</a>
     </nav>
   </div>
 </header>
@@ -163,7 +163,7 @@ footer a { margin-right: 14px; }
         <div class="stat"><b>0</b><span class="en">dependencies</span><span class="ja">依存パッケージ</span></div>
       </div>
 
-      <pre class="cmd"><span class="p">$</span> nix run github:hatake716/nixgen</pre>
+      <pre class="cmd"><span class="p">$</span> nix run github:YOUR-GITHUB-NAME/nixgen</pre>
       <p class="tiny en">No clone, no pip, no npm — Python's standard library and a browser.</p>
       <p class="tiny ja">cloneもpipもnpmも不要。Pythonの標準ライブラリとブラウザだけです。</p>
     </div>
@@ -295,6 +295,35 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
 
 <section>
   <div class="wrap">
+    <p class="eyebrow en">Starting from scratch</p>
+    <p class="eyebrow ja">ゼロから始める</p>
+    <h2 class="en">It writes the files around the module too.</h2>
+    <h2 class="ja">モジュールの周りのファイルも書きます。</h2>
+
+    <p class="en">The Setup tab produces the <code>configuration.nix</code> that imports the
+      generated module and the <code>flake.nix</code> that builds the system. Give it a host
+      name, a user name and an architecture.</p>
+    <p class="ja">Setupタブは、生成モジュールをimportする <code>configuration.nix</code> と、
+      システムをビルドする <code>flake.nix</code> を出力します。入力はホスト名・ユーザー名・アーキテクチャの3つだけです。</p>
+
+    <p class="en">Every definition in that <code>configuration.nix</code> is wrapped in
+      <code>lib.mkDefault</code>, so what you set in nixgen wins instead of colliding. Where the
+      two files do define the same option, the line turns red and the card says so — because two
+      <code>mkDefault</code> definitions of equal priority make NixOS refuse to choose.</p>
+    <p class="ja">その <code>configuration.nix</code> は全ての定義を <code>lib.mkDefault</code> で包んでいるので、
+      nixgen側で設定した値が衝突せずに優先されます。それでも両方が同じオプションを定義した場合は、行が赤くなりカードにも表示が出ます。
+      同じ優先度の <code>mkDefault</code> が2つあると、NixOSはどちらを採るか決められないためです。</p>
+
+    <figure>
+      <img src="screenshot-setup.png" alt="The Setup tab, with host name and user name on the left and the generated configuration.nix on the right">
+      <figcaption class="en">Starter files, generated from three fields.</figcaption>
+      <figcaption class="ja">3つの入力欄からスターターファイルが生成されます。</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
     <p class="eyebrow en">Correctness</p>
     <p class="eyebrow ja">正しさの検証</p>
     <h2 class="en">Fuzzed against the real Nix parser.</h2>
@@ -324,9 +353,11 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
 
     <p class="en">Attribute paths are rendered segment by segment, and any segment that is not a
       plain identifier is quoted — so a vhost named <code>my site.example.com</code> comes out as
-      valid Nix rather than a broken file.</p>
+      valid Nix rather than a broken file. The starter files get the same treatment: they are
+      evaluated as an actual NixOS system, down to <code>config.system.build.toplevel</code>.</p>
     <p class="ja">属性パスはセグメント単位でレンダリングし、通常の識別子でないものは自動でクォートします。
-      <code>my site.example.com</code> という名前のvhostも、壊れたファイルではなく有効なNixになります。</p>
+      <code>my site.example.com</code> という名前のvhostも、壊れたファイルではなく有効なNixになります。
+      スターターファイルも同様で、実際のNixOSシステムとして <code>config.system.build.toplevel</code> まで評価して確認しています。</p>
   </div>
 </section>
 
@@ -363,10 +394,10 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
 <footer>
   <div class="wrap">
     <div>
-      <a href="https://github.com/hatake716/nixgen">GitHub</a>
-      <a href="https://github.com/hatake716/nixgen/blob/main/README.md">README</a>
-      <a href="https://github.com/hatake716/nixgen/blob/main/README.ja.md">README (日本語)</a>
-      <a href="https://github.com/hatake716/nixgen/blob/main/LICENSE">MIT License</a>
+      <a href="https://github.com/YOUR-GITHUB-NAME/nixgen">GitHub</a>
+      <a href="https://github.com/YOUR-GITHUB-NAME/nixgen/blob/main/README.md">README</a>
+      <a href="https://github.com/YOUR-GITHUB-NAME/nixgen/blob/main/README.ja.md">README (日本語)</a>
+      <a href="https://github.com/YOUR-GITHUB-NAME/nixgen/blob/main/LICENSE">MIT License</a>
     </div>
     <div style="margin-left:auto">
       <span class="en">Not affiliated with the NixOS project.</span>
