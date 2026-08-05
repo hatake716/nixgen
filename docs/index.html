@@ -2,7 +2,7 @@
 <!--
   GitHub Pages landing page for nixgen.
 
-  Before publishing, replace YOUR-GITHUB-NAME below with your account name,
+  Before publishing, replace hatake716 below with your account name,
   then enable Pages in the repository settings with the source set to
   "Deploy from a branch" -> main -> /docs.
 -->
@@ -138,7 +138,7 @@ footer a { margin-right: 14px; }
     <div class="brand">nix<span>gen</span></div>
     <nav>
       <button class="btn" id="lang">日本語</button>
-      <a class="btn primary" href="https://github.com/YOUR-GITHUB-NAME/nixgen">GitHub</a>
+      <a class="btn primary" href="https://github.com/hatake716/nixgen">GitHub</a>
     </nav>
   </div>
 </header>
@@ -163,7 +163,7 @@ footer a { margin-right: 14px; }
         <div class="stat"><b>0</b><span class="en">dependencies</span><span class="ja">依存パッケージ</span></div>
       </div>
 
-      <pre class="cmd"><span class="p">$</span> nix run github:YOUR-GITHUB-NAME/nixgen</pre>
+      <pre class="cmd"><span class="p">$</span> nix run github:hatake716/nixgen</pre>
       <p class="tiny en">No clone, no pip, no npm — Python's standard library and a browser.</p>
       <p class="tiny ja">cloneもpipもnpmも不要。Pythonの標準ライブラリとブラウザだけです。</p>
     </div>
@@ -279,9 +279,11 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
         <h4 class="en">Verbatim — module structure</h4>
         <h4 class="ja">そのまま転記 — モジュール構造</h4>
         <p class="en"><code>imports</code> and friends, with relative paths restored, so
-          <code>./hardware-configuration.nix</code> still resolves.</p>
+          <code>./hardware-configuration.nix</code> still resolves — and with any reference to
+          the generated file itself removed, since a file cannot import itself.</p>
         <p class="ja"><code>imports</code> など。相対パスを復元するので
-          <code>./hardware-configuration.nix</code> も解決されます。</p>
+          <code>./hardware-configuration.nix</code> も解決されます。生成ファイル自身への参照は削除します
+          （自分自身はimportできないため）。</p>
       </div>
     </div>
 
@@ -301,10 +303,14 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
     <h2 class="ja">モジュールの周りのファイルも書きます。</h2>
 
     <p class="en">The Setup tab produces the <code>configuration.nix</code> that imports the
-      generated module and the <code>flake.nix</code> that builds the system. Give it a host
-      name, a user name and an architecture.</p>
+      generated module and the <code>flake.nix</code> that builds the system — host name, user
+      account and groups, architecture, boot loader, NetworkManager, flakes and
+      <code>stateVersion</code>. Switching a block off removes its lines entirely rather than
+      commenting them out, so the file stays as short as what you actually asked for.</p>
     <p class="ja">Setupタブは、生成モジュールをimportする <code>configuration.nix</code> と、
-      システムをビルドする <code>flake.nix</code> を出力します。入力はホスト名・ユーザー名・アーキテクチャの3つだけです。</p>
+      システムをビルドする <code>flake.nix</code> を出力します。ホスト名、ユーザーとグループ、アーキテクチャ、
+      ブートローダー、NetworkManager、flakes、<code>stateVersion</code> をすべて画面から編集できます。
+      <b>オフにした項目はコメントアウトではなく行ごと消える</b>ので、実際に指定したものだけが残ります。</p>
 
     <p class="en">Every definition in that <code>configuration.nix</code> is wrapped in
       <code>lib.mkDefault</code>, so what you set in nixgen wins instead of colliding. Where the
@@ -313,6 +319,12 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
     <p class="ja">その <code>configuration.nix</code> は全ての定義を <code>lib.mkDefault</code> で包んでいるので、
       nixgen側で設定した値が衝突せずに優先されます。それでも両方が同じオプションを定義した場合は、行が赤くなりカードにも表示が出ます。
       同じ優先度の <code>mkDefault</code> が2つあると、NixOSはどちらを採るか決められないためです。</p>
+
+    <p class="en">The boot loader is a choice, not a fixed block: systemd-boot for UEFI, GRUB
+      for BIOS (which then asks for the disk), or none if another module already sets one. Both
+      variants are checked by evaluating them as an actual NixOS system.</p>
+    <p class="ja">ブートローダーは固定ではなく選択式です。UEFIならsystemd-boot、BIOSならGRUB（ディスクの指定欄が出ます）、
+      他のモジュールに任せるなら「none」。どちらの構成も、実際のNixOSシステムとして評価して確認しています。</p>
 
     <figure>
       <img src="screenshot-setup.png" alt="The Setup tab, with host name and user name on the left and the generated configuration.nix on the right">
@@ -341,8 +353,8 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
       <tr><th><span class="en">Bug</span><span class="ja">バグ</span></th>
           <th><span class="en">Why it matters</span><span class="ja">影響範囲</span></th></tr>
       <tr><td>&lt;name&gt; ≠ &lt;n&gt; ≠ *</td>
-          <td><span class="en">5,031 options (20%) carry a placeholder, and not all look alike</span>
-              <span class="ja">5,031件(20%)がプレースホルダを含み、形が一様ではない</span></td></tr>
+          <td><span class="en">5,080 options (21%) carry a placeholder, and not all look alike</span>
+              <span class="ja">5,080件(21%)がプレースホルダを含み、形が一様ではない</span></td></tr>
       <tr><td>[ -1 ]</td>
           <td><span class="en">A syntax error — negative numbers need parentheses in a list</span>
               <span class="ja">構文エラー。リスト内の負数には括弧が必要</span></td></tr>
@@ -394,10 +406,10 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
 <footer>
   <div class="wrap">
     <div>
-      <a href="https://github.com/YOUR-GITHUB-NAME/nixgen">GitHub</a>
-      <a href="https://github.com/YOUR-GITHUB-NAME/nixgen/blob/main/README.md">README</a>
-      <a href="https://github.com/YOUR-GITHUB-NAME/nixgen/blob/main/README.ja.md">README (日本語)</a>
-      <a href="https://github.com/YOUR-GITHUB-NAME/nixgen/blob/main/LICENSE">MIT License</a>
+      <a href="https://github.com/hatake716/nixgen">GitHub</a>
+      <a href="https://github.com/hatake716/nixgen/blob/main/README.md">README</a>
+      <a href="https://github.com/hatake716/nixgen/blob/main/README.ja.md">README (日本語)</a>
+      <a href="https://github.com/hatake716/nixgen/blob/main/LICENSE">MIT License</a>
     </div>
     <div style="margin-left:auto">
       <span class="en">Not affiliated with the NixOS project.</span>
