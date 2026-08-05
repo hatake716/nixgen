@@ -6,8 +6,8 @@ widgets, and get a `.nix` file you can import.
 
 ![nixgen](docs/screenshot.png)
 
-It generates in one direction only. It can read your existing configuration,
-but never writes to it, so it cannot break anything you already have.
+It generates in one direction only. It never reads or rewrites your existing
+configuration, so it cannot break anything you already have.
 
 日本語版: [README.ja.md](./README.ja.md)
 
@@ -29,7 +29,7 @@ nix.settings.experimental-features = [ "nix-command" "flakes" ];
 ### 1. Get the files
 
 ```bash
-git clone https://github.com/hatake716/nixgen.git
+git clone <your-repo> nixgen
 cd nixgen
 ```
 
