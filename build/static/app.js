@@ -313,6 +313,8 @@ function findEntry(path) {
   return null;
 }
 
+const TOP_OPTION = 'environment.systemPackages';
+
 const rxEscape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /* Append a package to a list that was copied over verbatim, e.g.
@@ -447,7 +449,7 @@ function widget(node, get, set) {
     t.placeholder = node.kind === 'raw' ? 'Nix expression — written verbatim into the file' : '';
     t.spellcheck = false;
     t.addEventListener('input', () => { set(t.value); autosize(t); });
-    autosize(t);
+    autosize(t);   // renderEditor may override this with a remembered height
     wrap.appendChild(t);
     return wrap;
   }
@@ -526,6 +528,7 @@ function widget(node, get, set) {
    keeps a very long value from pushing everything else off the screen; the box
    stays draggable past it. */
 function autosize(t) {
+  if (t.style.height) return;   // the user dragged it; leave it alone
   const lines = String(t.value || '').split('\n').length;
   t.rows = Math.min(Math.max(lines, 3), 11);
 }
@@ -582,7 +585,11 @@ function renderEditor() {
     return;
   }
 
-  for (const entry of state.selected.values()) {
+  // The package list is the one people come back to, so it stays on top.
+  const entries = [...state.selected.values()].sort((a, b) =>
+    (b.path === TOP_OPTION ? 1 : 0) - (a.path === TOP_OPTION ? 1 : 0));
+
+  for (const entry of entries) {
     const card = el('div', 'card'
       + (entry.path === state.lastTouched ? ' touched' : '')
       + (entry.verbatim ? ' verbatim' : ''));
@@ -628,9 +635,20 @@ function renderEditor() {
       });
     }
 
-    card.appendChild(widget(entry.type, () => entry.value, v => {
+    const control = widget(entry.type, () => entry.value, v => {
       entry.value = v; state.lastTouched = entry.path; pushRender();
-    }));
+    });
+    card.appendChild(control);
+
+    /* Adding a package rebuilds every card, which would otherwise throw away a
+       box the user had dragged taller. Keep the height on the entry. */
+    const ta = control.querySelector('textarea');   // not `box` — that is #editor
+    if (ta) {
+      if (entry.uiHeight) ta.style.height = entry.uiHeight;
+      new ResizeObserver(() => {
+        if (ta.style.height) entry.uiHeight = ta.style.height;
+      }).observe(ta);
+    }
 
     if (entry.default_txt) {
       card.appendChild(ident('default: ' + entry.default_txt.replace(/\s+/g, ' ').slice(0, 120), 'hint'));
