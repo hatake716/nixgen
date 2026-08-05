@@ -305,15 +305,68 @@ async function addOption(path) {
   renderEditor(); runSearch(); pushRender();
 }
 
+/* Find a selection entry by the path it will actually render to. Import can
+   file the same option under a suffixed key, so looking it up by map key is
+   not enough. */
+function findEntry(path) {
+  for (const e of state.selected.values()) if (resolvePath(e) === path) return e;
+  return null;
+}
+
+const rxEscape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/* Append a package to a list that was copied over verbatim, e.g.
+   `with pkgs; [ … (vscode.override { … }) … ]`. Rebuilding it as a widget
+   value would throw away the parts a form cannot hold, so the text is edited
+   in place instead. */
+function appendToNixList(src, attr) {
+  const text = String(src).replace(/\s+$/, '');
+  const open = text.indexOf('[');
+  const close = text.lastIndexOf(']');
+  if (open < 0 || close < open) return null;
+
+  const scoped = /(^|\s)with\s+pkgs\s*;/.test(text.slice(0, open));
+  const item = scoped ? attr : 'pkgs.' + attr;
+  if (new RegExp('(^|[\\s\\[])' + rxEscape(item) + '(?=[\\s\\]]|$)').test(text)) return text;
+
+  const head = text.slice(0, close).replace(/\s+$/, '');
+  const closeIndent = (text.slice(0, close).match(/\n([ \t]*)$/) || [null, ''])[1];
+
+  if (!head.includes('\n')) return head + ' ' + item + ' ]';
+
+  let indent = closeIndent + '  ';
+  const lines = head.split('\n');
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i].trim() && !/\[\s*$/.test(lines[i])) {
+      indent = (lines[i].match(/^[ \t]*/) || [''])[0];
+      break;
+    }
+  }
+  return head + '\n' + indent + item + '\n' + closeIndent + ']';
+}
+
 async function addPackage(attr, unfree) {
   if (unfree) state.unfree.add(attr);
   const path = 'environment.systemPackages';
-  if (!state.selected.has(path)) await addOption(path);
-  const e = state.selected.get(path);
+
+  let e = findEntry(path);
+  if (!e) { await addOption(path); e = findEntry(path); }
   if (!e) return;
-  if (!Array.isArray(e.value)) e.value = [];
-  if (!e.value.includes(attr)) e.value.push(attr);
-  state.lastTouched = path;
+
+  if (Array.isArray(e.value)) {
+    if (!e.value.includes(attr)) e.value.push(attr);
+  } else {
+    // The entry came in verbatim; keep every element that is already there.
+    const merged = appendToNixList(e.value, attr);
+    if (merged === null) {
+      setStatus(`Could not add ${attr}: environment.systemPackages holds an ` +
+                `expression this tool cannot edit. Add it by hand.`, 'bad');
+      return;
+    }
+    e.value = merged;
+  }
+
+  state.lastTouched = e.path;
   renderEditor(); pushRender();
 }
 
