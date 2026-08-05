@@ -676,6 +676,7 @@ $('#file').addEventListener('change', async ev => {
                body: r.used_nix
                  ? 'Parsed with nix-instantiate. Your file was not modified.'
                  : 'Read directly — nix-instantiate was not on PATH.' });
+  (r.notes || []).forEach(n => notes.push({ cls: 'warn', title: 'Adjusted while reading', body: n }));
   if (r.structure && r.structure.length) {
     notes.push({ cls: 'ok',
       title: `${r.structure.length} module-structure line(s) carried over`,

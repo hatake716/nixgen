@@ -378,6 +378,28 @@ def flatten(body, prefix=()):
             yield path, value
 
 
+def strip_self_import(source, filename="generated.nix"):
+    """Drop a reference to the file we are about to write.
+
+    Importing a configuration.nix that already said
+    `imports = [ ./hardware-configuration.nix ./generated.nix ]` used to carry
+    that line straight into generated.nix, which then imported itself. The
+    module system does not notice; it just recurses until
+
+        error: stack overflow; max-call-depth exceeded
+
+    which gives no clue where the problem is. So cut it here instead.
+    """
+    body = _unparen(source)
+    if not (body.startswith("[") and body.endswith("]")):
+        return source, False
+    items = _split_list(body[1:-1])
+    kept = [x for x in items if not _unparen(x).rstrip("/").endswith("/" + filename)]
+    if len(kept) == len(items):
+        return source, False
+    return ("[ " + " ".join(kept) + " ]") if kept else "[ ]", True
+
+
 def read_config(text):
     """Main entry point. Returns (entries, used_nix, notes)."""
     src, used_nix, tmpdir = normalise(text)

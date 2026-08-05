@@ -18,7 +18,7 @@ from urllib.parse import urlparse, parse_qs
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from nixgen_core import parse_type, render_module  # noqa: E402
-from nix_import import read_config, NixSyntaxError  # noqa: E402
+from nix_import import read_config, strip_self_import, NixSyntaxError  # noqa: E402
 from starter import starter_files  # noqa: E402
 
 DB_PATH = None
@@ -297,6 +297,12 @@ def import_config(text):
 
     for e in entries:
         if e.get("structural"):
+            if e["path"] == "imports":
+                e["source"], dropped = strip_self_import(e["source"])
+                if dropped:
+                    notes.append("Removed ./generated.nix from imports — this file "
+                                 "cannot import itself, and doing so makes nixos-rebuild "
+                                 "fail with a stack overflow.")
             # imports / options / disabledModules are module structure, not
             # settings. They are copied through untouched: without `imports`
             # the rest of the system config never gets loaded.

@@ -154,6 +154,11 @@ Every setting ends up in the output. Four things can happen to it:
 | **Verbatim — an expression** | `lib.mkIf`, `let` references. A form cannot hold a conditional, so the expression is copied through unchanged. |
 | **Verbatim — not in this release** | Renamed, removed (`hardware.opengl.enable` is gone in 26.05), or inside a free-form submodule such as `nix.settings`. |
 
+`imports` gets one adjustment: a reference to `./generated.nix` is removed,
+because the generated file cannot import itself. If it did, `nixos-rebuild`
+would fail with `stack overflow; max-call-depth exceeded` and no hint as to
+where. The import summary says when this happened.
+
 Verbatim lines are highlighted in the file pane and carry a trailing
 `# verbatim` comment, so they stay obvious after you download it. They sort
 into their normal alphabetical position rather than being dumped at the end.
