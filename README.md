@@ -15,81 +15,124 @@ configuration, so it cannot break anything you already have.
 
 ## Installing
 
-### What you need
+You need NixOS, or Nix on another Linux. Nothing else — no pip, no npm, and
+you do not need to clone anything.
 
-Nix with flakes enabled. That is all — there is no pip step and no npm step.
+### Step 1 — Turn on flakes
 
-If `nix run` complains that flakes are experimental, add this to your
-`configuration.nix` and rebuild:
+A fresh NixOS install does not have flakes enabled. Check by running:
+
+```bash
+nix flake --help
+```
+
+If that prints help text, skip to step 2. If it says the feature is disabled,
+open your configuration and add this line:
 
 ```nix
 nix.settings.experimental-features = [ "nix-command" "flakes" ];
 ```
 
-### 1. Get the files
+Then apply it:
 
 ```bash
-git clone <your-repo> nixgen
-cd nixgen
+sudo nixos-rebuild switch
 ```
 
-**Do not put this inside `/etc/nixos`.** It is an application, not system
-configuration, and `/etc/nixos` is usually a git repository — which brings us
-to the one real gotcha.
+Run `nix flake --help` again. It should print help now.
 
-Flakes read files from git, not from disk. If the directory sits inside a git
-repository, anything untracked is invisible to Nix, and you get errors like:
-
-```
-error: Path 'build' does not exist in Git repository "/etc/nixos".
-path "/etc/nixos/nixgen" does not contain a 'flake.nix', searching up
-```
-
-Two ways out. Either keep it outside any repository, where flakes just read
-the directory and no git step is needed:
+### Step 2 — Run it
 
 ```bash
-mv nixgen ~/src/nixgen
+nix run github:hatake716/nixgen
 ```
 
-Or track it:
+That is the whole installation. Nix downloads the program, builds it, and
+starts it.
+
+**The first run takes about five minutes.** In order, it:
+
+1. builds a small wrapper around Python
+2. downloads about 10 MB of option and package metadata for `nixos-26.05`
+3. builds a search index into `~/.local/share/nixgen` (about 37 MB)
+4. deletes the raw metadata, which is no longer needed
+5. opens <http://127.0.0.1:8823/> in your browser
+
+You should see three panes: a search box on the left, an empty middle, and a
+dark panel on the right showing the file being generated. Type `openssh` into
+the search box and click the first result to check that it works.
+
+Press **Ctrl-C** in the terminal to stop it. Every run after the first starts
+in about a second, because the index is already built.
+
+### Step 3 — Keep it around (optional)
+
+If you expect to use it again, install it properly so you can just type
+`nixgen`:
 
 ```bash
-git add -A nixgen        # -A matters: flake.nix alone is not enough
-```
-
-### 2. Try it
-
-```bash
-nix run .
-```
-
-The first run takes a few minutes:
-
-1. downloads about 10 MB of channel metadata
-2. builds a 37 MB search index into `~/.local/share/nixgen`
-3. deletes the raw JSON it no longer needs
-4. opens <http://127.0.0.1:8823/> in your browser
-
-Later runs skip all of that and start immediately.
-
-Fish users: plain `nix run .` is fine, but any flake reference containing `#`
-needs quoting, because fish reads `#` as the start of a comment.
-
-```fish
-nix run '.#default'
-```
-
-### 3. Install it for real
-
-```bash
-nix profile install .
+nix profile install github:hatake716/nixgen
 nixgen
 ```
 
-`nixgen` is now on your PATH. To update after changing the code, re-run
-`nix profile install .` — the code is read from the nix store, so nothing is
-copied into your home directory except the index.
+To remove it later: `nix profile remove nixgen`.
+
+### Step 4 — Use what it generates
+
+Press **Download generated.nix** and save the file next to your
+`configuration.nix`, usually in `/etc/nixos/`. Then add it to your imports:
+
+```nix
+{
+  imports = [
+    ./hardware-configuration.nix
+    ./generated.nix
+  ];
+}
+```
+
+Check it before applying:
+
+```bash
+sudo nixos-rebuild dry-build
+```
+
+If that succeeds, apply it with `sudo nixos-rebuild switch`. If you want to
+undo everything, delete the `./generated.nix` line and rebuild — nothing else
+in your configuration was touched.
+
+### If something goes wrong
+
+**`experimental Nix feature 'nix-command' is disabled`**
+Step 1 was skipped, or the rebuild has not run yet.
+
+**`does not contain a 'flake.nix', searching up`**
+or **`Path 'build' does not exist in Git repository`**
+You are running from a directory inside a git repository — `/etc/nixos` is the
+usual culprit. Flakes read files from git, not from disk, so anything
+untracked is invisible to Nix. Either use the `github:` form above, or run
+`git add -A` in that repository first.
+
+**`Address already in use`**
+Something else has port 8823. Use another one: `nixgen --port 9000`.
+
+**The browser did not open**
+Open <http://127.0.0.1:8823/> yourself. The terminal prints the address too.
+
+**You want to start over**
+`rm -rf ~/.local/share/nixgen`, then run it again. The index will be rebuilt.
+
+### Working from a local copy
+
+Only needed if you want to change the code:
+
+```bash
+git clone https://github.com/hatake716/nixgen.git
+cd nixgen
+nix run .
+```
+
+Keep the clone outside any existing git repository, or see the gotcha above.
 
 ---
 
@@ -175,33 +218,15 @@ nix-shell -p python3 brotli curl sqlite
 
 ---
 
-## Using the output
+## About "Check syntax"
 
-Save the generated file next to your `configuration.nix` and import it:
+The button in the app runs `nix-instantiate --parse`, which catches malformed
+Nix — an unbalanced brace, a missing semicolon. It does **not** check that a
+value has the right type, or that a combination of options makes sense.
+`nixos-rebuild dry-build` is the only thing that can say that, so always run it
+before switching.
 
-```nix
-{
-  imports = [
-    ./hardware-configuration.nix
-    ./generated.nix
-  ];
-}
-```
-
-Keeping it in a separate file matters. Options you set in `generated.nix`
-override nothing else in your config, and you can delete the import to back
-the whole thing out.
-
-Then, as always:
-
-```bash
-sudo nixos-rebuild dry-build
-```
-
-**Check syntax** in the app only runs `nix-instantiate --parse`, which catches
-malformed Nix. It does not check that a value has the right type or that the
-option combination makes sense. Only `nixos-rebuild` does that.
-
+---
 
 ## Importing an existing configuration.nix
 

@@ -12,73 +12,111 @@ English version: [README.md](./README.md)
 
 ## インストール
 
-### 前提
+必要なのはNixOS、または他のLinux上のNixだけです。pipもnpmも不要で、**cloneも必要ありません。**
 
-flakesを有効にしたNixだけです。pipもnpmも使いません。
+### ステップ1 — flakesを有効にする
 
-`nix run`が「flakesは実験的機能だ」と言って止まる場合は、`configuration.nix`に次を足して再ビルドしてください。
+NixOSを新規インストールした直後は、flakesが有効になっていません。まず確認します。
+
+```bash
+nix flake --help
+```
+
+ヘルプが表示されたらステップ2へ進んでください。「機能が無効です」というエラーが出た場合は、設定ファイルに次の1行を足します。
 
 ```nix
 nix.settings.experimental-features = [ "nix-command" "flakes" ];
 ```
 
-### 1. ファイルを置く
+そして適用します。
 
 ```bash
-git clone <リポジトリ> nixgen
-cd nixgen
+sudo nixos-rebuild switch
 ```
 
-**`/etc/nixos`の中には置かないでください。** これはシステム設定ではなく単なるアプリですし、`/etc/nixos`はたいていgitリポジトリになっています。そしてそこが唯一の落とし穴です。
+もう一度 `nix flake --help` を実行して、ヘルプが出れば成功です。
 
-flakesはディスクではなく**gitからファイルを読みます。** リポジトリ内にあるディレクトリの場合、未追跡のファイルはNixから見えず、こういうエラーになります。
-
-```
-error: Path 'build' does not exist in Git repository "/etc/nixos".
-path "/etc/nixos/nixgen" does not contain a 'flake.nix', searching up
-```
-
-対処は2つあります。ひとつはリポジトリの外に置くことです。この場合flakesはディレクトリをそのまま読むので、git操作は一切不要になります。
+### ステップ2 — 起動する
 
 ```bash
-mv nixgen ~/src/nixgen
+nix run github:hatake716/nixgen
 ```
 
-もうひとつは追跡させることです。
+**これでインストールは完了です。** Nixがプログラムを取得・ビルドして起動します。
+
+**初回は5分ほどかかります。** 順に次の処理が走ります。
+
+1. Pythonのラッパーをビルド
+2. `nixos-26.05` のオプションとパッケージのメタデータ(約10MB)をダウンロード
+3. `~/.local/share/nixgen` に検索インデックス(約37MB)を構築
+4. 不要になった生データを削除
+5. ブラウザで <http://127.0.0.1:8823/> を開く
+
+3つのペインが表示されるはずです。左に検索ボックス、中央は空、右は暗い背景で生成中のファイルが出ます。検索ボックスに `openssh` と入れて先頭の結果をクリックすれば、動作確認になります。
+
+終了はターミナルで **Ctrl-C** です。インデックスは構築済みなので、2回目以降は1秒ほどで立ち上がります。
+
+### ステップ3 — 常用する(任意)
+
+また使いそうなら、`nixgen` と打つだけで起動できるようにしておきます。
 
 ```bash
-git add -A nixgen        # -A が重要。flake.nix だけでは足りない
-```
-
-### 2. 動かしてみる
-
-```bash
-nix run .
-```
-
-初回だけ数分かかります。内部では次の処理が走ります。
-
-1. チャンネルのメタデータ(約10MB)をダウンロード
-2. `~/.local/share/nixgen`に検索インデックス(約37MB)を構築
-3. 不要になった生JSONを削除
-4. ブラウザで <http://127.0.0.1:8823/> を開く
-
-二回目以降はこれらを全て飛ばして即座に立ち上がります。
-
-fishを使っている場合、`nix run .`はそのままで問題ありませんが、`#`を含むflake参照はクォートが必要です。fishは`#`をコメントの開始として解釈するためです。
-
-```fish
-nix run '.#default'
-```
-
-### 3. 常用する
-
-```bash
-nix profile install .
+nix profile install github:hatake716/nixgen
 nixgen
 ```
 
-これで`nixgen`がPATHに入ります。コードを変更したあとは`nix profile install .`をやり直してください。コードはnixストアから読まれるので、ホームディレクトリにコピーされるのはインデックスだけです。
+削除は `nix profile remove nixgen` です。
+
+### ステップ4 — 生成物を使う
+
+**Download generated.nix** を押し、`configuration.nix` と同じ場所(通常は `/etc/nixos/`)に保存します。そしてimportに追加します。
+
+```nix
+{
+  imports = [
+    ./hardware-configuration.nix
+    ./generated.nix
+  ];
+}
+```
+
+適用する前に確認します。
+
+```bash
+sudo nixos-rebuild dry-build
+```
+
+成功したら `sudo nixos-rebuild switch` で適用してください。取り消したくなったら `./generated.nix` の行を消してリビルドするだけです。**他の設定には一切手が入っていません。**
+
+### うまくいかないとき
+
+**`experimental Nix feature 'nix-command' is disabled`**
+ステップ1を飛ばしているか、リビルドがまだ済んでいません。
+
+**`does not contain a 'flake.nix', searching up`**
+または **`Path 'build' does not exist in Git repository`**
+gitリポジトリの中で実行しています。`/etc/nixos` が典型例です。flakesはディスクではなくgitからファイルを読むため、未追跡のファイルはNixから見えません。上記の `github:` 形式を使うか、そのリポジトリで先に `git add -A` を実行してください。
+
+**`Address already in use`**
+ポート8823が他で使われています。`nixgen --port 9000` のように変更してください。
+
+**ブラウザが開かない**
+<http://127.0.0.1:8823/> を自分で開いてください。ターミナルにもアドレスが出ています。
+
+**やり直したい**
+`rm -rf ~/.local/share/nixgen` を実行してから起動し直すと、インデックスが再構築されます。
+
+### ローカルにcloneして使う
+
+コードを変更したい場合のみ必要です。
+
+```bash
+git clone https://github.com/hatake716/nixgen.git
+cd nixgen
+nix run .
+```
+
+cloneは既存のgitリポジトリの外に置いてください。理由は上記の注意点と同じです。
 
 ---
 
@@ -155,29 +193,14 @@ nix-shell -p python3 brotli curl sqlite
 
 ---
 
-## 出力の使い方
+## Check syntax について
 
-生成されたファイルを`configuration.nix`の隣に置き、importします。
+アプリ内のボタンが実行しているのは `nix-instantiate --parse` です。括弧の不一致やセミコロンの抜けといった、
+Nixとして壊れた記述は捕まえます。しかし**値の型が正しいかどうか、オプションの組み合わせが成立するかどうかは見ていません。**
 
-```nix
-{
-  imports = [
-    ./hardware-configuration.nix
-    ./generated.nix
-  ];
-}
-```
+そこを判定できるのは `nixos-rebuild dry-build` だけです。switchする前に必ず実行してください。
 
-別ファイルに分けることに意味があります。`generated.nix`で設定したオプションは他の設定を上書きしませんし、importの行を消せば丸ごと元に戻せます。
-
-そのうえで、いつも通り確認してください。
-
-```bash
-sudo nixos-rebuild dry-build
-```
-
-アプリ内の**Check syntax**が実行しているのは`nix-instantiate --parse`だけです。Nixとして壊れた記述は捕まえますが、値の型が正しいかどうか、オプションの組み合わせが成立するかどうかは見ていません。そこを判定できるのは`nixos-rebuild`だけです。
-
+---
 
 ## 既存のconfiguration.nixを読み込む
 
