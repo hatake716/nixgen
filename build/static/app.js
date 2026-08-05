@@ -1,5 +1,9 @@
 /* nixgen — client. Vanilla JS, no build step. */
 
+/* Shown in the header. Bump it whenever this file changes, so "the fix did not
+   work" can be told apart from "the old file is still being served". */
+const BUILD = '2026-08-05e';
+
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const el = (tag, cls, txt) => {
@@ -92,7 +96,8 @@ const state = {
   state.channel = meta.channel || 'nixos';
   $('#channel').textContent = state.channel;
   $('#counts').textContent =
-    `${(+meta.option_count).toLocaleString()} options · ${(+meta.package_count).toLocaleString()} packages`;
+    `${(+meta.option_count).toLocaleString()} options · ` +
+    `${(+meta.package_count).toLocaleString()} packages · build ${BUILD}`;
   runSearch();
   renderEditor();
   loadStarter();
