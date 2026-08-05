@@ -398,8 +398,9 @@ flake.nix
 flake.lock          pins nixpkgs, so everyone builds the same thing
 ```
 
-`docs/index.html` is self-contained. If you fork this, change the `hatake716`
-links in it and point **Settings → Pages** at `main` / `/docs`.
+`docs/index.html` is self-contained and already points at this repository. If
+you fork it, change the `hatake716` links inside and point
+**Settings → Pages** at `main` / `/docs`.
 
 ---
 

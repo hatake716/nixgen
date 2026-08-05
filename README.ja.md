@@ -319,7 +319,7 @@ flake.nix
 flake.lock          nixpkgsを固定し、誰がビルドしても同じ結果にします
 ```
 
-`docs/index.html` は単体で完結します。フォークする場合は中の `hatake716` へのリンクを書き換え、**Settings → Pages** で `main` / `/docs` を指定してください。
+`docs/index.html` は単体で完結し、リンクはこのリポジトリを指した状態で入っています。フォークする場合は中の `hatake716` を書き換え、**Settings → Pages** で `main` / `/docs` を指定してください。
 
 ---
 
