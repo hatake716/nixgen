@@ -4,7 +4,7 @@ NixOSの設定モジュールをフォーム入力で生成するツールです
 
 ![nixgen](docs/screenshot.png)
 
-生成は一方向のみです。既存の設定ファイルを読むことも書き換えることもしないので、今動いている環境を壊す経路がありません。
+生成は一方向のみです。既存の設定ファイルを読むことはできますが、書き換えは一切しないので、今動いている環境を壊す経路がありません。
 
 English version: [README.md](./README.md)
 
@@ -25,7 +25,7 @@ nix.settings.experimental-features = [ "nix-command" "flakes" ];
 ### 1. ファイルを置く
 
 ```bash
-git clone <リポジトリ> nixgen
+git clone https://github.com/hatake716/nixgen.git
 cd nixgen
 ```
 
