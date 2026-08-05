@@ -279,7 +279,31 @@ def tidy(expr):
         out = _PAREN_ATOM.sub(r"\1", out)
         if out == prev:
             break
-    return _unparen(out)
+    return _wrap_list(_unparen(out))
+
+
+_LIST_EXPR = re.compile(r"^(with\s+[\w.]+\s*;\s*)?\[(.*)\]$", re.S)
+
+
+def _wrap_list(expr, indent="  "):
+    """Put one element per line once a list gets long.
+
+    An imported `environment.systemPackages` can run to hundreds of characters
+    on one line, which is unreadable and produces a useless diff.
+    """
+    m = _LIST_EXPR.match(expr.strip())
+    if not m:
+        return expr
+    prefix = (m.group(1) or "").strip()
+    try:
+        items = _split_list(m.group(2))
+    except NixSyntaxError:
+        return expr
+    if len(items) < 4 and len(expr) < 72:
+        return expr
+    head = (prefix + " " if prefix else "") + "["
+    body = "".join(f"\n{indent}  {it}" for it in items)
+    return f"{head}{body}\n{indent}]"
 
 
 def classify(value):

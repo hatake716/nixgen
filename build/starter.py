@@ -92,4 +92,17 @@ def starter_files(host, user, system, channel):
     return {
         "configuration.nix": CONFIGURATION.format(host=host, user=user, state=state),
         "flake.nix": FLAKE.format(host=host, channel=channel or "nixos-26.05", system=system),
+        # Paths the starter defines. The UI flags any of these that also appear
+        # in generated.nix: two lib.mkDefault definitions of the same option
+        # have equal priority, and NixOS refuses to pick between them.
+        "defines": [
+            "boot.loader.systemd-boot.enable",
+            "boot.loader.efi.canTouchEfiVariables",
+            "networking.hostName",
+            "networking.networkmanager.enable",
+            f"users.users.{user}.isNormalUser",
+            f"users.users.{user}.extraGroups",
+            "nix.settings.experimental-features",
+            "system.stateVersion",
+        ],
     }

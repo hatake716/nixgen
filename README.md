@@ -184,6 +184,23 @@ error: The option `networking.hostName' has conflicting definition values
 
 With it, whatever you set in nixgen simply wins.
 
+### When both files set the same option
+
+The starter `configuration.nix` and `generated.nix` can end up defining the
+same option. Those lines are shown **in red** in the file pane, and the card
+carries an *also in configuration.nix* badge.
+
+Usually this is harmless: the starter uses `lib.mkDefault`, so a plain value in
+`generated.nix` wins. It breaks when *both* sides are `lib.mkDefault`, which
+happens when an imported value was an expression and kept its wrapper:
+
+```
+error: The option `networking.hostName' has conflicting definition values
+```
+
+Two definitions of equal priority, and NixOS will not guess. Delete the line
+from whichever file you do not want it in.
+
 ### What "Check syntax" does and does not do
 
 It runs `nix-instantiate --parse`, which catches malformed Nix — an unbalanced

@@ -216,7 +216,10 @@ def render_value(node, value, indent=2):
         if not items:
             return "[ ]"
         rendered = [render_value(node["inner"], it, indent + 2) for it in items]
-        if all(len(r) < 24 and "\n" not in r for r in rendered) and len(rendered) <= 6:
+        # Package lists grow; one per line stays readable and diffs cleanly.
+        inline_ok = node["inner"]["kind"] != "package" or len(rendered) == 1
+        if (inline_ok and len(rendered) <= 6
+                and all(len(r) < 24 and "\n" not in r for r in rendered)):
             return "[ " + " ".join(rendered) + " ]"
         body = "\n".join(f"{pad}  {r}" for r in rendered)
         return "[\n" + body + f"\n{pad}]"

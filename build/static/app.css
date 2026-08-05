@@ -292,3 +292,9 @@ pre.nix .verbatim .v { color: #d7a6f0; }
 .filetabs .tab:hover { color: var(--code-fg); }
 .setupform .warn { font-size: 10.5px; color: var(--signal); margin: -7px 0 11px; line-height: 1.5; }
 .setupform input.bad { border-color: var(--signal); background: #fdf8ef; }
+
+/* Options the starter configuration.nix also defines */
+pre.nix .clash .k, pre.nix .clash .v { color: #e88b8b; }
+pre.nix .clash { border-left: 2px solid #a34545; margin-left: -2px; padding-left: calc(3.2em - 2px); }
+.status.todo { color: #e0b060; }
+.badge.clash { background: #f4dada; color: #a34545; }

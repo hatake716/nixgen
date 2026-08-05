@@ -150,6 +150,18 @@ error: The option `networking.hostName' has conflicting definition values
 
 `mkDefault` があれば、nixgen側で設定した値がそのまま優先されます。
 
+### 両方のファイルが同じオプションを設定した場合
+
+スターターの `configuration.nix` と `generated.nix` が同じオプションを定義することがあります。該当する行はファイルペインで**赤字**になり、カードにも *also in configuration.nix* のバッジが付きます。
+
+通常は無害です。スターター側は `lib.mkDefault` を使っているので、`generated.nix` の素の値が勝ちます。問題になるのは**両方が `lib.mkDefault` の場合**で、読み込んだ値が式だったためにラッパーごと転記されたときに起こります。
+
+```
+error: The option `networking.hostName' has conflicting definition values
+```
+
+同じ優先度の定義が2つあり、Nixは推測しません。不要なほうのファイルから該当行を消してください。
+
 ### Check syntax にできること・できないこと
 
 実行しているのは `nix-instantiate --parse` です。括弧の不一致やセミコロンの抜けといった、Nixとして壊れた記述は捕まえます。しかし**値の型が正しいかどうか、オプションの組み合わせが成立するかどうかは見ていません。**

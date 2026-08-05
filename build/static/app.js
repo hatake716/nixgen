@@ -80,6 +80,7 @@ const state = {
   verbatim: new Set(),   // resolved paths copied straight from the user's file
   file: 'generated.nix', // which file the output pane is showing
   starter: {},           // configuration.nix / flake.nix, from /api/starter
+  starterDefines: new Set(), // option paths the starter configuration.nix sets
   unfree: new Set(),     // attrs that need nixpkgs.config.allowUnfree
   lastTouched: null,
 };
@@ -159,6 +160,8 @@ async function loadStarter() {
     host, user: $('#s-user').value.trim(), system: $('#s-system').value,
   });
   state.starter = await fetch('/api/starter?' + q).then(r => r.json());
+  state.starterDefines = new Set(state.starter.defines || []);
+  pushRender();
   $('#s-cmd2').textContent = `sudo nixos-rebuild switch --flake /etc/nixos#${host}`;
   if (state.file !== 'generated.nix') paintCode(currentText());
 }
@@ -486,6 +489,11 @@ function renderEditor() {
 
     const head = el('div', 'head');
     head.appendChild(ident(entry.path, 'path'));
+    if (state.starterDefines.has(resolvePath(entry))) {
+      const w = el('span', 'badge clash', 'also in configuration.nix');
+      w.title = 'The starter configuration.nix sets this too. Remove it from one of them.';
+      head.appendChild(w);
+    }
     if (entry.verbatim) {
       head.appendChild(el('span', 'badge vb',
         entry.verbatim === 'unknown' ? 'not in this release'
@@ -580,6 +588,13 @@ async function doRender() {
   const notes = [];
   const todo = (res.text.match(/CHANGE_ME/g) || []).length;
   if (todo) notes.push(`${todo} name${todo > 1 ? 's' : ''} still to fill in — look for CHANGE_ME.`);
+  const clashes = [...state.starterDefines].filter(
+    p => new RegExp('^  ' + p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ' =', 'm').test(res.text));
+  if (clashes.length) {
+    notes.push(`Also set in the starter configuration.nix: ${clashes.join(', ')}. ` +
+               `Shown in red. Delete it from one of the two files — if both use ` +
+               `lib.mkDefault, NixOS cannot choose and the rebuild fails.`);
+  }
   const unfree = [...state.unfree].filter(a => res.text.includes('pkgs.' + a));
   if (unfree.length) {
     notes.push(`${unfree.join(', ')} ${unfree.length > 1 ? 'are' : 'is'} unfree. ` +
@@ -609,6 +624,8 @@ function paintCode(text) {
         span.appendChild(el('span', 'v', m[4]));
         if (state.file === 'generated.nix' && state.verbatim.has(m[2]))
           span.classList.add('verbatim');
+        if (state.file === 'generated.nix' && state.starterDefines.has(m[2]))
+          span.classList.add('clash');
       } else span.textContent = line;
     }
     if (line.includes('CHANGE_ME')) span.classList.add('todo');
