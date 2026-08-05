@@ -216,6 +216,23 @@ Without flakes at all:
 nix-shell -p python3 brotli curl sqlite
 ```
 
+
+### Starter files for a new machine
+
+The **Setup** tab writes the two files that sit around the generated module:
+a `configuration.nix` that imports it, and a `flake.nix` that builds the
+system. Fill in a host name, a user name and an architecture; the files appear
+under the tabs on the right, beside `generated.nix`.
+
+Everything in the starter `configuration.nix` is wrapped in `lib.mkDefault`.
+Without that, setting the same option in both files gives you
+
+```
+error: The option `networking.hostName' has conflicting definition values
+```
+
+With it, whatever you set in nixgen simply wins.
+
 ---
 
 ## About "Check syntax"
@@ -362,6 +379,7 @@ not `services.nginx.virtualHosts` as one blob.
 build/
   nixgen_core.py    type-string parser + Nix renderer  (no deps)
   nix_import.py     reads an existing configuration.nix
+  starter.py        the Setup tab's configuration.nix and flake.nix
   build_index.py    channel JSON -> SQLite + FTS5
   server.py         stdlib HTTP server, search/render/validate API
   fetch-data.sh     channel download

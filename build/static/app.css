@@ -268,3 +268,27 @@ pre.nix .verbatim .k { color: #d7a6f0; }
 pre.nix .verbatim .v { color: #d7a6f0; }
 .card.verbatim { border-left-color: #8a5fb0; background: #faf7fd; }
 .badge.vb { background: #e8dcf2; color: #6b4c9a; }
+
+/* Setup tab */
+.setupform { padding: 14px; }
+.setupform label { display: block; font-size: 11px; color: var(--ink-soft);
+                   font-weight: 600; margin-bottom: 11px; }
+.setupform input[type=text], .setupform select {
+  width: 100%; margin-top: 4px; padding: 6px 8px; border: 1px solid var(--rule);
+  border-radius: var(--r); background: #fff; font-family: var(--mono); font-size: 12px;
+  font-weight: 400; color: var(--ink);
+}
+.setupform .note { font-size: 11px; color: var(--ink-soft); line-height: 1.6; margin: 0 0 14px; }
+.setupform .note code { font-family: var(--mono); font-size: 10.5px; }
+.setupform .eyebrow { margin: 12px 0 4px; }
+.setupform pre.shell { margin: 0; padding: 8px 10px; background: var(--code-bg);
+  color: var(--code-fg); font-family: var(--mono); font-size: 11px;
+  border-radius: var(--r); overflow-x: auto; }
+
+/* File tabs in the output pane */
+.filetabs .tab { color: var(--code-dim); font-size: 9.5px; letter-spacing: .08em;
+                 text-transform: none; font-family: var(--mono); }
+.filetabs .tab[aria-selected="true"] { background: #2c3542; color: var(--code-fg); }
+.filetabs .tab:hover { color: var(--code-fg); }
+.setupform .warn { font-size: 10.5px; color: var(--signal); margin: -7px 0 11px; line-height: 1.5; }
+.setupform input.bad { border-color: var(--signal); background: #fdf8ef; }

@@ -191,6 +191,20 @@ flakesを使わない場合はこれだけでも動きます。
 nix-shell -p python3 brotli curl sqlite
 ```
 
+
+### 新規マシン用のスターターファイル
+
+**Setup** タブは、生成モジュールの周りに必要な2つのファイルを出力します。それをimportする `configuration.nix` と、システムをビルドする `flake.nix` です。
+ホスト名・ユーザー名・アーキテクチャを入力すると、右のタブに `generated.nix` と並んで現れます。
+
+スターターの `configuration.nix` は全ての定義を `lib.mkDefault` で包んでいます。これが無いと、同じオプションを両方のファイルで設定したときに次のエラーになります。
+
+```
+error: The option `networking.hostName' has conflicting definition values
+```
+
+`mkDefault` があれば、nixgen側で設定した値がそのまま優先されます。
+
 ---
 
 ## Check syntax について
@@ -287,6 +301,7 @@ https://channels.nixos.org/nixos-26.05/packages.json.br
 build/
   nixgen_core.py    型文字列パーサ + Nixレンダラ(依存なし)
   nix_import.py     既存のconfiguration.nixの読み込み
+  starter.py        Setupタブの configuration.nix / flake.nix
   build_index.py    チャンネルJSON -> SQLite + FTS5
   server.py         標準ライブラリのみのHTTPサーバ。検索/生成/検証API
   fetch-data.sh     チャンネルのダウンロード

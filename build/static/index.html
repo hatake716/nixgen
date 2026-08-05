@@ -31,6 +31,7 @@
         <div class="tabs" role="tablist">
           <button class="tab" role="tab" data-kind="options" aria-selected="true">Options</button>
           <button class="tab" role="tab" data-kind="packages" aria-selected="false">Packages</button>
+          <button class="tab" role="tab" data-kind="setup" aria-selected="false">Setup</button>
         </div>
       </header>
       <div class="searchwrap">
@@ -40,6 +41,31 @@
         </label>
       </div>
       <div class="pane-body" id="results"></div>
+      <div class="pane-body" id="setup" hidden>
+        <div class="setupform">
+          <p class="note">Starter files for a machine that does not have a flake
+             yet. They go in <code>/etc/nixos</code> beside the
+             <code>hardware-configuration.nix</code> that is already there.
+             Pick them from the tabs on the right.</p>
+          <label>Host name<input type="text" id="s-host" value="nixos" spellcheck="false"></label>
+          <p class="warn" id="s-host-warn" hidden></p>
+          <label>Main user<input type="text" id="s-user" value="user" spellcheck="false"></label>
+          <p class="warn" id="s-user-warn" hidden></p>
+          <label>Architecture
+            <select id="s-system">
+              <option value="x86_64-linux">x86_64-linux</option>
+              <option value="aarch64-linux">aarch64-linux</option>
+            </select>
+          </label>
+          <p class="note">Everything in <code>configuration.nix</code> uses
+             <code>lib.mkDefault</code>, so anything you also set here in nixgen
+             wins instead of colliding with it.</p>
+          <div class="eyebrow">First rebuild, before flakes are on</div>
+          <pre class="shell" id="s-cmd1">sudo nixos-rebuild switch</pre>
+          <div class="eyebrow">From then on</div>
+          <pre class="shell" id="s-cmd2">sudo nixos-rebuild switch --flake /etc/nixos#nixos</pre>
+        </div>
+      </div>
     </section>
 
     <section class="pane" id="pane-editor">
@@ -50,7 +76,13 @@
     </section>
 
     <section class="pane out" id="pane-out">
-      <header><div class="eyebrow">generated.nix</div></header>
+      <header>
+        <div class="tabs filetabs" role="tablist">
+          <button class="tab" role="tab" data-file="generated.nix" aria-selected="true">generated.nix</button>
+          <button class="tab" role="tab" data-file="configuration.nix" aria-selected="false">configuration.nix</button>
+          <button class="tab" role="tab" data-file="flake.nix" aria-selected="false">flake.nix</button>
+        </div>
+      </header>
       <div class="pane-body"><pre class="nix notranslate" id="out" translate="no"></pre></div>
       <div class="status" id="status">Syntax check runs nix-instantiate --parse when Nix is on PATH.</div>
     </section>

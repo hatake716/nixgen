@@ -19,6 +19,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from nixgen_core import parse_type, render_module  # noqa: E402
 from nix_import import read_config, NixSyntaxError  # noqa: E402
+from starter import starter_files  # noqa: E402
 
 DB_PATH = None
 STATIC = os.path.join(HERE, "static")
@@ -443,6 +444,10 @@ class Handler(BaseHTTPRequestHandler):
             if kind == "packages":
                 return self._json({"results": search_packages(q, limit)})
             return self._json({"results": search_options(q, limit, one("supported") == "1")})
+        if u.path == "/api/starter":
+            return self._json(starter_files(
+                one("host"), one("user"), one("system"),
+                get_meta().get("channel", "nixos-26.05")))
         if u.path == "/api/option":
             opt = get_option(one("path", ""))
             return self._json(opt or {"error": "not found"}, 200 if opt else 404)

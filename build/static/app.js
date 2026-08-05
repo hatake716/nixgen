@@ -40,7 +40,7 @@ function guardIdentifiers(root) {
       if (n.textContent === n.dataset.keep) continue;
       // The code pane carries syntax colouring, so rebuild it rather than
       // flattening it back to plain text.
-      if (n.id === 'out') paintCode(currentText);
+      if (n.id === 'out') paintCode(currentText());
       else n.textContent = n.dataset.keep;
     }
   };
@@ -78,6 +78,8 @@ const state = {
   channel: 'nixos',
   selected: new Map(),   // key -> entry
   verbatim: new Set(),   // resolved paths copied straight from the user's file
+  file: 'generated.nix', // which file the output pane is showing
+  starter: {},           // configuration.nix / flake.nix, from /api/starter
   unfree: new Set(),     // attrs that need nixpkgs.config.allowUnfree
   lastTouched: null,
 };
@@ -92,6 +94,7 @@ const state = {
     `${(+meta.option_count).toLocaleString()} options · ${(+meta.package_count).toLocaleString()} packages`;
   runSearch();
   renderEditor();
+  loadStarter();
   guardIdentifiers(document.body);
 })();
 
@@ -104,15 +107,72 @@ $('#q').addEventListener('input', () => {
 });
 $('#only-supported').addEventListener('change', runSearch);
 
-$$('.tabs .tab').forEach(t => t.addEventListener('click', () => {
-  $$('.tabs .tab').forEach(x => x.setAttribute('aria-selected', String(x === t)));
+$$('#pane-catalog .tab').forEach(t => t.addEventListener('click', () => {
+  $$('#pane-catalog .tab').forEach(x => x.setAttribute('aria-selected', String(x === t)));
   state.kind = t.dataset.kind;
+  const setup = state.kind === 'setup';
+  $('.searchwrap').hidden = setup;
+  $('#results').hidden = setup;
+  $('#setup').hidden = !setup;
+  // the output pane follows the tab you are on
+  showFile(setup ? 'configuration.nix' : 'generated.nix');
+  if (setup) return;
   $('#filterline').style.display = state.kind === 'options' ? '' : 'none';
   $('#q').placeholder = state.kind === 'options'
     ? 'openssh, firewall, timeZone…'
     : 'firefox, ripgrep, obsidian…';
   runSearch();
 }));
+
+/* ---------------------------------------------------------- starter files */
+
+let starterTimer;
+function onSetupChange() {
+  clearTimeout(starterTimer);
+  starterTimer = setTimeout(loadStarter, 200);
+}
+['s-host', 's-user', 's-system'].forEach(id =>
+  $('#' + id).addEventListener('input', onSetupChange));
+
+/* The host name becomes a Nix attribute (nixosConfigurations.<host>) and the
+   user name an attribute under users.users, so both have to be plain
+   identifiers. The server falls back to a safe value; say so rather than
+   quietly substituting one. */
+const NAME_OK = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+
+function checkName(id, fallback) {
+  const input = $('#' + id);
+  const warn = $('#' + id + '-warn');
+  const ok = NAME_OK.test(input.value.trim());
+  input.classList.toggle('bad', !ok);
+  warn.hidden = ok;
+  if (!ok) warn.textContent =
+    `Letters, digits, - and _ only, starting with a letter. Using "${fallback}" for now.`;
+  return ok;
+}
+
+async function loadStarter() {
+  checkName('s-host', 'nixos');
+  checkName('s-user', 'user');
+  const host = $('#s-host').value.trim() || 'nixos';
+  const q = new URLSearchParams({
+    host, user: $('#s-user').value.trim(), system: $('#s-system').value,
+  });
+  state.starter = await fetch('/api/starter?' + q).then(r => r.json());
+  $('#s-cmd2').textContent = `sudo nixos-rebuild switch --flake /etc/nixos#${host}`;
+  if (state.file !== 'generated.nix') paintCode(currentText());
+}
+
+$$('.filetabs .tab').forEach(t =>
+  t.addEventListener('click', () => showFile(t.dataset.file)));
+
+function showFile(name) {
+  state.file = name;
+  $$('.filetabs .tab').forEach(x =>
+    x.setAttribute('aria-selected', String(x.dataset.file === name)));
+  $('#btn-dl').textContent = 'Download ' + name;
+  paintCode(currentText());
+}
 
 async function runSearch() {
   const q = $('#q').value.trim();
@@ -477,7 +537,13 @@ function flashCard(path) {
 
 /* ---------------------------------------------------------------- output */
 
-let renderTimer, currentText = '';
+let renderTimer, generatedText = '';
+
+function currentText() {
+  return state.file === 'generated.nix'
+    ? generatedText
+    : (state.starter[state.file] || '');
+}
 
 function pushRender() {
   clearTimeout(renderTimer);
@@ -509,8 +575,8 @@ async function doRender() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ entries, channel: state.channel }),
   }).then(r => r.json());
-  currentText = res.text;
-  paintCode(res.text);
+  generatedText = res.text;
+  if (state.file === 'generated.nix') paintCode(res.text);
   const notes = [];
   const todo = (res.text.match(/CHANGE_ME/g) || []).length;
   if (todo) notes.push(`${todo} name${todo > 1 ? 's' : ''} still to fill in — look for CHANGE_ME.`);
@@ -541,7 +607,8 @@ function paintCode(text) {
         } else span.appendChild(k);
         span.appendChild(document.createTextNode(m[3]));
         span.appendChild(el('span', 'v', m[4]));
-        if (state.verbatim.has(m[2])) span.classList.add('verbatim');
+        if (state.file === 'generated.nix' && state.verbatim.has(m[2]))
+          span.classList.add('verbatim');
       } else span.textContent = line;
     }
     if (line.includes('CHANGE_ME')) span.classList.add('todo');
@@ -657,7 +724,7 @@ function showNotice(items) {
 
 $('#btn-copy').addEventListener('click', async () => {
   try {
-    await navigator.clipboard.writeText(currentText);
+    await navigator.clipboard.writeText(currentText());
     setStatus('Copied to clipboard.', 'ok');
   } catch {
     setStatus('Clipboard blocked by the browser. Use Download instead.', 'bad');
@@ -665,10 +732,10 @@ $('#btn-copy').addEventListener('click', async () => {
 });
 
 $('#btn-dl').addEventListener('click', () => {
-  const blob = new Blob([currentText], { type: 'text/plain' });
+  const blob = new Blob([currentText()], { type: 'text/plain' });
   const a = el('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'generated.nix';
+  a.download = state.file;
   a.click();
   URL.revokeObjectURL(a.href);
 });
@@ -678,7 +745,7 @@ $('#btn-check').addEventListener('click', async () => {
   const r = await fetch('/api/validate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text: currentText }),
+    body: JSON.stringify({ text: currentText() }),
   }).then(r => r.json());
   setStatus(r.message, r.ok === true ? 'ok' : r.ok === false ? 'bad' : '');
 });
