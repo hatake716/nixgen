@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<!-- lang is "en": the page content really is English, and declaring ja here
+     stops Chrome from ever offering to translate it. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>nixgen — NixOS configuration generator</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="brand notranslate" translate="no">nix<span>gen</span></div>
+    <div class="channel notranslate" id="channel" translate="no">…</div>
+    <div class="counts" id="counts"></div>
+    <div class="actions">
+      <button class="btn" id="btn-import">Import configuration.nix</button>
+      <input type="file" id="file" accept=".nix" hidden>
+      <button class="btn" id="btn-check">Check syntax</button>
+      <button class="btn" id="btn-copy">Copy</button>
+      <button class="btn primary" id="btn-dl">Download generated.nix</button>
+    </div>
+  </header>
+
+  <main>
+
+    <section class="pane active" id="pane-catalog">
+      <header>
+        <div class="tabs" role="tablist">
+          <button class="tab" role="tab" data-kind="options" aria-selected="true">Options</button>
+          <button class="tab" role="tab" data-kind="packages" aria-selected="false">Packages</button>
+        </div>
+      </header>
+      <div class="searchwrap">
+        <input type="search" id="q" placeholder="openssh, firewall, timeZone…" autocomplete="off" spellcheck="false">
+        <label class="filterline" id="filterline">
+          <input type="checkbox" id="only-supported"> Hide options that need hand-written Nix
+        </label>
+      </div>
+      <div class="pane-body" id="results"></div>
+    </section>
+
+    <section class="pane" id="pane-editor">
+      <header>
+        <div class="eyebrow">Your module — <span id="sel-count">0</span> set</div>
+      </header>
+      <div class="pane-body"><div id="notice"></div><div id="editor"></div></div>
+    </section>
+
+    <section class="pane out" id="pane-out">
+      <header><div class="eyebrow">generated.nix</div></header>
+      <div class="pane-body"><pre class="nix notranslate" id="out" translate="no"></pre></div>
+      <div class="status" id="status">Syntax check runs nix-instantiate --parse when Nix is on PATH.</div>
+    </section>
+
+  </main>
+
+  <nav class="mobilebar">
+    <button class="tab" data-pane="pane-catalog" aria-selected="true">Catalog</button>
+    <button class="tab" data-pane="pane-editor" aria-selected="false">Module</button>
+    <button class="tab" data-pane="pane-out" aria-selected="false">Output</button>
+  </nav>
+
+</div>
+<script src="/app.js"></script>
+</body>
+</html>

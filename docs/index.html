@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<!--
+  GitHub Pages landing page for nixgen.
+
+  Before publishing, replace hatake716 below with your account name,
+  then enable Pages in the repository settings with the source set to
+  "Deploy from a branch" -> main -> /docs.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>nixgen — a form for all 24,517 NixOS options</title>
+<meta name="description" content="Search every option and package in the NixOS stable channel, fill in a form, get a .nix module. Reads your existing configuration.nix too.">
+<meta property="og:title" content="nixgen">
+<meta property="og:description" content="A form for all 24,517 NixOS options and 144,200 packages.">
+<meta property="og:image" content="screenshot.png">
+<style>
+:root {
+  --ground:   #d9dde3;
+  --panel:    #f6f7f9;
+  --panel-2:  #ecEef2;
+  --ink:      #1b2027;
+  --ink-soft: #5c6773;
+  --ink-faint:#8e98a4;
+  --rule:     #c2c9d2;
+  --accent:   #4b6fb5;
+  --accent-soft:#dde5f4;
+  --signal:   #8a5a00;
+  --code-bg:  #171c24;
+  --code-fg:  #cdd6e3;
+  --code-key: #8fb4e8;
+  --code-val: #b9d08b;
+  --code-dim: #5d6b7f;
+  --code-vb:  #d7a6f0;
+  --mono: ui-monospace, "JetBrains Mono", "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;
+  --sans: ui-sans-serif, Inter, "Segoe UI", Roboto, system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--ground); color: var(--ink);
+             font-family: var(--sans); font-size: 15px; line-height: 1.65;
+             -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+.cols, .stats, figure, table, pre { min-width: 0; }
+a { color: var(--accent); }
+
+/* language switch ------------------------------------------------------- */
+html[lang="en"] .ja, html[lang="ja"] .en { display: none; }
+
+/* masthead -------------------------------------------------------------- */
+header.top { border-bottom: 1px solid var(--rule); background: var(--panel); }
+header.top .wrap { display: flex; align-items: center; gap: 14px; padding-top: 12px; padding-bottom: 12px; }
+.brand { font-family: var(--mono); font-weight: 700; font-size: 17px; letter-spacing: -.02em; }
+.brand span { color: var(--accent); }
+.top nav { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.btn { border: 1px solid var(--rule); background: var(--panel-2); color: var(--ink-soft);
+       padding: 6px 12px; border-radius: 3px; font-size: 12px; font-weight: 600;
+       cursor: pointer; text-decoration: none; display: inline-block; }
+.btn:hover { background: #fff; color: var(--ink); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover { background: #3f5f9e; color: #fff; }
+
+.hero { padding: 54px 0 40px; }
+.hero .grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,440px); gap: 44px; align-items: start; }
+h1 { font-size: 40px; line-height: 1.15; letter-spacing: -.025em; margin: 0 0 14px; font-weight: 700; }
+.lede { font-size: 17px; color: var(--ink-soft); margin: 0 0 22px; }
+.lede b { color: var(--ink); font-weight: 600; }
+
+.stats { display: flex; flex-wrap: wrap; gap: 0; border: 1px solid var(--rule);
+         border-radius: 3px; background: var(--panel); margin: 0 0 22px; }
+.stat { flex: 1 1 0; min-width: 120px; padding: 11px 14px; border-right: 1px solid var(--rule); }
+.stat:last-child { border-right: none; }
+.stat b { display: block; font-family: var(--mono); font-size: 19px; letter-spacing: -.02em; }
+.stat span { font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+             color: var(--ink-faint); font-weight: 600; }
+
+pre.cmd { background: var(--code-bg); color: var(--code-fg); font-family: var(--mono);
+          font-size: 13px; padding: 13px 16px; border-radius: 3px; margin: 0 0 14px;
+          overflow-x: auto; }
+pre.cmd .p { color: var(--code-dim); }
+.tiny { font-size: 12px; color: var(--ink-faint); margin: 0; }
+
+pre.nix { background: var(--code-bg); color: var(--code-fg); font-family: var(--mono);
+          font-size: 12.5px; line-height: 1.7; padding: 18px 20px; border-radius: 3px;
+          margin: 0; overflow-x: auto; }
+pre.nix .c { color: var(--code-dim); }
+pre.nix .k { color: var(--code-key); }
+pre.nix .v { color: var(--code-val); }
+pre.nix .vb { color: var(--code-vb); }
+
+/* sections -------------------------------------------------------------- */
+section { padding: 44px 0; border-top: 1px solid var(--rule); }
+.eyebrow { font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+           color: var(--ink-faint); font-weight: 700; margin: 0 0 8px; }
+h2 { font-size: 25px; letter-spacing: -.02em; margin: 0 0 16px; font-weight: 700; }
+h3 { font-size: 15px; margin: 26px 0 6px; font-weight: 700; }
+p { margin: 0 0 14px; max-width: 68ch; }
+code { font-family: var(--mono); font-size: .9em; background: var(--panel);
+       border: 1px solid var(--rule); border-radius: 2px; padding: .5px 4px; }
+pre code { border: none; background: none; padding: 0; }
+
+figure { margin: 26px 0 0; }
+figure img { width: 100%; display: block; border: 1px solid var(--rule); border-radius: 3px; }
+figcaption { font-size: 12px; color: var(--ink-faint); margin-top: 8px; }
+
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 22px; }
+.card { background: var(--panel); border: 1px solid var(--rule); border-radius: 3px; padding: 16px 18px; }
+.card h4 { margin: 0 0 6px; font-size: 13px; font-family: var(--mono); }
+.card p { font-size: 13px; color: var(--ink-soft); margin: 0; }
+.card.vb { border-left: 3px solid #8a5fb0; }
+.card.ok { border-left: 3px solid var(--accent); }
+
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; margin: 0 0 14px; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); }
+td:first-child { font-family: var(--mono); font-size: 12.5px; white-space: nowrap; }
+
+ul { max-width: 68ch; padding-left: 20px; }
+li { margin-bottom: 7px; }
+
+footer { border-top: 1px solid var(--rule); background: var(--panel);
+         padding: 26px 0; font-size: 12.5px; color: var(--ink-faint); }
+footer .wrap { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+footer a { margin-right: 14px; }
+
+@media (max-width: 860px) {
+  /* minmax(0,…) matters: a bare 1fr keeps min-width:auto, and the code blocks
+     then push the whole page wider than the viewport. */
+  .hero .grid { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  h1 { font-size: 31px; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">nix<span>gen</span></div>
+    <nav>
+      <button class="btn" id="lang">日本語</button>
+      <a class="btn primary" href="https://github.com/hatake716/nixgen">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap hero">
+  <div class="grid">
+    <div>
+      <h1 class="en">A form for all 24,517<br>NixOS options.</h1>
+      <h1 class="ja">NixOSの全24,517<br>オプションをフォームで。</h1>
+
+      <p class="lede en">Search every option and package in the stable channel, fill in
+        values with real widgets, and get a <code>.nix</code> module you can import.
+        It reads your existing <b>configuration.nix</b> too.</p>
+      <p class="lede ja">安定版チャンネルの全オプションとパッケージを検索し、型に応じたウィジェットで値を入れると、
+        そのまま <code>imports</code> できる <code>.nix</code> が出てきます。
+        既存の <b>configuration.nix</b> の読み込みにも対応しています。</p>
+
+      <div class="stats">
+        <div class="stat"><b>24,517</b><span class="en">options</span><span class="ja">オプション</span></div>
+        <div class="stat"><b>144,200</b><span class="en">packages</span><span class="ja">パッケージ</span></div>
+        <div class="stat"><b>88.3%</b><span class="en">get a widget</span><span class="ja">ウィジェット対応</span></div>
+        <div class="stat"><b>0</b><span class="en">dependencies</span><span class="ja">依存パッケージ</span></div>
+      </div>
+
+      <pre class="cmd"><span class="p">$</span> git clone https://github.com/hatake716/nixgen
+<span class="p">$</span> cd nixgen && nix run .</pre>
+      <p class="tiny en">Python standard library and a browser. No pip, no npm.</p>
+      <p class="tiny ja">Pythonの標準ライブラリとブラウザだけ。pipもnpmも使いません。</p>
+    </div>
+
+    <pre class="nix"><span class="c"># Generated by nixgen — do not edit by hand.</span>
+<span class="c"># channel: nixos-26.05</span>
+
+{ config, lib, pkgs, ... }:
+
+{
+  <span class="k">environment.systemPackages</span> = <span class="v">[ pkgs.ripgrep ]</span>;
+  <span class="k">networking.firewall.allowedTCPPorts</span> = <span class="v">[ 22 ]</span>;
+  <span class="k">services.openssh.enable</span> = <span class="v">true</span>;
+  <span class="k">services.xserver.xkb.layout</span> = <span class="v">"jp"</span>;
+  <span class="k">time.timeZone</span> = <span class="v">"Asia/Tokyo"</span>;
+}</pre>
+  </div>
+
+  <figure>
+    <img src="screenshot.png" alt="nixgen: option catalogue on the left, editable settings in the middle, the generated Nix file on the right">
+    <figcaption class="en">Catalogue, form, and the file being generated — all visible at once.</figcaption>
+    <figcaption class="ja">カタログ、フォーム、生成中のファイルが同時に見えます。</figcaption>
+  </figure>
+</div>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow en">How it works</p>
+    <p class="eyebrow ja">しくみ</p>
+    <h2 class="en">Nothing here is written per option.</h2>
+    <h2 class="ja">オプションごとの手書き定義は一行もありません。</h2>
+
+    <p class="en">NixOS publishes machine-readable metadata for every option in every release:
+      path, type, default, example, description. The whole catalogue comes from that file,
+      so full coverage is a matter of parsing rather than of authoring.</p>
+    <p class="ja">NixOSは全リリースについて、全オプションのメタデータを機械可読な形で配信しています。パス、型、デフォルト値、例、説明文。
+      カタログ全体がこのファイル由来なので、網羅性は「書く量」ではなく「パースの精度」の問題になります。</p>
+
+    <pre class="cmd">https://channels.nixos.org/nixos-26.05/options.json.br
+https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
+
+    <h3 class="en">The awkward part is the type field</h3>
+    <h3 class="ja">厄介なのは型フィールド</h3>
+    <p class="en">It is a sentence, not a schema — and there are 1,247 distinct ones:</p>
+    <p class="ja">構造化スキーマではなく、人間向けの文章です。しかも1,247種類あります。</p>
+
+    <pre class="nix"><span class="v">"boolean"</span>
+<span class="v">"null or (list of string)"</span>
+<span class="v">"16 bit unsigned integer; between 0 and 65535 (both inclusive)"</span>
+<span class="v">"attribute set of (submodule)"</span></pre>
+
+    <p class="en" style="margin-top:14px">These get parsed into a small type tree, and the UI picks a widget per node.
+      <b>88.3% of options map onto a real widget</b>; the rest fall back to a Nix text box.
+      Most of those are container parents whose children are individually editable anyway.</p>
+    <p class="ja" style="margin-top:14px">これを小さな型ツリーに変換し、ノードごとにウィジェットを選びます。
+      <b>専用ウィジェットに対応できるのは88.3%</b>で、残りはNix式の直接入力にフォールバックします。
+      ただしその大半はコンテナの親であり、子は個別に編集できます。</p>
+
+    <h3 class="en">Search is the actual interface</h3>
+    <h3 class="ja">実質的な操作系は検索</h3>
+    <p class="en">A tree of 24,517 options is unusable. Results are bucketed by how the query
+      matched the path, then ordered by depth. Whole-segment matching does most of the work:
+      typing <code>firewall</code> puts <code>networking.firewall.enable</code> first, because
+      <code>firewall</code> is a complete path segment there while <code>services.firewalld</code>
+      only contains it as a substring.</p>
+    <p class="ja">24,517件のツリーを人間が辿るのは不可能です。クエリがパスにどう一致したかで段階分けし、階層の浅さで並べます。
+      効いているのはセグメント単位の一致判定で、<code>firewall</code> と打つと <code>networking.firewall.enable</code> が先頭に来ます。
+      こちらは <code>firewall</code> がドット区切りの完全なセグメントであるのに対し、
+      <code>services.firewalld</code> は部分文字列として含んでいるだけだからです。</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow en">Importing</p>
+    <p class="eyebrow ja">読み込み</p>
+    <h2 class="en">Point it at your configuration.nix.</h2>
+    <h2 class="ja">既存の configuration.nix を読み込めます。</h2>
+
+    <p class="en">The file goes to <code>nix-instantiate --parse</code> first, so the real Nix parser
+      does the work — no regexes over your source. Your file is opened read-only and never written to.
+      Every setting ends up in the output, in one of four ways.</p>
+    <p class="ja">ファイルはまず <code>nix-instantiate --parse</code> に渡します。<b>本物のNixパーサに解析させる</b>ので、
+      ソースを正規表現で殴る必要がありません。ファイルは読み取り専用で開かれ、書き換えは一切しません。
+      すべての項目が4通りのいずれかで出力に入ります。</p>
+
+    <div class="cols">
+      <div class="card ok">
+        <h4 class="en">Filled into the form</h4>
+        <h4 class="ja">フォームに反映</h4>
+        <p class="en">Literals that fit the widget. <code>mkForce</code> and <code>mkDefault</code>
+          are unwrapped, and names in paths fill the <code>&lt;name&gt;</code> slot.</p>
+        <p class="ja">ウィジェットに載るリテラル。<code>mkForce</code> と <code>mkDefault</code> は展開し、
+          パス中の名前は <code>&lt;name&gt;</code> スロットに入ります。</p>
+      </div>
+      <div class="card vb">
+        <h4 class="en">Verbatim — an expression</h4>
+        <h4 class="ja">そのまま転記 — 式</h4>
+        <p class="en"><code>lib.mkIf</code>, <code>let</code> references. A form cannot hold a
+          conditional, so it is copied through unchanged.</p>
+        <p class="ja"><code>lib.mkIf</code> や <code>let</code> 参照。フォームは条件分岐を保持できないので、
+          そのままの形で書き出します。</p>
+      </div>
+      <div class="card vb">
+        <h4 class="en">Verbatim — not in this release</h4>
+        <h4 class="ja">そのまま転記 — 廃止済み</h4>
+        <p class="en">Renamed, removed, or inside a free-form submodule. Highlighted, so a dead
+          option becomes visible instead of silently breaking the build.</p>
+        <p class="ja">改名・削除されたか、自由形式サブモジュールの中。色分けされるので、
+          廃止されたオプションが黙って残ることがありません。</p>
+      </div>
+      <div class="card vb">
+        <h4 class="en">Verbatim — module structure</h4>
+        <h4 class="ja">そのまま転記 — モジュール構造</h4>
+        <p class="en"><code>imports</code> and friends, with relative paths restored, so
+          <code>./hardware-configuration.nix</code> still resolves.</p>
+        <p class="ja"><code>imports</code> など。相対パスを復元するので
+          <code>./hardware-configuration.nix</code> も解決されます。</p>
+      </div>
+    </div>
+
+    <figure>
+      <img src="screenshot-import.png" alt="Import summary listing what was filled in and what was carried over verbatim">
+      <figcaption class="en">Every line is accounted for — the summary says exactly what happened to each.</figcaption>
+      <figcaption class="ja">すべての行が計上されます。何がどう扱われたかが一覧で出ます。</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow en">Correctness</p>
+    <p class="eyebrow ja">正しさの検証</p>
+    <h2 class="en">Fuzzed against the real Nix parser.</h2>
+    <h2 class="ja">本物のNixパーサでファジングしています。</h2>
+
+    <p class="en">8,000 randomly chosen options per run, seeded with hostile values — embedded
+      quotes, backslashes, <code>${</code>, newlines, <code>''</code>, empty strings, Japanese text —
+      and hostile <code>&lt;name&gt;</code> substitutions including Nix keywords. Every run parses.
+      Three real bugs came out of it:</p>
+    <p class="ja">1回につきランダムな8,000オプション。値には敵対的なもの(クォート、バックスラッシュ、<code>${</code>、改行、
+      <code>''</code>、空文字列、日本語)を、<code>&lt;name&gt;</code> の置換にもNix予約語を含む敵対的なものを入れています。
+      全て通過します。この過程で実際に3件のバグが見つかりました。</p>
+
+    <table>
+      <tr><th class="en">Bug</th><th class="ja">バグ</th><th class="en">Why it matters</th><th class="ja">影響範囲</th></tr>
+      <tr><td>&lt;name&gt; ≠ &lt;n&gt; ≠ *</td>
+          <td><span class="en">5,031 options (20%) carry a placeholder, and not all look alike</span>
+              <span class="ja">5,031件(20%)がプレースホルダを含み、形が一様ではない</span></td></tr>
+      <tr><td>[ -1 ]</td>
+          <td><span class="en">A syntax error — negative numbers need parentheses in a list</span>
+              <span class="ja">構文エラー。リスト内の負数には括弧が必要</span></td></tr>
+      <tr><td>if / rec / or</td>
+          <td><span class="en">Reserved words must be quoted as attribute names</span>
+              <span class="ja">予約語を属性名にするにはクォートが必要</span></td></tr>
+    </table>
+
+    <p class="en">Attribute paths are rendered segment by segment, and any segment that is not a
+      plain identifier is quoted — so a vhost named <code>my site.example.com</code> comes out as
+      valid Nix rather than a broken file.</p>
+    <p class="ja">属性パスはセグメント単位でレンダリングし、通常の識別子でないものは自動でクォートします。
+      <code>my site.example.com</code> という名前のvhostも、壊れたファイルではなく有効なNixになります。</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow en">Limits</p>
+    <p class="eyebrow ja">対応していないこと</p>
+    <h2 class="en">What it does not do.</h2>
+    <h2 class="ja">できないこと。</h2>
+
+    <ul class="en">
+      <li><b>Unstable.</b> Options cannot be mixed across channels — an unstable
+        <code>services.foo.*</code> needs unstable's module set, so there is no way to emit it for
+        a stable system. One channel, one truth.</li>
+      <li><b>Write back to your existing file.</b> Reading one is supported; writing values back
+        while preserving structure and comments is a much harder problem, and getting it wrong
+        means damaging a working system.</li>
+      <li><b>Type checking.</b> The built-in check runs <code>nix-instantiate --parse</code>, which
+        catches malformed Nix. Whether a value has the right type is for
+        <code>nixos-rebuild dry-build</code> to say.</li>
+    </ul>
+    <ul class="ja">
+      <li><b>unstable。</b> オプションはチャンネルをまたいで混在させられません。unstableの
+        <code>services.foo.*</code> はunstableのモジュールセットを前提にしているため、
+        安定版向けに出力する手段がそもそも存在しません。1チャンネル・1つの真実です。</li>
+      <li><b>既存ファイルへの書き戻し。</b> 読み込みは対応していますが、構造とコメントを保ったまま値を書き戻すのは桁違いに難しく、
+        失敗したときの代償が「動いているシステムの破壊」です。</li>
+      <li><b>型チェック。</b> 内蔵のチェックは <code>nix-instantiate --parse</code> で、壊れたNixは捕まえます。
+        値の型が正しいかどうかを判断できるのは <code>nixos-rebuild dry-build</code> だけです。</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <a href="https://github.com/hatake716/nixgen">GitHub</a>
+      <a href="https://github.com/hatake716/nixgen/blob/main/README.md">README</a>
+      <a href="https://github.com/hatake716/nixgen/blob/main/README.ja.md">README (日本語)</a>
+      <a href="https://github.com/hatake716/nixgen/blob/main/LICENSE">MIT License</a>
+    </div>
+    <div style="margin-left:auto">
+      <span class="en">Not affiliated with the NixOS project.</span>
+      <span class="ja">NixOSプロジェクトとは無関係の個人プロジェクトです。</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const root = document.documentElement;
+  const btn = document.getElementById('lang');
+  const set = l => {
+    root.lang = l;
+    btn.textContent = l === 'ja' ? 'English' : '日本語';
+  };
+  set((navigator.language || 'en').toLowerCase().startsWith('ja') ? 'ja' : 'en');
+  btn.addEventListener('click', () => set(root.lang === 'ja' ? 'en' : 'ja'));
+</script>
+
+</body>
+</html>
