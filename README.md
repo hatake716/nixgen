@@ -1,125 +1,188 @@
 # nixgen
 
-A form for every NixOS option. Search all 24,517 options and 144,200 packages
-in the stable channel, fill in values with real widgets, and get a `.nix`
-module you can import.
+A search box and a form for your NixOS configuration. Look through 24,517
+settings and 144,200 pieces of software, tick the boxes and fill in the fields,
+and get a configuration file you can use straight away.
 
 ![nixgen](docs/screenshot.png)
 
-- **Search** the whole catalogue — every option and every package, not a
-  curated subset.
-- **Import** your existing `configuration.nix`. It is read, never written to.
-- **Scaffold** a new machine: the Setup tab writes the `configuration.nix` and
-  `flake.nix` that go around the generated module.
-
-Python's standard library and a browser. No pip, no npm, no build step.
-
 日本語版: [README.ja.md](./README.ja.md) ·
 Homepage: <https://hatake716.github.io/nixgen/>
+
+> **This is a beta.** It works on the author's own machine and in a virtual
+> machine, but nobody knows what it does anywhere else. Always check with
+> `dry-build` (below) before applying anything.
+
+---
+
+## What it does
+
+On NixOS you write your system's settings into a file. To turn on SSH, you
+write this:
+
+```nix
+services.openssh.enable = true;
+```
+
+The catch is that **you cannot write anything without knowing the name of the
+setting**, and there are 24,517 of them. The official documentation is a long
+page you have to search through every time.
+
+nixgen does that part for you:
+
+1. type `ssh` into the search box
+2. click `services.openssh.enable` in the results
+3. flip the switch on
+4. a file appears on the right containing `services.openssh.enable = true;`
+
+You do not have to remember the name. Any word that comes to mind will find it.
+
+### Who it is for
+
+- **People who cannot keep the names in their head.** The less often you use a
+  setting, the more time you spend looking it up
+- **People new to NixOS.** When you do not yet know what *can* be configured,
+  typing words into a search box and reading what comes back works as a map
+- **People who just upgraded.** Load your current file and **settings that no
+  longer exist are highlighted**
+
+### Who it is not for
+
+- **People who know the names and would rather type them.** This will only slow
+  you down
+- **People not running NixOS.** Sorry — this is NixOS-only
 
 ---
 
 ## Installing
 
-You need NixOS, or Nix on another Linux. You do not need to clone anything.
+You need NixOS, or Nix on another Linux. **You do not need to download
+anything.**
 
 ### Step 1 — Turn on flakes
 
-A fresh NixOS install does not have flakes enabled. Check with:
+"Flakes" is the newer way of writing Nix. This tool uses it, so it has to be
+switched on first. A fresh NixOS install has it switched off.
+
+Check whether you already have it:
 
 ```bash
 nix flake --help
 ```
 
-If that prints help text, skip to step 2. If it says the feature is disabled,
-add this line to your configuration:
+**If a page of help text appears, you are set.** Skip to step 2.
+
+If it complains about an experimental feature, open your configuration file
+(`/etc/nixos/configuration.nix`) and add this line between the `{` and the `}`:
 
 ```nix
 nix.settings.experimental-features = [ "nix-command" "flakes" ];
 ```
 
-Apply it, then run `nix flake --help` again to confirm:
+Save it, then apply it to the system:
 
 ```bash
 sudo nixos-rebuild switch
 ```
 
-### Step 2 — Run it
+Run `nix flake --help` again. Help text means it worked.
+
+### Step 2 — Start it
 
 ```bash
 nix run github:hatake716/nixgen
 ```
 
-That is the whole installation.
+**That is the whole thing.** No download, no install step. Nix collects what it
+needs and starts the program.
 
-**The first run takes about five minutes.** In order, it:
+**The first run takes about five minutes.** Behind the scenes it:
 
-1. builds a small wrapper around Python
-2. downloads about 10 MB of option and package metadata for `nixos-26.05`
-3. builds a search index into `~/.local/share/nixgen` (about 37 MB)
-4. deletes the raw metadata, which is no longer needed
+1. sets up a Python environment
+2. downloads the list of NixOS settings and software (about 10 MB)
+3. builds a search database (about 37 MB) in `~/.local/share/nixgen`
+4. deletes the raw data it no longer needs
 5. opens <http://127.0.0.1:8823/> in your browser
 
-You should see three panes: search on the left, an empty middle, and a dark
-panel on the right showing the file being generated. Type `openssh` into the
-search box and click the first result to check that it works.
+You should see three panes: search on the left, input fields in the middle, the
+file taking shape on the right. Type `openssh` into the search box and click the
+top result — if a line appears on the right, everything is working.
 
-Press **Ctrl-C** in the terminal to stop. Every run after the first starts in
-about a second, because the index is already built.
+Press **Ctrl-C** in the terminal to stop. Later runs start in about a second,
+because the database is already built.
 
 ### Step 3 — Keep it around (optional)
+
+So you can start it by typing `nixgen`:
 
 ```bash
 nix profile install github:hatake716/nixgen
 nixgen
 ```
 
-`nixgen` is now on your PATH. Remove it later with `nix profile remove nixgen`.
+Remove it later with `nix profile remove nixgen`.
 
-### Step 4 — Use what it generates
+### Step 4 — Use the file it made
 
-Press **Download generated.nix** and save the file next to your
-`configuration.nix`, usually in `/etc/nixos/`. Add it to your imports:
+Press **Download generated.nix** at the top right and save the file next to the
+`configuration.nix` you already have — usually in `/etc/nixos/`.
+
+Then open `configuration.nix` and add one line to the `imports` list:
 
 ```nix
 {
   imports = [
     ./hardware-configuration.nix
-    ./generated.nix
+    ./generated.nix          # <- add this line
   ];
 }
 ```
 
-Check before applying:
+That means "read the contents of `generated.nix` as settings too". **Nothing
+inside your original `configuration.nix` is touched.**
+
+Check that it holds together before applying it:
 
 ```bash
 sudo nixos-rebuild dry-build
 ```
 
-If that succeeds, apply with `sudo nixos-rebuild switch`. To undo everything,
-delete the `./generated.nix` line and rebuild — nothing else in your
-configuration was touched.
+If there are no errors, apply it for real:
+
+```bash
+sudo nixos-rebuild switch
+```
+
+**To undo everything, delete that one line and run `switch` again.** Nothing
+else changed, so you get exactly your old system back.
 
 ### If something goes wrong
 
 **`experimental Nix feature 'nix-command' is disabled`**
-Step 1 was skipped, or the rebuild has not run yet.
+Step 1 was skipped, or `nixos-rebuild switch` has not been run yet.
 
 **`does not contain a 'flake.nix', searching up`**
 or **`Path 'build' does not exist in Git repository`**
-You are running from a directory inside a git repository — `/etc/nixos` is the
-usual culprit. Flakes read files from git, not from disk, so anything
-untracked is invisible to Nix. Use the `github:` form above, or run
-`git add -A` in that repository first.
+You are running inside a folder managed by git — `/etc/nixos` is the usual one.
+Flakes only look at files git already knows about, so anything untracked might
+as well not exist. Using the `github:` form above avoids this entirely.
 
 **`Address already in use`**
-Something else has port 8823. Use another: `nixgen --port 9000`.
+Something else is on port 8823. Pick another:
+
+```bash
+nixgen --port 9000
+```
 
 **The browser did not open**
-Open <http://127.0.0.1:8823/> yourself; the terminal prints the address.
+Open <http://127.0.0.1:8823/> yourself. The terminal prints the same address.
 
 **You want to start over**
-`rm -rf ~/.local/share/nixgen`, then run again to rebuild the index.
+Delete the database and run it again; it will be rebuilt.
+
+```bash
+rm -rf ~/.local/share/nixgen
+```
 
 ---
 
@@ -127,168 +190,168 @@ Open <http://127.0.0.1:8823/> yourself; the terminal prints the address.
 
 ### Finding things
 
-Search is the real interface — a tree of 24,517 options is unusable. Type a
-service name and the option you want is normally first. The **Options** and
-**Packages** tabs search the same catalogue the NixOS manual is built from.
+Nobody can scroll through 24,517 entries, so **search is the way in.**
 
-The checkbox *Hide options that need hand-written Nix* narrows the list to the
-88.3% that have a proper widget.
+Type a service name and the setting you want is normally at the top. `firewall`
+puts `networking.firewall.enable` first; `ssh` puts `services.openssh.enable`
+first.
 
-### Importing an existing configuration.nix
+The tabs switch between **Options** (settings) and **Packages** (software).
+Anything you pick under Packages is added to the list of programs to install.
 
-Press **Import configuration.nix** and pick your file. Everything it sets is
-matched against the catalogue and loaded into the form, values and all. Your
-file is opened read-only and never written to.
+Ticking *Hide options that need hand-written Nix* narrows the list to **the
+settings that have a proper input field** — 88.3% of them. The rest need you to
+write a piece of Nix yourself, and hiding them keeps things simpler while you
+are learning.
 
-The file goes to `nix-instantiate --parse` first, so the real Nix parser does
-the work — no regexes over your source. What comes back is a normalised,
-fully-parenthesised form with `a.b.c = x` expanded into nested attribute sets,
-which is then walked and flattened.
+Package lists come out in alphabetical order — on import, and as you add to
+them. Nix does not care about the order, but a sorted list is far easier to
+read and produces a much smaller diff when you change one entry.
 
-Every setting ends up in the output. Four things can happen to it:
+### Loading your existing configuration.nix
 
-| | What it means |
+Press **Import configuration.nix** and pick your file. Your current settings
+appear in the form. **The file you choose is only ever read, never written to.**
+
+Each setting lands in one of four groups. All four end up in the output, so
+nothing is lost:
+
+| Group | What it means |
 |---|---|
-| **Filled into the form** | A literal that fits the widget. `lib.mkForce` and `lib.mkDefault` are unwrapped, and names in paths fill the `<name>` slot, so `services.nginx.virtualHosts."example.com".root` works. |
-| **Verbatim — module structure** | `imports`, `options`, `disabledModules`. Not settings, but dropping `imports` means `hardware-configuration.nix` never loads. Relative paths are restored to `./…`. |
-| **Verbatim — an expression** | `lib.mkIf`, `let` references. A form cannot hold a conditional, so the expression is copied through unchanged. |
-| **Verbatim — not in this release** | Renamed, removed (`hardware.opengl.enable` is gone in 26.05), or inside a free-form submodule such as `nix.settings`. |
+| **Filled into the form** | Turned into an editable field. Most settings land here |
+| **Verbatim — module structure** | Lines like `imports`. Not settings as such, but removing them would stop your other files from being read, so they are copied across |
+| **Verbatim — an expression** | Things like `lib.mkIf ...`, where the value depends on a condition. A form cannot express that, so it is copied exactly as written |
+| **Verbatim — not in this release** | Settings that were removed or renamed when NixOS moved on |
 
-`imports` gets one adjustment: a reference to `./generated.nix` is removed,
-because the generated file cannot import itself. If it did, `nixos-rebuild`
-would fail with `stack overflow; max-call-depth exceeded` and no hint as to
-where. The import summary says when this happened.
+**Copied lines are shown in a different colour** and carry a `# verbatim` note
+at the end, so you can still spot them after downloading.
 
-Verbatim lines are highlighted in the file pane and carry a trailing
-`# verbatim` comment, so they stay obvious after you download it. They sort
-into their normal alphabetical position rather than being dumped at the end.
-
-Two things to watch. An expression that referred to a `let` binding in your
-original file will not resolve on its own — **Check syntax** points at the
-exact line. And an option that no longer exists will be rejected by
-`nixos-rebuild`; that is the point of flagging it rather than dropping it.
+Watch the fourth group especially. **A setting that no longer exists will be
+rejected by `nixos-rebuild`.** Keeping it and highlighting it is the point —
+so you notice.
 
 ### Starter files for a new machine
 
-The **Setup** tab writes the two files that sit around the generated module: a
-`configuration.nix` that imports it, and a `flake.nix` that builds the system.
-The files appear under the tabs on the right, beside `generated.nix`, and
-update as you type.
+For when you have just installed NixOS and do not have a `flake.nix` yet.
 
-Everything in them is editable:
+The **Setup** tab produces the two files you need: a `configuration.nix` that
+reads in your generated settings, and a `flake.nix` that assembles the system.
+Switch between them with the tabs at the top right and download each one.
 
-| Field | Notes |
+Everything in them is editable from the screen:
+
+| Field | What it is |
 |---|---|
-| Host name | Becomes `networking.hostName` and the flake's `nixosConfigurations.<host>` |
-| Main user | The account created with `isNormalUser`. Uncheck *Create the user account* to leave users out entirely. |
-| Architecture | `x86_64-linux` or `aarch64-linux` |
-| Boot loader | systemd-boot (UEFI), GRUB (BIOS — asks for the disk), or none if another module sets one |
-| NetworkManager | Off drops `networking.networkmanager.enable` |
-| Flakes | Off drops `nix.settings.experimental-features` |
-| Groups | `wheel` is what lets the account use `sudo`. Add `docker`, `libvirtd`, `video`… as needed. |
-| `system.stateVersion` | Defaults to the indexed release. Do not raise it to match a newer NixOS. |
+| Host name | The name of the machine |
+| Main user | Your everyday account. Untick to leave user setup out entirely |
+| Architecture | `x86_64-linux` for an ordinary PC |
+| Boot loader | systemd-boot for a UEFI machine, GRUB for an older BIOS one (it will ask which disk) |
+| NetworkManager | Manages network connections. Unticking removes the line |
+| Flakes | The feature you switched on in step 1 |
+| Groups | Which groups the account belongs to. `wheel` is what allows `sudo` |
+| `system.stateVersion` | **The NixOS version you first installed. Do not raise it to match a newer one** |
 
-Switching a block off removes its lines entirely rather than commenting them
+**Unticking something removes its lines entirely** rather than commenting them
 out, so the file stays as short as what you actually asked for.
 
-Everything in the starter `configuration.nix` is wrapped in `lib.mkDefault`.
-Without that, setting the same option in both files gives you
+### When the same setting appears in both files
+
+The starter `configuration.nix` and `generated.nix` can end up setting the same
+thing. **Those lines turn red, and the field is marked "also in
+configuration.nix".**
+
+Usually that is fine. The starter writes its lines with `lib.mkDefault`, which
+means "use this unless something else says otherwise" — so `generated.nix` wins.
+
+It becomes a problem when **both** sides use `lib.mkDefault`. Then they have
+equal priority and NixOS refuses to guess:
 
 ```
 error: The option `networking.hostName' has conflicting definition values
 ```
 
-With it, whatever you set in nixgen simply wins.
+Delete the line from whichever file you do not want it in.
 
-### When both files set the same option
+### What "Check syntax" can and cannot tell you
 
-The starter `configuration.nix` and `generated.nix` can end up defining the
-same option. Those lines are shown **in red** in the file pane, and the card
-carries an *also in configuration.nix* badge.
+The **Check syntax** button finds places where the file is **broken as Nix** —
+an unclosed bracket, a missing semicolon.
 
-Usually this is harmless: the starter uses `lib.mkDefault`, so a plain value in
-`generated.nix` wins. It breaks when *both* sides are `lib.mkDefault`, which
-happens when an imported value was an expression and kept its wrapper:
+It does **not** check whether the values make sense. Put a word where a number
+belongs and this check will still pass.
 
-```
-error: The option `networking.hostName' has conflicting definition values
-```
-
-Two definitions of equal priority, and NixOS will not guess. Delete the line
-from whichever file you do not want it in.
-
-### What "Check syntax" does and does not do
-
-It runs `nix-instantiate --parse`, which catches malformed Nix — an unbalanced
-brace, a missing semicolon. It does **not** check that a value has the right
-type, or that a combination of options makes sense. `nixos-rebuild dry-build`
-is the only thing that can say that, so always run it before switching.
+Only `sudo nixos-rebuild dry-build` can tell you that. **Always run it before
+applying.**
 
 ### Reading it in another language
 
-The page is plain HTML, so your browser's built-in translation works on it. In
-Chrome, right-click anywhere and choose *Translate to…*.
+The screen is an ordinary web page, so your browser's translation works on it.
+In Chrome, right-click and choose *Translate to…*.
 
-Only the descriptions get translated. Option paths, package attributes, type
-notation, default values and the generated Nix stay in English, because a
-translated `services.openssh.enable` is no longer valid Nix. Those elements
-carry `translate="no"`, but not every browser honours it, so each one also
-remembers its own text and puts it back if anything rewrites it.
+**Only the descriptions are translated.** Setting names, package names and the
+contents of the generated file stay in English — a translated
+`services.openssh.enable` would no longer be a valid setting.
 
-### Command-line options
+### Options when starting it
 
 ```bash
-nixgen                       # or: nix run github:hatake716/nixgen
-nixgen --port 9000           # different port
+nixgen                       # same as nix run github:hatake716/nixgen
+nixgen --port 9000           # use a different port
 nixgen --no-browser          # do not open a browser
-nixgen --db /path/to/db      # use a specific index
 ```
 
-| Variable | Default | Purpose |
+| Variable | Default | What it does |
 |---|---|---|
-| `NIXGEN_DATA` | `~/.local/share/nixgen` | where the index lives |
-| `NIXGEN_CHANNEL` | `nixos-26.05` | which release to index |
+| `NIXGEN_DATA` | `~/.local/share/nixgen` | where the database lives |
+| `NIXGEN_CHANNEL` | `nixos-26.05` | which release's settings to work with |
 
-To switch releases, delete the index and set the channel:
+To switch releases, delete the database and name the one you want:
 
 ```bash
 rm -rf ~/.local/share/nixgen
 NIXGEN_CHANNEL=nixos-25.11 nixgen
 ```
 
-Release channels only. Unstable is deliberately unsupported — see
-*What it does not do*.
+**Numbered releases only.** The rolling `unstable` channel is not supported and
+is not planned — see *What it cannot do*.
 
-### Reaching it from another machine
+### Using it from another computer
 
-The server binds to `127.0.0.1` and has no authentication, so do not move it
-to `0.0.0.0` on a network you do not control. Forward a port over SSH:
+This tool **has no login.** It is set to accept connections only from your own
+machine (`127.0.0.1`); please leave it that way.
+
+If you want to reach it from elsewhere, tunnel it over SSH:
 
 ```bash
-ssh -L 8823:127.0.0.1:8823 your-desktop
+ssh -L 8823:127.0.0.1:8823 the-other-machine
 ```
 
-Then open <http://127.0.0.1:8823/> locally.
+Then open <http://127.0.0.1:8823/> on the computer in front of you.
 
 ---
 
-## How it works
+## How it works (optional reading)
 
-### Nothing here is written per option
+None of this matters if you just want to use the thing.
 
-NixOS publishes machine-readable metadata for every option in every release:
+### The list of settings is not hand-written
+
+NixOS publishes **machine-readable data for every setting, for every
+release**:
 
 ```
 https://channels.nixos.org/nixos-26.05/options.json.br
 https://channels.nixos.org/nixos-26.05/packages.json.br
 ```
 
-`options.json` gives each option's path, type, default, example, description
-and declaring file. The whole catalogue comes from that file, so full coverage
-is a matter of parsing rather than of authoring.
+Name, type, default, description, which file declares it. The official manual is
+built from the same data. Everything nixgen knows comes from there — **there is
+not a single hand-written entry.**
 
-The awkward part is the `type` field. It is a sentence, not a schema, and
-there are 1,247 distinct ones:
+### The hard part is the type
+
+Each setting's type is written as **a sentence for humans, not a format a
+program can read**, and there are 1,247 different ones:
 
 ```
 "boolean"
@@ -297,74 +360,63 @@ there are 1,247 distinct ones:
 "attribute set of (submodule)"
 ```
 
-`nixgen_core.py` parses them into a small tree (`nullable`, `list`, `attrs`,
-`enum`, `int`, `str`, `lines`, `path`, `package`, `bool`) and the UI picks a
-widget per node. **21,652 of 24,517 options — 88.3% — map onto a real
-widget.** The rest fall back to a Nix text box showing the type string and the
-upstream example. Most of those are container parents like
-`attribute set of (submodule)` whose children are separate, fully supported
-options anyway, so the share you genuinely cannot fill in with a form is well
+Reading those sentences is what decides whether you get a switch, a number box,
+a dropdown or a list. **21,652 of the 24,517 settings (88.3%) get a proper input
+field.** The rest fall back to a box where you write Nix by hand.
+
+Most of those, though, are containers holding other settings — and the ones
+inside are individually editable, so the share you really have to hand-write is
 below 12%.
 
 ### Search ranking
 
-Results are bucketed by how the query matched the path, then ordered by depth,
-then by whether the leaf is `.enable`, then by how prominent the top-level
-namespace is.
+Results are grouped by how the query matched the name, then sorted by depth and
+by whether the last part is `.enable`.
 
-Whole-segment matching does most of the work. Typing `firewall` puts
-`networking.firewall.enable` first because `firewall` is a complete path
-segment there, while `services.firewalld.enable` only contains it as a
-substring. The namespace weights in `build_index.py` (`NS_RANK`) are a plain
-heuristic and only ever break ties — they never change what is found.
+The thing that does the work is **matching whole segments**. `firewall` puts
+`networking.firewall.enable` above `services.firewalld.enable` because in the
+first one `firewall` is a complete dot-separated piece, not just some letters
+inside a longer word.
 
-### Correctness
+### How we know it does not produce broken files
 
-The renderer is fuzzed against the real Nix parser: 8,000 randomly chosen
-options per run, seeded with hostile values (embedded quotes, backslashes,
-`${`, newlines, `''`, empty strings, Japanese text) and hostile `<name>`
-substitutions including Nix keywords. Every run parses.
+Everything the tool writes is checked **against the real Nix parser**. Eight
+thousand randomly chosen settings per run, filled with awkward values — quotes,
+backslashes, newlines, empty strings, Japanese text — and every run parses.
 
 Three real bugs came out of that:
 
-| Bug | Why it matters |
+| Bug | What it was |
 |---|---|
-| Placeholders are not only `<name>` — also `<n>`, `*`, and upstream artifacts like `<imports = [ pkgs.ghostunnel... ]>` | 5,080 options (21%) contain one |
-| `[ -1 ]` is a syntax error; negative numbers need parentheses | any `signed integer` inside a list |
-| `if`, `rec`, `or`, `let`… are reserved and must be quoted as attribute names | a systemd service literally named `if` |
+| Name placeholders are not all alike | Not just `<name>` but also `<n>` and `*`. 5,080 settings (21%) have one |
+| `[ -1 ]` is a syntax error | Negative numbers inside a list need brackets around them |
+| `if` and `rec` are reserved words | Using them as names requires quoting |
 
-Attribute paths are rendered segment by segment, and any segment that is not a
-plain identifier gets quoted. A vhost named `my site.example.com` comes out as
-`services.nginx.virtualHosts."my site.example.com"`, not as broken Nix.
-
-The starter files are checked the same way: they are evaluated as an actual
-NixOS system, down to `config.system.build.toplevel`, against a stub
-`hardware-configuration.nix`.
+The starter files get the same treatment: they are **assembled all the way into
+a complete NixOS system** to prove they hold up.
 
 ---
 
-## What it does not do
+## What it cannot do
 
-**Unstable.** Options and modules cannot be mixed across channels — an
-unstable `services.foo.*` needs unstable's module set, so there is no way to
-emit it for a stable system. Packages *could* be mixed via an overlay, but
-that changes the output format, and the option half would still be a lie. One
-channel, one truth.
+**The unstable channel.** Settings cannot be mixed across releases — an unstable
+setting assumes unstable's machinery, so there is no way to emit it for a
+numbered release.
 
-**Write back to your existing config.** Reading one is supported; writing
-values back while preserving structure and comments is a much harder problem,
-and getting it wrong means damaging a working system. Import is safe precisely
-because it only ever reads.
+**Writing back to your original file.** It can read one; it will not write to
+one. Replacing values while preserving the existing layout and comments is a far
+harder problem, and getting it wrong breaks a working system. **Read-only is
+what makes importing safe.**
 
-**Type checking.** `nixos-rebuild dry-build` is the authority.
+**Judging whether a value is right.** That is `nixos-rebuild dry-build`'s job.
 
-**Submodule containers as a whole.** You set
-`services.nginx.virtualHosts.<name>.root`, not `services.nginx.virtualHosts`
-as one blob.
+**Setting a whole container at once.** You can set
+`services.nginx.virtualHosts.<name>.root`, but not `services.nginx.virtualHosts`
+as one lump.
 
 ---
 
-## Developing
+## Development
 
 ```bash
 git clone https://github.com/hatake716/nixgen.git
@@ -375,27 +427,27 @@ python3 build/build_index.py --channel nixos-26.05
 python3 build/server.py
 ```
 
-This keeps the index in `./data/` instead of your home directory, and runs the
-files in the working tree rather than the copy in the nix store. Keep the
-clone outside any existing git repository, or see the gotcha under
-*If something goes wrong*.
+This puts the database in `./data/` instead of your home directory and runs the
+files you are editing. Clone it somewhere outside any existing git repository —
+same reason as under *If something goes wrong*.
 
 ```
 build/
-  nixgen_core.py    type-string parser + Nix renderer  (no deps)
+  nixgen_core.py    reads the type sentences, writes the Nix (no dependencies)
   nix_import.py     reads an existing configuration.nix
   starter.py        the Setup tab's configuration.nix and flake.nix
-  build_index.py    channel JSON -> SQLite + FTS5
-  server.py         stdlib HTTP server: search, render, import, validate
-  fetch-data.sh     channel download
-  static/           the UI (vanilla JS, no build step)
+  build_index.py    published data -> SQLite + full-text search
+  server.py         HTTP server, standard library only
+  fetch-data.sh     downloads the published data
+  static/           the screen (plain JavaScript, no build step)
 data/
-  nixgen.sqlite     generated index, not in git
+  nixgen.sqlite     the database it builds, not in git
 docs/
   index.html        the homepage, served by GitHub Pages from /docs
   screenshot*.png
+CHANGELOG.md        every release, English and Japanese
 flake.nix
-flake.lock          pins nixpkgs, so everyone builds the same thing
+flake.lock          pins the nixpkgs version
 ```
 
 `docs/index.html` is self-contained and already points at this repository. If
@@ -404,9 +456,19 @@ you fork it, change the `hatake716` links inside and point
 
 ---
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
+
+The version you are running is printed in the header of the app, next to the
+option counts. **If a fix does not seem to have landed, check that number
+first** — an old copy being served looks exactly like a broken fix.
+
+---
+
 ## License
 
-MIT — see [LICENSE](LICENSE). The files it generates are yours; the licence
-covers this tool, not its output.
+MIT — see [LICENSE](LICENSE). **The files it generates are yours.** The licence
+covers the tool, not its output.
 
 Not affiliated with the NixOS project.

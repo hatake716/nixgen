@@ -118,15 +118,6 @@ td:first-child { font-family: var(--mono); font-size: 12.5px; white-space: nowra
 ul { max-width: 68ch; padding-left: 20px; }
 li { margin-bottom: 7px; }
 
-.log { border-top: 1px solid var(--rule); padding-top: 14px; margin-top: 8px; }
-.log:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
-.log h3 { display: flex; align-items: baseline; gap: 10px; margin: 0 0 8px; }
-.log .tag { font-family: var(--mono); font-size: 11px; background: var(--accent-soft);
-            color: var(--accent); padding: 2px 7px; border-radius: 3px; font-weight: 600; }
-.log ul { margin: 0; }
-.log li { font-size: 14px; }
-.log li b { font-weight: 600; }
-
 footer { border-top: 1px solid var(--rule); background: var(--panel);
          padding: 26px 0; font-size: 12.5px; color: var(--ink-faint); }
 footer .wrap { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
@@ -419,81 +410,19 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
     <h2 class="en">What has changed.</h2>
     <h2 class="ja">これまでの更新。</h2>
 
-    <p class="en">The version you are running is printed in the header, next to the option
-      counts. If a fix does not seem to have landed, check that number first — an old copy
-      being served looks exactly like a broken fix.</p>
-    <p class="ja">動かしているバージョンは、画面上部のオプション数の右側に出ています。
-      直したはずの挙動が変わらないときは、まずこの番号を見てください。<b>古いファイルが配信されている状態と、
-      修正が効いていない状態は、見た目では区別が付きません。</b></p>
+    <p class="en">Every release is listed in
+      <a href="https://github.com/hatake716/nixgen/blob/main/CHANGELOG.md">CHANGELOG.md</a>,
+      in English and Japanese.</p>
+    <p class="ja">各バージョンの変更点は
+      <a href="https://github.com/hatake716/nixgen/blob/main/CHANGELOG.md">CHANGELOG.md</a>
+      にまとめてあります(英語・日本語併記)。</p>
 
-    <div class="log">
-      <h3><span class="tag">build 2026-08-05f</span>
-        <span class="en">Latest</span><span class="ja">最新</span></h3>
-      <ul class="en">
-        <li><b>Package lists are alphabetical</b> — on import and as you add to them. Nix does
-          not care about the order, but a sorted list reads better and diffs smaller.</li>
-        <li><b>Fixed: the fallback reader dropped whole package lists.</b> On a machine without
-          <code>nix-instantiate</code>, the semicolon in <code>with pkgs;</code> was mistaken for
-          the end of the value, so everything after it was lost.</li>
-        <li>The header now shows a build id.</li>
-      </ul>
-      <ul class="ja">
-        <li><b>パッケージ一覧をアルファベット順に。</b> 読み込み時も、追加したときも揃います。
-          Nixは順序を気にしませんが、読みやすく、差分も小さくなります。</li>
-        <li><b>修正：nix非搭載環境でパッケージ一覧が丸ごと失われる不具合。</b>
-          <code>nix-instantiate</code> が無い環境向けの読み込みで、<code>with pkgs;</code> のセミコロンを
-          値の終端と誤認していました。</li>
-        <li>ヘッダーにビルド番号を表示するようにしました。</li>
-      </ul>
-    </div>
-
-    <div class="log">
-      <h3><span class="en">Before that</span><span class="ja">それ以前</span></h3>
-      <ul class="en">
-        <li><b>Every starter field is editable</b> — boot loader (systemd-boot, GRUB or none),
-          NetworkManager, flakes, groups, <code>stateVersion</code>. Switching a block off
-          removes its lines rather than commenting them out.</li>
-        <li><b>Options set in both files are flagged in red</b>, because two
-          <code>lib.mkDefault</code> definitions of equal priority make NixOS refuse to choose.</li>
-        <li><b>Fixed: a generated file that imported itself.</b> Carrying <code>imports</code>
-          across could leave a reference to <code>./generated.nix</code> inside it, which ended
-          in <code>stack overflow; max-call-depth exceeded</code> and no clue where.</li>
-        <li><b>Fixed: <code>imports</code> was being dropped entirely</b>, so
-          <code>hardware-configuration.nix</code> never loaded and the rebuild failed on a
-          missing <code>fileSystems."/".fsType</code>.</li>
-        <li>Reading an existing <code>configuration.nix</code>, with everything accounted for in
-          one of four groups.</li>
-        <li>One package per line, and long values no longer truncated at 400 characters.</li>
-      </ul>
-      <ul class="ja">
-        <li><b>スターターの全項目を編集可能に。</b> ブートローダー（systemd-boot / GRUB / なし）、
-          NetworkManager、flakes、グループ、<code>stateVersion</code>。
-          オフにした項目はコメントアウトではなく行ごと消えます。</li>
-        <li><b>両方のファイルに書かれたオプションを赤字で表示。</b> 同じ優先度の
-          <code>lib.mkDefault</code> が2つあると、NixOSはどちらを採るか決められないためです。</li>
-        <li><b>修正：生成ファイルが自分自身をimportする問題。</b> <code>imports</code> を転記する際に
-          <code>./generated.nix</code> への参照が残り、<code>stack overflow; max-call-depth exceeded</code>
-          で止まっていました。原因を示す情報が一切出ないエラーです。</li>
-        <li><b>修正：<code>imports</code> が丸ごと捨てられていた問題。</b>
-          <code>hardware-configuration.nix</code> が読み込まれず、
-          <code>fileSystems."/".fsType</code> が未定義でビルドが失敗していました。</li>
-        <li>既存の <code>configuration.nix</code> の読み込みに対応。すべての行が4分類のいずれかに計上されます。</li>
-        <li>パッケージを1行ずつ表示。長い値が400文字で切れる問題も修正しました。</li>
-      </ul>
-    </div>
-
-    <div class="log">
-      <h3><span class="tag">beta</span>
-        <span class="en">First release</span><span class="ja">初回公開</span></h3>
-      <ul class="en">
-        <li>Search across every option and package in the stable channel, a form built from the
-          published type data, and a live view of the file being generated.</li>
-      </ul>
-      <ul class="ja">
-        <li>安定版チャンネルの全オプション・全パッケージの検索、公開されている型データから組み立てたフォーム、
-          生成中のファイルのリアルタイム表示。</li>
-      </ul>
-    </div>
+    <p class="en">The version you are running is printed in the header of the app, next to the
+      option counts. <b>If a fix does not seem to have landed, check that number first</b> — an
+      old copy being served looks exactly like a broken fix.</p>
+    <p class="ja">動かしているバージョンは、アプリ画面上部のオプション数の右側に出ています。
+      <b>直したはずの挙動が変わらないときは、まずこの番号を見てください。</b>
+      古いファイルが配信されている状態と、修正が効いていない状態は、見た目では区別が付きません。</p>
   </div>
 </section>
 
@@ -503,6 +432,7 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
       <a href="https://github.com/hatake716/nixgen">GitHub</a>
       <a href="https://github.com/hatake716/nixgen/blob/main/README.md">README</a>
       <a href="https://github.com/hatake716/nixgen/blob/main/README.ja.md">README (日本語)</a>
+      <a href="https://github.com/hatake716/nixgen/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://github.com/hatake716/nixgen/blob/main/LICENSE">MIT License</a>
     </div>
     <div style="margin-left:auto">
