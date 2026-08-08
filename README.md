@@ -445,7 +445,7 @@ data/
 docs/
   index.html        the homepage, served by GitHub Pages from /docs
   screenshot*.png
-CHANGELOG.md        every release, English and Japanese
+CHANGELOG.md        every release; English half, then Japanese half
 flake.nix
 flake.lock          pins the nixpkgs version
 ```
@@ -458,7 +458,7 @@ you fork it, change the `hatake716` links inside and point
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md).
+See [CHANGELOG.md](CHANGELOG.md) — English first, Japanese in the second half.
 
 The version you are running is printed in the header of the app, next to the
 option counts. **If a fix does not seem to have landed, check that number

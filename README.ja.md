@@ -370,7 +370,7 @@ data/
 docs/
   index.html        ホームページ。GitHub Pagesが /docs から配信します
   screenshot*.png
-CHANGELOG.md        各バージョンの変更点(英日併記)
+CHANGELOG.md        各バージョンの変更点。前半が英語、後半が日本語
 flake.nix
 flake.lock          nixpkgsのバージョンを固定します
 ```
@@ -381,7 +381,7 @@ flake.lock          nixpkgsのバージョンを固定します
 
 ## 更新履歴
 
-[CHANGELOG.md](CHANGELOG.md) を参照してください。
+[CHANGELOG.md](CHANGELOG.md#日本語) を参照してください。前半が英語、後半が日本語です。
 
 動かしているバージョンは、アプリ画面上部のオプション数の右側に出ています。**直したはずの挙動が変わらないときは、まずこの番号を見てください。** 古いファイルが配信されている状態と、修正が効いていない状態は、見た目では区別が付きません。
 
