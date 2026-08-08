@@ -108,6 +108,11 @@ def _skip_balanced(s, i):
     raise NixSyntaxError("unbalanced " + close)
 
 
+# A `with …` or `let …` that has not been closed off yet, sitting at the end of
+# the value collected so far.
+_PENDING_CLAUSE = re.compile(r"(^|[\s(])(with|let)\s+[^;]*$")
+
+
 def _split_attrs(body):
     """Split an attribute-set body into (key, value_text) pairs."""
     out = []
@@ -153,6 +158,13 @@ def _split_attrs(body):
             elif c == "#" or body.startswith("/*", i):
                 i = _skip_ws(body, i)
             elif c == ";":
+                # `with pkgs; [ … ]` and `let … ;  … in …` both put a semicolon
+                # at depth zero without ending the value. Nix's own normalised
+                # output parenthesises these, but the fallback reader sees the
+                # file as written.
+                if _PENDING_CLAUSE.search(body[val_start:i]):
+                    i += 1
+                    continue
                 break
             else:
                 i += 1
@@ -422,6 +434,25 @@ def strip_self_import(source, filename="generated.nix"):
     if len(kept) == len(items):
         return source, False
     return ("[ " + " ".join(kept) + " ]") if kept else "[ ]", True
+
+
+def sort_list_expr(expr):
+    """Alphabetise the elements of `[ … ]` or `with pkgs; [ … ]`, keeping any
+    element the form could not model (an override call, say) in place among
+    the rest."""
+    from nixgen_core import sort_key
+    m = _LIST_EXPR.match(expr.strip())
+    if not m:
+        return expr
+    prefix = (m.group(1) or "").strip()
+    try:
+        items = _split_list(m.group(2))
+    except NixSyntaxError:
+        return expr
+    if len(items) < 2:
+        return expr
+    body = " ".join(sorted(items, key=sort_key))
+    return _wrap_list((prefix + " " if prefix else "") + "[ " + body + " ]")
 
 
 def read_config(text):

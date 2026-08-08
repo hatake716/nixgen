@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-05e';
+const BUILD = '2026-08-05f';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -320,6 +320,19 @@ function findEntry(path) {
 
 const TOP_OPTION = 'environment.systemPackages';
 
+/* Order package-ish items by name, ignoring wrapping parens and the pkgs
+   prefix. Must stay in step with sort_key() in nixgen_core.py. */
+function sortKey(item) {
+  let s = String(item).trim().replace(/^\(+\s*/, '');
+  if (s.startsWith('pkgs.')) s = s.slice(5);
+  const m = s.match(/^[A-Za-z0-9_.'-]+/);
+  return (m ? m[0] : s).toLowerCase();
+}
+const byName = (a, b) => {
+  const ka = sortKey(a), kb = sortKey(b);
+  return ka < kb ? -1 : ka > kb ? 1 : String(a) < String(b) ? -1 : 1;
+};
+
 const rxEscape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /* Append a package to a list that was copied over verbatim, e.g.
@@ -336,20 +349,46 @@ function appendToNixList(src, attr) {
   const item = scoped ? attr : 'pkgs.' + attr;
   if (new RegExp('(^|[\\s\\[])' + rxEscape(item) + '(?=[\\s\\]]|$)').test(text)) return text;
 
-  const head = text.slice(0, close).replace(/\s+$/, '');
+  const inner = text.slice(open + 1, close);
   const closeIndent = (text.slice(0, close).match(/\n([ \t]*)$/) || [null, ''])[1];
+  const multiline = inner.includes('\n');
 
-  if (!head.includes('\n')) return head + ' ' + item + ' ]';
+  // Elements are whitespace-separated at this level; anything containing
+  // brackets or braces is kept whole by matching balanced runs.
+  const items = splitNixList(inner);
+  items.push(item);
+  items.sort(byName);
+
+  if (!multiline) return text.slice(0, open + 1) + ' ' + items.join(' ') + ' ]';
 
   let indent = closeIndent + '  ';
-  const lines = head.split('\n');
-  for (let i = lines.length - 1; i >= 0; i--) {
-    if (lines[i].trim() && !/\[\s*$/.test(lines[i])) {
-      indent = (lines[i].match(/^[ \t]*/) || [''])[0];
-      break;
+  const first = inner.split('\n').find(l => l.trim());
+  if (first) indent = (first.match(/^[ \t]*/) || [''])[0] || indent;
+  return text.slice(0, open + 1) + '\n' +
+         items.map(x => indent + x).join('\n') + '\n' + closeIndent + ']';
+}
+
+/* Split a list body into elements, keeping bracketed and quoted runs whole. */
+function splitNixList(body) {
+  const out = [];
+  let i = 0;
+  const pairs = { '{': '}', '[': ']', '(': ')' };
+  while (i < body.length) {
+    while (i < body.length && /\s/.test(body[i])) i++;
+    if (i >= body.length) break;
+    const start = i;
+    let depth = 0;
+    while (i < body.length) {
+      const c = body[i];
+      if (c in pairs) { depth++; i++; }
+      else if (c === '}' || c === ']' || c === ')') { depth--; i++; }
+      else if (c === '"') { i++; while (i < body.length && body[i] !== '"') i += body[i] === '\\' ? 2 : 1; i++; }
+      else if (/\s/.test(c) && depth === 0) break;
+      else i++;
     }
+    out.push(body.slice(start, i).trim());
   }
-  return head + '\n' + indent + item + '\n' + closeIndent + ']';
+  return out.filter(Boolean);
 }
 
 async function addPackage(attr, unfree) {
@@ -362,6 +401,7 @@ async function addPackage(attr, unfree) {
 
   if (Array.isArray(e.value)) {
     if (!e.value.includes(attr)) e.value.push(attr);
+    e.value.sort(byName);
   } else {
     // The entry came in verbatim; keep every element that is already there.
     const merged = appendToNixList(e.value, attr);

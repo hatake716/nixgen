@@ -155,6 +155,20 @@ def is_supported(node):
 
 _ESCAPES = {"\\": "\\\\", '"': '\\"', "\n": "\\n", "\t": "\\t", "${": "\\${"}
 
+_SORT_HEAD = re.compile(r"[A-Za-z0-9_.'-]+")
+
+
+def sort_key(item):
+    """Order package-ish items by name, ignoring wrapping and the pkgs prefix.
+
+    Must stay in step with sortKey() in static/app.js.
+    """
+    s = str(item).strip().lstrip("(").strip()
+    if s.startswith("pkgs."):
+        s = s[len("pkgs."):]
+    m = _SORT_HEAD.match(s)
+    return ((m.group(0) if m else s).lower(), str(item))
+
 
 def nix_string(s):
     out = s.replace("\\", "\\\\").replace('"', '\\"')
@@ -213,6 +227,8 @@ def render_value(node, value, indent=2):
 
     if k == "list":
         items = value or []
+        if node["inner"]["kind"] == "package":
+            items = sorted(items, key=sort_key)
         if not items:
             return "[ ]"
         rendered = [render_value(node["inner"], it, indent + 2) for it in items]

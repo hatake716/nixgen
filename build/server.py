@@ -17,8 +17,9 @@ from urllib.parse import urlparse, parse_qs
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from nixgen_core import parse_type, render_module  # noqa: E402
-from nix_import import read_config, strip_self_import, NixSyntaxError  # noqa: E402
+from nixgen_core import parse_type, render_module, sort_key  # noqa: E402
+from nix_import import (read_config, strip_self_import, sort_list_expr,  # noqa: E402
+                        NixSyntaxError)
 from starter import starter_files  # noqa: E402
 
 DB_PATH = None
@@ -296,6 +297,8 @@ def import_config(text):
     by_option = {}
 
     for e in entries:
+        if e["path"] == "environment.systemPackages":
+            e["source"] = sort_list_expr(e["source"])
         if e.get("structural"):
             if e["path"] == "imports":
                 e["source"], dropped = strip_self_import(e["source"])
@@ -333,6 +336,10 @@ def import_config(text):
                 value = {"__null": False, "v": value}
         else:
             ok, value = to_widget_value(node, e["kind"], e["value"], e["source"])
+
+        # Package lists read better alphabetised, and Nix does not care.
+        if ok and e["kind"] == "packages" and isinstance(value, list):
+            value = sorted(value, key=sort_key)
         if not ok:
             # The form cannot hold a conditional or a let-bound reference, so
             # the expression is carried over into the output untouched.
