@@ -252,8 +252,8 @@ Anything you pick under Packages is added to the list of programs to install.
 ### Common apps
 
 Under **Packages** there is a **Common apps** dropdown: browsers, mail, office,
-audio and video, graphics, games, system tools, development. Picking a category
-fills the result list with a handful of packages, which you then add by
+audio and video, graphics, games, chat and sync, accessories, file managers,
+terminals, system tools, development. Picking a category fills the result list with a handful of packages, which you then add by
 clicking, exactly like a search hit. Nothing is installed for you.
 
 It is a short pick, not a catalogue — the one place in the tool where somebody

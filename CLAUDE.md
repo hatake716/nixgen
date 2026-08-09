@@ -193,6 +193,11 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
 - **The directory listing in the steps is ASCII, not box drawing.** `--mono`
   falls back to a proportional face for `├─└` on some machines, and a tree
   whose columns do not line up is worse than no tree.
+- **What `APPS` will not carry: anything tied to one machine.** It grew from a
+  real configuration, which is the right source — but half of any real
+  configuration is GPU tooling, microcode, panel plugins and hand-written
+  `callPackage` expressions. Those belong to whoever wrote them. The test for
+  a new entry is whether somebody else's machine would want it.
 - **`APPS` is the one opinionated list in the tool, and stays small.** Picking a
   category fills the results with a handful of packages, which are then added
   by the same click as any search hit — nothing is installed on anyone's

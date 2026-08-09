@@ -9,6 +9,24 @@ option counts.
 
 ## English
 
+### build 2026-08-09o
+
+- **The app categories grew, from a real configuration rather than a guess.**
+  121 packages across 12 categories now, including a **Chat and sync** one for
+  the things that had nowhere to go.
+- What went in: the Xfce suite (parole, ristretto, catfish, gigolo,
+  xfce4-screenshooter, orage, xfburn), video work (davinci-resolve,
+  gpu-screen-recorder-gtk, ffmpeg-full), gaming around Steam (protonup-qt,
+  goverlay, steam-run, moonlight-qt), hardware tools (lm_sensors, lshw,
+  pciutils, solaar, piper), remote access (remmina, virt-viewer), compilers
+  and language servers, obsidian, freecad, gimp-with-plugins.
+- What stayed out: anything tied to one machine. AMD GPU tooling, ROCm,
+  microcode, panel plugins and hand-written `callPackage` expressions belong
+  in somebody's configuration, not in a list offered to everyone.
+- The `xfce.*` rename bites again — parole, ristretto, catfish, gigolo, orage,
+  xfburn and xfce4-screenshooter are all under `xfce.` on 25.11 and at the top
+  level on 26.05. Both spellings are listed.
+
 ### build 2026-08-09n
 
 - **Pick a language and the language is set up.** English, Japanese, French,
@@ -272,6 +290,13 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-09o
+
+- **アプリの一覧を拡充しました。想像ではなく、実際に使われている設定ファイルから採っています。** 12カテゴリ121パッケージになりました。行き場のなかったものを収める **Chat and sync** も追加しています。
+- 入れたもの：Xfce一式(parole、ristretto、catfish、gigolo、xfce4-screenshooter、orage、xfburn)、動画まわり(davinci-resolve、gpu-screen-recorder-gtk、ffmpeg-full)、Steam周辺(protonup-qt、goverlay、steam-run、moonlight-qt)、ハードウェア関連(lm_sensors、lshw、pciutils、solaar、piper)、リモート接続(remmina、virt-viewer)、コンパイラと言語サーバー、obsidian、freecad、gimp-with-plugins。
+- **入れなかったもの：特定のマシンに紐づくもの。** AMD GPU 関連、ROCm、マイクロコード、パネルプラグイン、手書きの `callPackage` 式です。これらは**個人の設定ファイルに書くもの**であって、全員に提示する一覧に載せるものではありません。
+- `xfce.*` の改名がまた効いています。parole、ristretto、catfish、gigolo、orage、xfburn、xfce4-screenshooter は 25.11 では `xfce.` の下、26.05 ではトップレベルです。**両方の綴りを並べてあります。**
 
 ### build 2026-08-09n
 

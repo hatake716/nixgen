@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-09n';
+const BUILD = '2026-08-09o';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -753,27 +753,37 @@ const APPS = {
   browser: ['firefox', 'chromium', 'google-chrome', 'librewolf', 'brave',
             'ungoogled-chromium'],
   mail:    ['thunderbird', 'evolution', 'geary', 'claws-mail'],
-  office:  ['libreoffice', 'onlyoffice-desktopeditors', 'gnumeric', 'abiword',
-            'xournalpp'],
-  media:   ['vlc', 'mpv', 'obs-studio', 'audacity', 'kdePackages.kdenlive',
-            'handbrake', 'strawberry'],
-  graphics:['gimp', 'inkscape', 'krita', 'darktable', 'blender', 'rawtherapee'],
+  office:  ['libreoffice', 'onlyoffice-desktopeditors', 'obsidian', 'gnumeric',
+            'abiword', 'xournalpp'],
+  media:   ['vlc', 'mpv', 'parole', 'xfce.parole', 'obs-studio', 'audacity',
+            'kdePackages.kdenlive', 'davinci-resolve', 'handbrake',
+            'gpu-screen-recorder-gtk', 'strawberry', 'ffmpeg-full'],
+  graphics:['gimp', 'gimp-with-plugins', 'inkscape', 'krita', 'darktable',
+            'blender', 'freecad', 'ristretto', 'xfce.ristretto', 'rawtherapee'],
   // Both spellings of one game on purpose: 25.11 has `superTuxKart` and 26.05
   // has `supertuxkart`. Only whichever exists comes back, so listing the two
   // costs nothing and the list keeps working across a rename.
-  games:   ['steam', 'lutris', 'prismlauncher', 'supertuxkart', 'superTuxKart',
-            'zeroad', 'retroarch', 'mangohud'],
+  games:   ['steam', 'lutris', 'prismlauncher', 'protonup-qt', 'steam-run',
+            'goverlay', 'mangohud', 'moonlight-qt', 'supertuxkart',
+            'superTuxKart', 'zeroad', 'retroarch'],
   system:  ['htop', 'btop', 'gparted', 'keepassxc', 'baobab', 'timeshift',
-            'fastfetch'],
-  dev:     ['git', 'neovim', 'helix', 'vscodium', 'gh', 'direnv', 'tmux'],
+            'fastfetch', 'lm_sensors', 'lshw', 'pciutils', 'solaar', 'piper',
+            'remmina', 'virt-viewer'],
+  dev:     ['git', 'neovim', 'helix', 'vscodium', 'gh', 'direnv', 'tmux',
+            'gcc', 'clang', 'rustc', 'cargo', 'claude-code', 'opencode',
+            'bash-language-server'],
   // Several of these are listed under two names. The xfce.* set moved to the
   // top level between 25.11 and 26.05, and the KDE ones live under
   // kdePackages — only whichever the channel has comes back, so both can sit
   // here and the list keeps working either side of the rename.
-  accessories: ['flameshot', 'copyq', 'gnome-calculator', 'kdePackages.kcalc',
-                'galculator', 'file-roller', 'xarchiver', 'gnome-text-editor',
-                'mousepad', 'xfce.mousepad', 'gnome-disk-utility',
-                'gnome-characters'],
+  accessories: ['flameshot', 'xfce4-screenshooter', 'xfce.xfce4-screenshooter',
+                'copyq', 'gnome-calculator', 'kdePackages.kcalc', 'galculator',
+                'file-roller', 'xarchiver', 'kdePackages.ark', 'xfburn',
+                'xfce.xfburn', 'gnome-text-editor', 'mousepad', 'xfce.mousepad',
+                'catfish', 'xfce.catfish', 'gigolo', 'xfce.gigolo', 'orage',
+                'xfce.orage', 'plank', 'gnome-disk-utility', 'gnome-characters'],
+  comms:   ['discord', 'signal-desktop', 'element-desktop', 'telegram-desktop',
+            'dropbox', 'nextcloud-client', 'syncthing'],
   files:   ['nautilus', 'kdePackages.dolphin', 'thunar', 'xfce.thunar', 'nemo',
             'pcmanfm', 'yazi', 'ranger', 'nnn', 'mc', 'doublecmd'],
   terminal:['alacritty', 'kitty', 'wezterm', 'ghostty', 'foot', 'rio',
