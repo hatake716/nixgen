@@ -1,7 +1,7 @@
 # nixgen
 
-A search box and a form for your NixOS configuration. Look through 24,517
-settings and 144,200 pieces of software, tick the boxes and fill in the fields,
+A search box and a form for your NixOS configuration. Look through 24,557
+settings and 144,245 pieces of software, tick the boxes and fill in the fields,
 and get a configuration file you can use straight away.
 
 ![nixgen](docs/screenshot.png)
@@ -25,7 +25,7 @@ services.openssh.enable = true;
 ```
 
 The catch is that **you cannot write anything without knowing the name of the
-setting**, and there are 24,517 of them. The official documentation is a long
+setting**, and there are 24,557 of them. The official documentation is a long
 page you have to search through every time.
 
 nixgen does that part for you:
@@ -207,7 +207,7 @@ rm -rf ~/.local/share/nixgen
 
 ### Finding things
 
-Nobody can scroll through 24,517 entries, so **search is the way in.**
+Nobody can scroll through 24,557 entries, so **search is the way in.**
 
 Type a service name and the setting you want is normally at the top. `firewall`
 puts `networking.firewall.enable` first; `ssh` puts `services.openssh.enable`
@@ -261,7 +261,8 @@ Everything in them is editable from the screen:
 |---|---|
 | Host name | The name of the machine |
 | Main user | Your everyday account. Untick to leave user setup out entirely |
-| nixpkgs release | The current numbered release or one of the two before it. `flake.nix` is pinned to this |
+| nixpkgs release | The current numbered release or one of the two before it |
+| What `flake.nix` points at | The exact commit that release was indexed at, so what you build has the options you were offered — or the branch, if you would rather it move |
 | Architecture | `x86_64-linux` for an ordinary PC |
 | Boot loader | systemd-boot for a UEFI machine, GRUB for an older BIOS one (it will ask which disk) |
 | NetworkManager | Manages network connections. Unticking removes the line |
@@ -373,7 +374,7 @@ not a single hand-written entry.**
 ### The hard part is the type
 
 Each setting's type is written as **a sentence for humans, not a format a
-program can read**, and there are 1,247 different ones:
+program can read**, and there are 1,252 different ones:
 
 ```
 "boolean"
@@ -383,7 +384,7 @@ program can read**, and there are 1,247 different ones:
 ```
 
 Reading those sentences is what decides whether you get a switch, a number box,
-a dropdown or a list. **21,652 of the 24,517 settings (88.3%) get a proper input
+a dropdown or a list. **21,681 of the 24,557 settings (88.3%) get a proper input
 field.** The rest fall back to a box where you write Nix by hand.
 
 Most of those, though, are containers holding other settings — and the ones
@@ -410,7 +411,7 @@ Three real bugs came out of that:
 
 | Bug | What it was |
 |---|---|
-| Name placeholders are not all alike | Not just `<name>` but also `<n>` and `*`. 5,080 settings (21%) have one |
+| Name placeholders are not all alike | Not just `<name>` but also `<n>` and `*`. 5,082 settings (21%) have one |
 | `[ -1 ]` is a syntax error | Negative numbers inside a list need brackets around them |
 | `if` and `rec` are reserved words | Using them as names requires quoting |
 
@@ -428,9 +429,11 @@ unstable moves every day. The form would offer settings the commit you build
 does not have. **Check syntax would still pass**, and the failure would only
 turn up at `nixos-rebuild`, which is the least helpful place for it to appear.
 
-There is a way out: every channel publishes a `git-revision`, so the flake could
-be pinned to the exact snapshot that was indexed. That, plus showing how old an
-index is, is what unstable support would need. It is not built yet.
+Half the way out is now built: the generated `flake.nix` names the exact commit
+the option index was read from rather than a branch, so what you build matches
+what you were offered. The rest is showing how old an index is and making it
+easy to refresh, which a channel that moves every day needs and a numbered
+release does not. Until that exists, unstable stays unsupported.
 
 Mixing channels is a separate thing and stays out of scope. Packages could be
 pulled from unstable through an overlay, but options cannot — an unstable
@@ -470,7 +473,7 @@ build/
   nixgen_core.py    reads the type sentences, writes the Nix (no dependencies)
   nix_import.py     reads an existing configuration.nix
   starter.py        the Setup tab's configuration.nix and flake.nix
-  releases.py       which releases exist, and building an index for one
+  releases.py       which releases exist and at which commit; building an index
   build_index.py    published data -> SQLite + full-text search
   server.py         HTTP server, standard library only
   fetch-data.sh     downloads the published data

@@ -9,6 +9,39 @@ option counts.
 
 ## English
 
+### build 2026-08-09b
+
+- **Fixed: a package whose name has a dot in it produced a broken file.**
+  Picking `python313Packages.requests` or `CuboCore.coreaction` from search wrote
+  it without the `pkgs.` in front, so `nixos-rebuild` stopped at
+  `error: undefined variable 'python313Packages'`. **83% of the catalogue has a
+  dot in its name** — every `python3Packages.*`, `haskellPackages.*`,
+  `aspellDicts.*` and the rest. The common ones do not (`firefox`, `git`,
+  `ripgrep`), which is why it went unnoticed.
+- **Fixed: reading a config turned those same packages into text you could not
+  edit.** Nix's parser hands `python313Packages.requests` back as
+  `((python313Packages).requests)`, which the reader did not recognise, so the
+  whole list was carried over verbatim instead of becoming a form field. One
+  such package was enough to do it to the entire list.
+- **Fixed: a negative number inside a list lost its brackets when carried
+  over**, on a machine without `nix-instantiate`. `[ (-1) ]` parses and
+  `[ -1 ]` does not, so the file failed with `syntax error, unexpected '-'`.
+- **The generated `flake.nix` names a commit, not a branch.** It pins the exact
+  nixpkgs revision the option index was built from, so the system you build has
+  the options the form offered you rather than whatever the branch has moved to
+  since. The Setup tab shows which commit.
+- **Which of the two it names is a choice** — *What flake.nix points at*, next
+  to the release. Pick the branch and it behaves as it did before: `flake.lock`
+  pins your first build and `nix flake update` moves it on.
+- If a release has no index on this machine yet, the commit is asked of the
+  channel server instead. That still pins the build, but it says nothing about
+  where the option list came from — the generated file spells out which of the
+  four cases produced it rather than leaving them to look alike.
+- `fetch-data.sh` now records the channel's `git-revision`, and `build_index.py`
+  keeps it in the database. An index built before this release simply does not
+  have one; asking for a commit then says so on screen rather than quietly
+  handing back a branch.
+
 ### Documentation
 
 - **Documented why `nix run github:…` can start an old build.** Nix caches a
@@ -74,6 +107,16 @@ option counts.
 ---
 
 ## 日本語
+
+### build 2026-08-09b
+
+- **修正：名前にドットを含むパッケージを追加すると、壊れたファイルが出る不具合。** 検索から `python313Packages.requests` や `CuboCore.coreaction` を選ぶと `pkgs.` が付かずに書き出され、`nixos-rebuild` が `error: undefined variable 'python313Packages'` で止まっていました。**カタログの83%が名前にドットを含みます** — `python3Packages.*`、`haskellPackages.*`、`aspellDicts.*` などすべてです。よく使うもの(`firefox`、`git`、`ripgrep`)にはドットが無いため、気づかれずにいました。
+- **修正：同じパッケージが、設定ファイルの読み込み時に「編集できないテキスト」になっていた不具合。** Nixのパーサーは `python313Packages.requests` を `((python313Packages).requests)` の形で返しますが、読み込み側がこれを認識できず、**リスト全体がそのまま転記**されていました。該当パッケージが1つあるだけで、リスト全部がそうなります。
+- **修正：リスト内の負の数が、転記時に括弧を失う不具合。** `nix-instantiate` が無い環境でのみ起きます。`[ (-1) ]` は通りますが `[ -1 ]` は通らないため、`syntax error, unexpected '-'` で失敗していました。
+- **生成される `flake.nix` が、ブランチではなくコミットを指すようになりました。** オプション一覧を作った時点のnixpkgsのリビジョンをそのまま固定します。**フォームが提示したオプションと、実際にビルドされるnixpkgsが一致します。** ブランチがその後どこまで進んでいても影響しません。どのコミットかはSetupタブに表示されます。
+- **どちらを指すかは選べます。** リリース選択の隣に *What flake.nix points at* を追加しました。ブランチを選べば従来どおりの挙動です。最初のビルドが `flake.lock` で固定され、`nix flake update` で先へ進みます。
+- そのリリースのインデックスがまだこのマシンに無い場合は、チャンネルサーバーに現在のコミットを問い合わせます。ビルドの再現性は確保されますが、**オプション一覧がそのコミットのものである保証はありません。** 生成されるファイルには、4つの経路のどれで決まった値なのかを明記しています。見分けが付かないまま同じ顔をさせないためです。
+- `fetch-data.sh` がチャンネルの `git-revision` を取得し、`build_index.py` がデータベースに保存するようにしました。今回より前に作ったインデックスにはこの値がありません。その場合、コミットを選んでいても**画面にその旨を表示します。** 黙ってブランチを返すことはしません。
 
 ### ドキュメント
 

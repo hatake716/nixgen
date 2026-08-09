@@ -10,10 +10,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>nixgen — a form for all 24,517 NixOS options</title>
+<title>nixgen — a form for all 24,557 NixOS options</title>
 <meta name="description" content="Search every option and package in the NixOS stable channel, fill in a form, get a .nix module. Reads your existing configuration.nix too.">
 <meta property="og:title" content="nixgen">
-<meta property="og:description" content="A form for all 24,517 NixOS options and 144,200 packages.">
+<meta property="og:description" content="A form for all 24,557 NixOS options and 144,245 packages.">
 <meta property="og:image" content="screenshot.png">
 <style>
 :root {
@@ -146,8 +146,8 @@ footer a { margin-right: 14px; }
 <div class="wrap hero">
   <div class="grid">
     <div>
-      <h1 class="en">A form for all 24,517<br>NixOS options.</h1>
-      <h1 class="ja">NixOSの全24,517<br>オプションをフォームで。</h1>
+      <h1 class="en">A form for all 24,557<br>NixOS options.</h1>
+      <h1 class="ja">NixOSの全24,557<br>オプションをフォームで。</h1>
 
       <p class="lede en">Search every option and package in the stable channel, fill in
         values with real widgets, and get a <code>.nix</code> module you can import.
@@ -158,8 +158,8 @@ footer a { margin-right: 14px; }
         既存の <b>configuration.nix</b> の読み込みにも対応し、直近3リリースのどれにでも追従します。</p>
 
       <div class="stats">
-        <div class="stat"><b>24,517</b><span class="en">options</span><span class="ja">オプション</span></div>
-        <div class="stat"><b>144,200</b><span class="en">packages</span><span class="ja">パッケージ</span></div>
+        <div class="stat"><b>24,557</b><span class="en">options</span><span class="ja">オプション</span></div>
+        <div class="stat"><b>144,245</b><span class="en">packages</span><span class="ja">パッケージ</span></div>
         <div class="stat"><b>88.3%</b><span class="en">get a widget</span><span class="ja">ウィジェット対応</span></div>
         <div class="stat"><b>3</b><span class="en">releases</span><span class="ja">リリース</span></div>
         <div class="stat"><b>0</b><span class="en">dependencies</span><span class="ja">依存パッケージ</span></div>
@@ -213,8 +213,8 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
 
     <h3 class="en">The awkward part is the type field</h3>
     <h3 class="ja">厄介なのは型フィールド</h3>
-    <p class="en">It is a sentence, not a schema — and there are 1,247 distinct ones:</p>
-    <p class="ja">構造化スキーマではなく、人間向けの文章です。しかも1,247種類あります。</p>
+    <p class="en">It is a sentence, not a schema — and there are 1,252 distinct ones:</p>
+    <p class="ja">構造化スキーマではなく、人間向けの文章です。しかも1,252種類あります。</p>
 
     <pre class="nix"><span class="v">"boolean"</span>
 <span class="v">"null or (list of string)"</span>
@@ -230,12 +230,12 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
 
     <h3 class="en">Search is the actual interface</h3>
     <h3 class="ja">実質的な操作系は検索</h3>
-    <p class="en">A tree of 24,517 options is unusable. Results are bucketed by how the query
+    <p class="en">A tree of 24,557 options is unusable. Results are bucketed by how the query
       matched the path, then ordered by depth. Whole-segment matching does most of the work:
       typing <code>firewall</code> puts <code>networking.firewall.enable</code> first, because
       <code>firewall</code> is a complete path segment there while <code>services.firewalld</code>
       only contains it as a substring.</p>
-    <p class="ja">24,517件のツリーを人間が辿るのは不可能です。クエリがパスにどう一致したかで段階分けし、階層の浅さで並べます。
+    <p class="ja">24,557件のツリーを人間が辿るのは不可能です。クエリがパスにどう一致したかで段階分けし、階層の浅さで並べます。
       効いているのはセグメント単位の一致判定で、<code>firewall</code> と打つと <code>networking.firewall.enable</code> が先頭に来ます。
       こちらは <code>firewall</code> がドット区切りの完全なセグメントであるのに対し、
       <code>services.firewalld</code> は部分文字列として含んでいるだけだからです。</p>
@@ -272,13 +272,16 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
 
     <p class="en">The <b>nixpkgs release</b> is a choice too — the current numbered release or
       one of the two before it, discovered by asking the channel server rather than from a list
-      that goes stale. <code>flake.nix</code> is pinned to whichever you pick, and the options on
-      the left follow: if the two drift apart the tab offers to build the index for that release.
-      A few minutes the first time, instant afterwards.</p>
+      that goes stale. <code>flake.nix</code> is pinned to whichever you pick, and by default to
+      the exact commit it was indexed at rather than the branch, so the system you build has the
+      options the form offered you — the branch is there as the other choice if you would rather
+      it move. The list on the left follows the release: if the two drift apart the tab offers to
+      build the index for that release. A few minutes the first time, instant afterwards.</p>
     <p class="ja"><b>nixpkgsのリリース</b>も選べます。最新の安定版とその前2つで、固定の一覧ではなく
-      チャンネルサーバーに問い合わせて作るため古くなりません。<code>flake.nix</code> は選んだリリースを指し、
-      左側のオプション一覧も追従します。ずれている場合は、そのリリースのインデックス構築を提案します。
-      初回のみ数分、以降は瞬時です。</p>
+      チャンネルサーバーに問い合わせて作るため古くなりません。<code>flake.nix</code> の既定は、ブランチではなく
+      選んだリリースを取り込んだ時点の正確なコミットです。フォームが提示したオプションと、実際にビルドされるものが一致します。
+      更新に追従させたい場合は、ブランチも選べます。左側のオプション一覧はリリースに追従し、
+      ずれている場合はそのリリースのインデックス構築を提案します。初回のみ数分、以降は瞬時です。</p>
 
     <p class="en">The boot loader is a choice, not a fixed block: systemd-boot for UEFI, GRUB
       for BIOS (which then asks for the disk), or none if another module already sets one. Both
@@ -372,8 +375,8 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
       <tr><th><span class="en">Bug</span><span class="ja">バグ</span></th>
           <th><span class="en">Why it matters</span><span class="ja">影響範囲</span></th></tr>
       <tr><td>&lt;name&gt; ≠ &lt;n&gt; ≠ *</td>
-          <td><span class="en">5,080 options (21%) carry a placeholder, and not all look alike</span>
-              <span class="ja">5,080件(21%)がプレースホルダを含み、形が一様ではない</span></td></tr>
+          <td><span class="en">5,082 options (21%) carry a placeholder, and not all look alike</span>
+              <span class="ja">5,082件(21%)がプレースホルダを含み、形が一様ではない</span></td></tr>
       <tr><td>[ -1 ]</td>
           <td><span class="en">A syntax error — negative numbers need parentheses in a list</span>
               <span class="ja">構文エラー。リスト内の負数には括弧が必要</span></td></tr>
@@ -405,10 +408,11 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
         your <code>flake.lock</code> pins one commit, and unstable moves every day, so the form
         would offer settings the commit you build does not have. <b>Check syntax would still
         pass</b>; the failure would only surface at <code>nixos-rebuild</code>. Every channel
-        publishes a <code>git-revision</code>, so pinning the flake to the snapshot that was
-        indexed would close that gap — that, plus showing how stale an index is, is what this
-        needs. Mixing channels is a separate matter and stays out of scope: packages could come
-        from unstable through an overlay, options could not.</li>
+        publishes a <code>git-revision</code>, and the generated <code>flake.nix</code> now pins
+        the exact commit the index was read from, which closes half of that gap. The rest is
+        showing how stale an index is and making it easy to refresh — needed by a channel that
+        moves daily, not by a numbered release. Mixing channels is a separate matter and stays
+        out of scope: packages could come from unstable through an overlay, options could not.</li>
       <li><b>Write back to your existing file.</b> Reading one is supported; writing values back
         while preserving structure and comments is a much harder problem, and getting it wrong
         means damaging a working system.</li>
@@ -422,8 +426,9 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
         <code>flake.lock</code> は特定のコミットを固定します。unstableは毎日変わるため、
         <b>ビルド対象に存在しないオプションをフォームが提示してしまいます。</b>
         しかも <code>Check syntax</code> は通り、失敗が出るのは <code>nixos-rebuild</code> の段階です。
-        全チャンネルが <code>git-revision</code> を公開しているので、取り込んだスナップショットのコミットに
-        flakeを固定すればずれは消えます。それとインデックスの鮮度表示。この2つが要ります。
+        全チャンネルが <code>git-revision</code> を公開しており、生成される <code>flake.nix</code> は
+        すでに、オプション一覧を取り込んだ時点の正確なコミットを指しています。ずれの半分はこれで解消しました。
+        残るはインデックスの鮮度表示と、手軽な更新手段です。毎日動くチャンネルには要りますが、番号付きリリースには要りません。
         チャンネルの混在は別の話で対象外です。パッケージはoverlayで持ってこられますが、オプションはできません。</li>
       <li><b>既存ファイルへの書き戻し。</b> 読み込みは対応していますが、構造とコメントを保ったまま値を書き戻すのは桁違いに難しく、
         失敗したときの代償が「動いているシステムの破壊」です。</li>
