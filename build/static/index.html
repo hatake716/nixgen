@@ -54,6 +54,24 @@
           </select>
           <button class="mini" id="btn-desktop">Add</button>
         </div>
+        <!-- Picking a category fills the results list, so what happens next is
+             the same click as any search hit. Nothing is added on your behalf. -->
+        <div class="presetline" id="appsline">
+          <span>Common apps</span>
+          <select id="s-apps">
+            <option value="">choose a category…</option>
+            <option value="browser">Web browsers</option>
+            <option value="mail">Mail</option>
+            <option value="office">Office</option>
+            <option value="media">Audio and video</option>
+            <option value="graphics">Graphics</option>
+            <option value="games">Games</option>
+            <option value="system">System tools</option>
+            <option value="dev">Development</option>
+          </select>
+        </div>
+        <p class="presethint" id="appshint" hidden>A short pick, not a catalogue.
+           Search for anything else.</p>
       </div>
       <div class="pane-body" id="results"></div>
       <div class="pane-body" id="setup" hidden>

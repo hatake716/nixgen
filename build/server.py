@@ -179,6 +179,25 @@ def search_packages(q, limit=60):
     return [dict(r) for r in rows]
 
 
+def packages_by_attr(attrs):
+    """Rows for an explicit list of attributes, in the order asked for.
+
+    A lookup rather than a search: the curated lists in the UI name packages
+    outright. Anything nixpkgs has since renamed simply does not come back,
+    which is the behaviour to want — a shorter list beats a name that resolves
+    to nothing at `nixos-rebuild`.
+    """
+    if not attrs:
+        return []
+    con = db()
+    rows = con.execute(
+        "SELECT attr, version, description, unfree, broken FROM packages "
+        "WHERE attr IN (%s)" % ",".join("?" * len(attrs)), attrs).fetchall()
+    con.close()
+    found = {r["attr"]: dict(r) for r in rows}
+    return [found[a] for a in attrs if a in found]
+
+
 def get_option(path):
     con = db()
     row = con.execute("SELECT * FROM options WHERE path = ?", (path,)).fetchone()
@@ -626,6 +645,11 @@ class Handler(BaseHTTPRequestHandler):
                 groups=one("groups"),
                 flakes=one("flakes"),
                 state_version=one("state_version")))
+        if u.path == "/api/packages":
+            # Bounded because it names every row it wants: the curated lists
+            # are a handful each, and nothing else should be asking.
+            attrs = [a for a in one("attrs", "").split(",") if a][:40]
+            return self._json({"results": packages_by_attr(attrs)})
         if u.path == "/api/option":
             opt = get_option(one("path", ""))
             return self._json(opt or {"error": "not found"}, 200 if opt else 404)

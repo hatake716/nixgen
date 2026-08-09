@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-09k';
+const BUILD = '2026-08-09l';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -137,6 +137,9 @@ function setStateVersion(release, channel) {
 
 let searchTimer;
 $('#q').addEventListener('input', () => {
+  // Typing takes over from a category, so the dropdown stops claiming it.
+  $('#s-apps').value = '';
+  $('#appshint').hidden = true;
   clearTimeout(searchTimer);
   searchTimer = setTimeout(runSearch, 140);
 });
@@ -157,6 +160,11 @@ function selectKind(kind) {
 
   $('#filterline').style.display = kind === 'options' ? '' : 'none';
   $('#presetline').style.display = kind === 'options' ? '' : 'none';
+  $('#appsline').style.display = kind === 'packages' ? '' : 'none';
+  // Leaving the tab drops the category, so the dropdown never claims to be
+  // describing a list that has since been replaced by a search.
+  $('#s-apps').value = '';
+  $('#appshint').hidden = true;
   $('#q').placeholder = kind === 'options'
     ? 'openssh, firewall, timeZone…'
     : 'firefox, ripgrep, obsidian…';
@@ -658,6 +666,46 @@ $('#btn-desktop').addEventListener('click', () => {
   const key = $('#s-desktop').value;
   if (key) addDesktop(key);
 });
+
+/* A few representative packages per area, for when you know the kind of thing
+   you want but not what it is called here. Every name was checked against the
+   catalogue; ones nixpkgs has renamed are simply absent from the result rather
+   than offered and broken — `kdenlive` is `kdePackages.kdenlive`, `0ad` is
+   `zeroad`, `superTuxKart` is `supertuxkart`, and none of those are guessable.
+   This is a short pick and says so on screen: it is the one place in the tool
+   where somebody's taste decides what you see, so it stays small, and the
+   search box remains the way to find anything else.
+
+   Steam is deliberately absent. It wants `programs.steam.enable`, not a line
+   in environment.systemPackages, and the Options tab has it. */
+const APPS = {
+  browser: ['firefox', 'chromium', 'librewolf', 'brave', 'ungoogled-chromium'],
+  mail:    ['thunderbird', 'evolution', 'geary', 'claws-mail'],
+  office:  ['libreoffice', 'onlyoffice-desktopeditors', 'gnumeric', 'abiword',
+            'xournalpp'],
+  media:   ['vlc', 'mpv', 'obs-studio', 'audacity', 'kdePackages.kdenlive',
+            'handbrake', 'strawberry'],
+  graphics:['gimp', 'inkscape', 'krita', 'darktable', 'blender', 'rawtherapee'],
+  // Both spellings of one game on purpose: 25.11 has `superTuxKart` and 26.05
+  // has `supertuxkart`. Only whichever exists comes back, so listing the two
+  // costs nothing and the list keeps working across a rename.
+  games:   ['lutris', 'prismlauncher', 'supertuxkart', 'superTuxKart', 'zeroad',
+            'retroarch', 'mangohud'],
+  system:  ['htop', 'btop', 'gparted', 'keepassxc', 'baobab', 'timeshift',
+            'fastfetch'],
+  dev:     ['git', 'neovim', 'helix', 'vscodium', 'gh', 'direnv', 'tmux'],
+};
+
+async function showApps(key) {
+  const attrs = APPS[key];
+  $('#appshint').hidden = !attrs;
+  if (!attrs) { runSearch(); return; }
+  const url = '/api/packages?attrs=' + encodeURIComponent(attrs.join(','));
+  const { results } = await fetch(url).then(r => r.json());
+  paintPackages(results);
+}
+
+$('#s-apps').addEventListener('change', () => showApps($('#s-apps').value));
 
 /* Find a selection entry by the path it will actually render to. Import can
    file the same option under a suffixed key, so looking it up by map key is

@@ -193,6 +193,16 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
 - **The directory listing in the steps is ASCII, not box drawing.** `--mono`
   falls back to a proportional face for `├─└` on some machines, and a tree
   whose columns do not line up is worse than no tree.
+- **`APPS` is the one opinionated list in the tool, and stays small.** Picking a
+  category fills the results with a handful of packages, which are then added
+  by the same click as any search hit — nothing is installed on anyone's
+  behalf, and the search box remains the way to reach the other 144,000.
+  Every name is looked up rather than rendered, so one the channel does not
+  have is absent instead of broken: `kdenlive` is `kdePackages.kdenlive`, `0ad`
+  is `zeroad`, and `superTuxKart` became `supertuxkart` between 25.11 and
+  26.05 — both spellings are listed and only the real one comes back. Steam is
+  left out: it wants `programs.steam.enable`, not a line in
+  `environment.systemPackages`.
 - **The desktop presets name candidates, not paths.** `DESKTOPS` lists a few
   possible names per role and takes the first the catalogue has, because these
   have already moved once and asymmetrically: `gdm` and `sddm` left

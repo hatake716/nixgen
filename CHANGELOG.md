@@ -9,6 +9,21 @@ option counts.
 
 ## English
 
+### build 2026-08-09l
+
+- **A "common apps" dropdown on the Packages tab**, for when you know the kind
+  of thing you want but not what it is called here: browsers, mail, office,
+  audio and video, graphics, games, system tools, development. Picking a
+  category fills the results list, so adding one is the same click as any
+  search hit — **nothing is installed on your behalf.**
+- It is a short pick and says so. This is the one place where somebody's taste
+  decides what you are shown, so it stays small and the search box remains the
+  way to find everything else.
+- Every name was checked against the catalogue, which is not a formality:
+  `kdenlive` is `kdePackages.kdenlive`, `0ad` is `zeroad`, and `superTuxKart`
+  became `supertuxkart` between 25.11 and 26.05. A name the channel does not
+  have simply does not appear.
+
 ### build 2026-08-09k
 
 - **Pick a desktop from a dropdown.** GNOME, KDE Plasma or Xfce, on the
@@ -230,6 +245,12 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-09l
+
+- **Packagesタブに「よく使うアプリ」のプルダウンを追加しました。** ブラウザ、メール、オフィス、音楽と動画、グラフィックス、ゲーム、システム、開発の8分野です。「欲しいものの種類は分かるが、ここでの名前が分からない」ときのためのものです。**カテゴリを選ぶと検索結果欄にそのアプリが並びます。** 追加するのは検索結果をクリックするのと同じ操作で、**勝手にインストールされるものはありません。**
+- **絞った一覧であることを画面にも書いています。** ここは道具の中で唯一、**誰かの好みで見えるものが決まる場所**です。だから小さく保ち、それ以外を探す手段は検索欄のままにしてあります。
+- 名前はすべてカタログと照合しました。これは形式的な作業ではありません。`kdenlive` の実体は `kdePackages.kdenlive`、`0ad` は `zeroad`、`superTuxKart` は 25.11 と 26.05 の間に `supertuxkart` へ改名されています。**そのチャンネルに無い名前は、一覧に出ません。**
 
 ### build 2026-08-09k
 

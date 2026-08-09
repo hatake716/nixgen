@@ -249,6 +249,24 @@ first.
 The tabs run **Setup**, **Options** (settings), **Packages** (software) — in the order you would use them on a new machine. Setup is where the app opens; click **Options** to start searching.
 Anything you pick under Packages is added to the list of programs to install.
 
+### Common apps
+
+Under **Packages** there is a **Common apps** dropdown: browsers, mail, office,
+audio and video, graphics, games, system tools, development. Picking a category
+fills the result list with a handful of packages, which you then add by
+clicking, exactly like a search hit. Nothing is installed for you.
+
+It is a short pick, not a catalogue — the one place in the tool where somebody
+else's taste decides what you see, so it stays small. Search for anything else.
+
+Every name is looked up in the catalogue for your channel, which is not a
+formality: `kdenlive` is really `kdePackages.kdenlive`, `0ad` is `zeroad`, and
+`superTuxKart` became `supertuxkart` between 25.11 and 26.05. Anything your
+channel does not have simply is not listed.
+
+Steam is deliberately absent: it wants `programs.steam.enable` under
+**Options**, not a line in `environment.systemPackages`.
+
 ### Picking a desktop
 
 Under **Options** there is a **Desktop** dropdown: GNOME, KDE Plasma or Xfce.
