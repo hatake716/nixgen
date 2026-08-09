@@ -9,6 +9,19 @@ option counts.
 
 ## English
 
+### build 2026-08-10c
+
+- **The five steps are the order to work in now**: Setup, then Options, then
+  Packages, then **Check syntax**, then **Download all three**. They were
+  grouped by subject before, with importing an existing file as a step of its
+  own in the middle, and that left the first question anybody has unanswered —
+  which of these do I do first.
+- **Checking has a step of its own**, between adding things and taking them
+  away. It was a footnote under the list, which is not where a step belongs.
+- The lede says the same thing in one line, for anyone who reads no further,
+  and the note underneath says you can still go back to any tab whenever you
+  like.
+
 ### build 2026-08-10b
 
 - **Cinnamon's and COSMIC's own apps are in the categories now** — 19 more,
@@ -434,6 +447,12 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10c
+
+- **5つの手順を、そのまま進める順序に組み替えました。** Setup → Options → Packages → **Check syntax** → **Download all three** です。以前は内容ごとの分類で、既存ファイルの読み込みが**途中に独立した手順として**入っていました。そのため、**誰もが最初に持つ疑問**(どれから手を付けるのか)に答えられていませんでした。
+- **確認にも独立した手順を与えました。** 追加する作業と、持ち出す作業の間です。それまでは一覧の下の補足で、**手順の置き場所ではありませんでした。**
+- 冒頭の1行にも同じことを書きました。先を読まない人のためです。一覧の下には、**タブにはいつでも戻れる**ことも書き添えてあります。
 
 ### build 2026-08-10b
 

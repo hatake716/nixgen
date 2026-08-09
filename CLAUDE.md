@@ -201,6 +201,14 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   what clears them. They name the tabs and buttons rather than where things sit
   — the panes stack and swap on a narrow screen, and "on the left" would be
   wrong exactly where a first-timer cannot afford it.
+- **The five steps are five things to do in order, not five subjects.** Setup,
+  Options, Packages, Check syntax, Download all three — the tabs and buttons in
+  the order they are used. They were once grouped by subject, with importing an
+  existing file as its own step in the middle; that reads fine and answers the
+  wrong question, because the first thing anyone wants to know is which one to
+  do first. Importing is a branch of step one, and checking earned a step of
+  its own rather than a footnote under the list. A new step goes in the place
+  it is performed, or it is not a step.
 - **The archive is a `.tar.gz` inside a directory, and both halves matter.**
   `tar` and `gzip` are in the NixOS default system path and `unzip` is not, so
   a zip would send someone looking for a package before they could read what

@@ -224,18 +224,27 @@
         <div id="howto">
           <p class="eyebrow">How this works</p>
           <p class="lede">nixgen writes new files. The ones you already have are
-             read at most, never changed.</p>
+             read at most, never changed. <b>The tabs are the order of work:
+             Setup, then Options, then Packages — then check it and take
+             it.</b></p>
           <!-- Named by their labels rather than by where they sit: the panes
                stack and swap on a narrow screen, and "on the left" would then
-               be wrong in the one place a first-timer cannot afford it. -->
+               be wrong in the one place a first-timer cannot afford it.
+
+               The five steps are the five tabs and buttons in the order they
+               are meant to be used. They were once grouped by subject, with
+               importing an existing file as its own step in the middle, and
+               the question that left unanswered was the first one anybody
+               has: which of these do I do first. -->
           <ol>
-            <li><b>New machine, no flake yet?</b> The <b class="w">Setup</b> tab
-              fills in the two a fresh install still needs:
-              <code>configuration.nix</code>, the half you write by hand, and
-              <code>flake.nix</code>, the way in to the whole system. Take them
-              from the file tabs one at a time, or press
-              <b class="w">Download all three</b> and get one archive, and keep
-              all four in one directory.
+            <li><b>Start in <b class="w">Setup</b>.</b> The host name, the user
+              account, the channel and the boot loader. It writes the two files
+              a fresh install still needs: <code>configuration.nix</code>, the
+              half you write by hand, and <code>flake.nix</code>, the way in to
+              the whole system.
+              <b>Already have a <code>configuration.nix</code>?</b> Press
+              <b class="w">Import configuration.nix</b> first — your settings
+              come back as fields you can edit — and carry on here.
               <!-- ASCII rather than box drawing: the mono stack falls back to
                    a proportional face for those glyphs on some machines, and a
                    tree that does not line up is worse than no tree. -->
@@ -245,20 +254,24 @@
 |-- hardware-configuration.nix  written when you installed; left alone
 `-- generated.nix               what you build here</pre>
               <code>flake.nix</code> reads <code>configuration.nix</code>, which
-              reads the other two. Setup prints the command that applies
-              them.</li>
-            <li><b>Already have a <code>configuration.nix</code>?</b> Press
-              <b class="w">Import configuration.nix</b>. Your settings come back
-              as fields you can edit.</li>
-            <li><b>Add a setting.</b> Open <b class="w">Options</b> and type what you
-              are after — <code>ssh</code>, <code>firewall</code>,
-              <code>timeZone</code>. Click a result and it lands here.</li>
-            <li><b>Add software.</b> Open <b class="w">Packages</b> and click what you
-              want. It goes into <code>environment.systemPackages</code>.</li>
-            <li><b>Use the file.</b> Press <b class="w">Download generated.nix</b>, put
-              it beside your <code>configuration.nix</code>, add
-              <code>./generated.nix</code> to <code>imports</code>, then run
-              <code>sudo nixos-rebuild dry-build</code> before you switch.</li>
+              reads the other two.</li>
+            <li><b>Then <b class="w">Options</b> — the settings.</b> Type what
+              you are after — <code>ssh</code>, <code>firewall</code>,
+              <code>timeZone</code> — and click a result to bring it here. The
+              four dropdowns above the results do a kernel, a desktop, a
+              graphics driver or a language in one go.</li>
+            <li><b>Then <b class="w">Packages</b> — the software.</b> Search, or
+              pick a category under <b class="w">Common apps</b>. Everything you
+              click goes into <code>environment.systemPackages</code>.</li>
+            <li><b>Press <b class="w">Check syntax</b> when you are done.</b> It
+              runs the real Nix parser and says where the file breaks. It cannot
+              tell you whether a value is the right <i>type</i> — that is the
+              next step's job. Fix anything it reports before going on.</li>
+            <li><b>Press <b class="w">Download all three</b>.</b> One archive
+              holding all three files. Unpack it beside the
+              <code>hardware-configuration.nix</code> you already have, then run
+              <code>sudo nixos-rebuild dry-build</code>, and switch only if that
+              is clean. Setup prints the command.</li>
           </ol>
           <div class="after">
             <p><b>Closing the tab loses the form.</b> Nothing is kept between
@@ -266,9 +279,8 @@
               <code>generated.nix</code>, and <b class="w">Import
               configuration.nix</b> brings those settings back as they were.
               The <b class="w">Setup</b> fields are not part of it.</p>
-            <p><b class="w">Check syntax</b> finds broken Nix and nothing else —
-              whether a value is the right <i>type</i> is for
-              <code>dry-build</code> to say.
+            <p>You can go back to a tab at any time — the order above is where
+              to start, not a door that shuts behind you.
               <a href="https://hatake716.github.io/nixgen/" target="_blank"
                  rel="noreferrer">The longer version</a>.</p>
           </div>
@@ -283,23 +295,23 @@
                English above is wrapped puts gaps in the middle of sentences. -->
           <div class="ja">
             <p class="eyebrow">使い方</p>
-            <p class="lede">nixgen は新しいファイルを作ります。今あるファイルは読むだけで、書き換えることはありません。</p>
+            <p class="lede">nixgen は新しいファイルを作ります。今あるファイルは読むだけで、書き換えることはありません。<b>タブの並びが、そのまま進める順序です。Setup → Options → Packages、そして確認して受け取ります。</b></p>
             <ol>
-              <li><b>flake がまだ無い、新しいマシンですか。</b> <b class="w">Setup</b> タブが、インストール直後に足りない2つを用意します。手で書く側の <code>configuration.nix</code> と、システム全体の入口になる <code>flake.nix</code> です。ファイルタブから1つずつ、あるいは <b class="w">Download all three</b> を押して1つの書庫でまとめて受け取り、4つを同じディレクトリに置いてください。
+              <li><b>まず <b class="w">Setup</b> から。</b>ホスト名、ユーザー、チャンネル、ブートローダーを決めます。インストール直後に足りない2つのファイルは、ここで用意されます。手で書く側の <code>configuration.nix</code> と、システム全体の入口になる <code>flake.nix</code> です。<b>すでに <code>configuration.nix</code> がある場合は</b>、先に <b class="w">Import configuration.nix</b> を押してください。今の設定が編集できる入力欄として戻ってくるので、そのままここから続けます。
                 <pre class="tree">/etc/nixos/
 |-- flake.nix                   Setup から
 |-- configuration.nix           Setup から
 |-- hardware-configuration.nix  インストール時に作られたもの。触りません
 `-- generated.nix               ここで作るファイル</pre>
-                <code>flake.nix</code> が <code>configuration.nix</code> を読み、そこから残りの2つを読みます。適用するコマンドは Setup が表示します。</li>
-              <li><b>すでに <code>configuration.nix</code> がありますか。</b> <b class="w">Import configuration.nix</b> を押してください。今の設定が、編集できる入力欄として戻ってきます。</li>
-              <li><b>設定を足す。</b> <b class="w">Options</b> を開いて、探しているものを入力します — <code>ssh</code>、<code>firewall</code>、<code>timeZone</code> など。結果をクリックすると、ここに入ります。</li>
-              <li><b>ソフトを足す。</b> <b class="w">Packages</b> を開いて、欲しいものをクリックします。<code>environment.systemPackages</code> に入ります。</li>
-              <li><b>できたファイルを使う。</b> <b class="w">Download generated.nix</b> を押し、<code>configuration.nix</code> の隣に置いて、<code>imports</code> に <code>./generated.nix</code> を足します。切り替える前に、<code>sudo nixos-rebuild dry-build</code> で確かめてください。</li>
+                <code>flake.nix</code> が <code>configuration.nix</code> を読み、そこから残りの2つを読みます。</li>
+              <li><b>次に <b class="w">Options</b> — 設定項目です。</b>探しているものを入力します — <code>ssh</code>、<code>firewall</code>、<code>timeZone</code> など。結果をクリックすると、ここに入ります。結果の上にある4つのプルダウンでは、カーネル・デスクトップ・グラフィックス・言語がひと通り揃います。</li>
+              <li><b>次に <b class="w">Packages</b> — ソフトウェアです。</b>検索するか、<b class="w">Common apps</b> の分野から選びます。クリックしたものは <code>environment.systemPackages</code> に入ります。</li>
+              <li><b>ひと通り終えたら <b class="w">Check syntax</b> を押します。</b>本物の Nix のパーサーを通し、どこで壊れているかを伝えます。値の<i>型</i>が正しいかどうかまでは分かりません。それは次の手順の役目です。ここで指摘が出たら、直してから先に進んでください。</li>
+              <li><b><b class="w">Download all three</b> を押します。</b>3つのファイルが1つの書庫で出てきます。既にある <code>hardware-configuration.nix</code> の隣に展開し、<code>sudo nixos-rebuild dry-build</code> を実行してください。<b>問題が無いときだけ</b>切り替えます。コマンドは Setup に表示されています。</li>
             </ol>
             <div class="after">
               <p><b>タブを閉じると、入力した内容は消えます。</b>何も保存していないので、保存にあたるのはファイルです。<code>generated.nix</code> をダウンロードしておけば、<b class="w">Import configuration.nix</b> で元のとおりに戻せます。<b class="w">Setup</b> の入力欄はこれに含まれません。</p>
-              <p><b class="w">Check syntax</b> が見るのは Nix の文法だけです。値が正しい<i>型</i>かどうかは <code>dry-build</code> が答えます。<a href="https://hatake716.github.io/nixgen/" target="_blank" rel="noreferrer">詳しい説明</a>。</p>
+              <p>タブはいつでも戻れます。上の順序は<b>どこから始めるか</b>の話で、一度離れたら戻れないわけではありません。<a href="https://hatake716.github.io/nixgen/" target="_blank" rel="noreferrer">詳しい説明</a>。</p>
             </div>
           </div>
         </div>

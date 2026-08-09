@@ -233,10 +233,20 @@ tab says how much it is taking and offers to remove it.
 
 ## Using it
 
-Opening it puts **five steps** in the middle of the screen: the starter files,
-reading in a configuration you already have, adding a setting, adding software,
-and what to do with the file afterwards. Add anything and that panel becomes
-the thing you added. What follows is the longer version.
+Opening it puts **five steps** in the middle of the screen, and they are the
+order to work in:
+
+1. **Setup** — the machine itself, and the two starter files. Already have a
+   `configuration.nix`? **Import configuration.nix** first.
+2. **Options** — the settings.
+3. **Packages** — the software.
+4. **Check syntax** — fix whatever it reports.
+5. **Download all three** — then `sudo nixos-rebuild dry-build` before you
+   switch.
+
+You can go back to any tab at any time; the order is where to start, not a door
+that shuts behind you. Add anything and that panel becomes the thing you added.
+What follows is the longer version.
 
 ### Finding things
 
