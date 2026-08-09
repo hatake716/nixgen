@@ -9,6 +9,30 @@ option counts.
 
 ## English
 
+### build 2026-08-09c
+
+A harness for the importer, and the six things it found on its first run. It
+reads configurations back in through **both readers** — Nix's parser and the
+fallback used when Nix is not on PATH — because they fail differently, and
+three of these six showed up in only one of the two.
+
+- **Fixed: a setting that applied cleanly and did nothing.**
+  `boot.kernel.sysctl."net.core.rmem_max"` was split on the dots inside the
+  quotes, so it was written to a different attribute. The file parsed,
+  `nixos-rebuild` accepted it, and the setting simply never took effect. 76
+  options are named this way.
+- **Fixed: non-ASCII text came back as mojibake.** `日本語` and `Grüße` were
+  mangled on import — the unescaper read UTF-8 bytes as if they were latin-1.
+- **Fixed: a package list that was empty could not be added to.** An empty
+  `environment.systemPackages = [ ]` was read as an expression rather than an
+  empty list, so there was nowhere to put anything.
+- **Fixed: `services.foo.nice = -5` came back as `__sub 0 5`.** Nix has no
+  negative literal and that is how its parser writes one. Correct, and
+  unrecognisable as the line you wrote.
+- **Fixed: a package name with a quoted part broke the list it was in.**
+  `rubyPackages."http_parser.rb"` was cut in two when the list was sorted,
+  leaving `rubyPackages.` behind.
+
 ### build 2026-08-09b
 
 - **Fixed: a package whose name has a dot in it produced a broken file.**
@@ -107,6 +131,16 @@ option counts.
 ---
 
 ## 日本語
+
+### build 2026-08-09c
+
+設定ファイル読み込みの検証ハーネスを追加し、**初回実行で見つかった6件**を修正しました。ハーネスは**2つのリーダー両方**を通します。Nixのパーサーを使う経路と、Nixが無い環境用のフォールバックです。この2つは壊れ方が違い、6件のうち3件は片方でしか現れませんでした。
+
+- **修正：正常に適用できるのに、何も起きない設定。** `boot.kernel.sysctl."net.core.rmem_max"` が引用符の中のドットで分割され、**別の属性に書き込まれていました。** ファイルは構文チェックを通り、`nixos-rebuild` も受け付け、設定だけが効きません。この形の項目は76個あります。
+- **修正：非ASCII文字が文字化けする不具合。** `日本語` や `Grüße` が読み込み時に壊れていました。エスケープ解除がUTF-8のバイト列をlatin-1として読んでいたためです。
+- **修正：空のパッケージ一覧に追加できない不具合。** `environment.systemPackages = [ ];` が「空のリスト」ではなく「式」と判定され、追加先が無くなっていました。
+- **修正：`services.foo.nice = -5` が `__sub 0 5` になる不具合。** Nixに負数リテラルは無く、パーサーはこの形で返します。正しいのですが、**自分が書いた行だと分かりません。**
+- **修正：引用符を含むパッケージ名が、リストごと壊す不具合。** 並べ替えの際に `rubyPackages."http_parser.rb"` が2つに割れ、`rubyPackages.` という壊れた記述が残っていました。
 
 ### build 2026-08-09b
 

@@ -392,6 +392,7 @@ build/
   static/           画面(素のJavaScript、ビルド工程なし)
 tools/
   fuzz.py           レンダラの回帰テスト + ファジング
+  import_check.py   読み込み側の回帰テスト。2つのリーダー両方を通します
 data/
   nixgen.sqlite     作られるデータベース。gitには入れません
 docs/

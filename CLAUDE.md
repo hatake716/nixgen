@@ -60,6 +60,7 @@ build/
   static/           the UI. Vanilla JS, no build step.
 tools/
   fuzz.py           regression + fuzz harness. Run before shipping renderer changes.
+  import_check.py   the same for the importer, through both of its readers.
 docs/               the GitHub Pages homepage
 ```
 
@@ -82,6 +83,12 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
 - **Attribute paths are rendered segment by segment**, and any segment that is
   not a plain identifier is quoted. A vhost named `my site.example.com` has to
   survive. Never join a path with `.` and hope.
+- **A quoted segment is one name, dots and all.** 76 catalogue paths hold one,
+  `boot.kernel.sysctl."net.core.rmem_max"` among them. `_SEGMENT` keeps it
+  whole and `render_path` leaves its quotes alone; quoting it a second time
+  named a different attribute, and the file still parsed, so the only symptom
+  was a setting that never took effect. `_SEGMENT` and `segmentsFor()` in
+  `app.js` are the same rule twice and must stay in step.
 - **Placeholders in option paths are not all `<name>`.** Also `<n>`, `*`, and
   upstream artifacts like `<imports = [ pkgs.ghostunnel... ]>`. 5,082 options
   (21%) contain one. The pattern is `/<[^>]*>|\*/`.
@@ -124,6 +131,17 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   not. The nix path never shows a literal `(-1)` — it arrives as
   `(__sub 0 1)` — so this only ever bites through the fallback reader, which
   is exactly where it is hardest to notice.
+- **Nix has no negative literal.** `-5` comes back out of its parser as
+  `(__sub 0 5)`. `_undo_parens` turns it back, because a carried-over line is
+  meant to be recognisable as the one you wrote, and because leaving it made
+  every negative number an expression the form could not hold.
+- **Escapes are Nix's, not Python's.** `unicode_escape` decodes UTF-8 bytes as
+  latin-1, so `日本語` came back as mojibake, and it invents escapes Nix does
+  not have — a backslash-u escape is literal text in a Nix string, where a
+  backslash before anything but `n`, `r` or `t` just means that character.
+- **An empty list fits any list.** `[ ]` says nothing about what it would have
+  held; refusing it for a `list of package` left an empty
+  `environment.systemPackages` sitting there as an expression.
 
 ### Starter files
 
@@ -162,6 +180,9 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
 # renderer changes — fixed regressions plus random sampling against the real parser
 python3 tools/fuzz.py
 
+# importer changes — fixed configurations plus a round trip, through both readers
+python3 tools/import_check.py
+
 # server / importer changes
 python3 -c "import ast,glob; [ast.parse(open(f).read()) for f in glob.glob('build/*.py')]"
 node --check build/static/app.js
@@ -178,11 +199,24 @@ matter as much as the random part: random sampling did **not** catch the
 negative-number bug when it was deliberately reintroduced, because that seed
 happened not to put a negative number in a list.
 
+`tools/import_check.py` reads configurations back in and checks that every line
+is accounted for, comes back as the value it went in as, and rebuilds into a
+file that parses. **Every case runs through both readers** — the Nix-backed one
+and the fallback — because they fail differently and neither failure is visible
+from the other. It found six defects on its first run, three of them in only
+one of the two readers.
+
+Its fixed cases matter more than its random half, and for a reason worth
+keeping: the random half renders our own options and reads them back, so it can
+only ever produce shapes our renderer emits. `with pkgs; [ python313Packages.requests ]`
+is what a person writes and what broke, and no amount of sampling would have
+reached it. New shapes belong in `CASES`.
+
 In the browser, after any UI change: import a `configuration.nix`, add a package
 from search, switch tabs, and press Check syntax. That path has broken more than
 once in ways nothing else caught.
 
-> リリース前に `python3 tools/fuzz.py` を通してください。ランダム部分だけでは既知バグを取りこぼします。固定ケースが本体です。
+> リリース前に `python3 tools/fuzz.py` と `python3 tools/import_check.py` を通してください。ランダム部分だけでは既知バグを取りこぼします。固定ケースが本体です。
 
 ---
 
@@ -202,6 +236,10 @@ once in ways nothing else caught.
 | `undefined variable 'python313Packages'` | a dot in a package name was read as "already qualified", so `pkgs.` was left off 83% of the catalogue |
 | an imported package list arrives as uneditable text | `((python313Packages).requests)` — Nix's parenthesised head was not recognised |
 | `syntax error, unexpected '-'` from an *imported* file | `_PAREN_ATOM` stripped the brackets off `(-1)` in the fallback reader |
+| a setting parses, applies cleanly, and does nothing | `boot.kernel.sysctl."net.core.rmem_max"` was split on the dots inside the quotes, naming a different attribute |
+| `日本語` and `Grüße` come back as mojibake | the unescaper was Python's `unicode_escape`, which reads UTF-8 bytes as latin-1 |
+| `services.nice.level = __sub 0 5` in a carried-over line | Nix has no negative literal; its parser's form was passed straight through |
+| an empty `environment.systemPackages = [ ]` cannot be added to | `[ ]` was read as "not a list of packages" rather than as any list |
 
 ---
 
