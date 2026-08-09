@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-09e';
+const BUILD = '2026-08-09f';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -89,6 +89,7 @@ const state = {
   indexed: null,         // the channel the search index was built from
   built: [],             // channels already indexed on this machine
   releaseOf: {},         // channel -> NixOS version, for the built ones
+  unused: [],            // indexes for channels that are no longer offered
   unstable: 'nixos-unstable',
   snapshot: null,        // when the channel published the indexed data
   ageDays: null,         // …and how many days ago that was
@@ -180,6 +181,7 @@ async function loadReleases() {
   state.ageDays = r.age_days;
   state.stale = !!r.stale;
   state.releaseOf = r.release_of || {};
+  state.unused = r.unused || [];
 
   const sel = $('#s-release');
   sel.innerHTML = '';
@@ -195,7 +197,50 @@ async function loadReleases() {
   sel.value = state.indexed && state.releases.includes(state.indexed)
     ? state.indexed : state.releases[0];
   syncRelease();
+  syncUnused();
 }
+
+/* Indexes for channels that are no longer on the list. Rebuilding a channel
+   replaces its database rather than adding one, so this does not grow with
+   use — it grows by one file, about 37 MB, for each channel that has ever
+   been picked and has since dropped off. Nothing else would ever remove them,
+   and until now nothing said they were there. */
+function syncUnused() {
+  const note = $('#s-unused');
+  const btn = $('#btn-prune');
+  const list = state.unused || [];
+  note.textContent = '';
+  if (!list.length) { note.hidden = true; btn.hidden = true; return; }
+
+  const mb = Math.round(list.reduce((n, u) => n + u.bytes, 0) / 1e6);
+  const many = list.length > 1;
+  note.hidden = false;
+  note.append(many ? `${list.length} indexes are left over: ` : 'One index is left over: ');
+  list.forEach((u, i) => {
+    if (i) note.append(i === list.length - 1 ? ' and ' : ', ');
+    note.append(ident(u.channel));
+  });
+  note.append(`, taking ${mb} MB. Nothing here can select ${many ? 'them' : 'it'} ` +
+              `any more, and rebuilding is all it takes to get ${many ? 'them' : 'it'} back.`);
+  btn.hidden = false;
+  btn.textContent = `Remove ${many ? 'them' : 'it'} (${mb} MB)`;
+}
+
+$('#btn-prune').addEventListener('click', async () => {
+  const btn = $('#btn-prune');
+  btn.disabled = true;
+  const channels = (state.unused || []).map(u => u.channel);
+  const r = await fetch('/api/indexes/remove', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ channels }),
+  }).then(x => x.json());
+  btn.disabled = false;
+  if (r.error) { showProgress('failed', r.error); return; }
+  await loadReleases();
+  showProgress('done',
+    `Removed ${r.removed.length} index${r.removed.length > 1 ? 'es' : ''}, ` +
+    `freeing ${Math.round(r.bytes / 1e6)} MB.`);
+});
 
 /* How old the option list is. On a numbered release this is background; on
    unstable the channel has moved on by tomorrow, and an option list nobody

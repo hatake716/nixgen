@@ -156,6 +156,30 @@ def db_for(data_dir, channel):
     return os.path.join(data_dir, f"nixgen-{channel}.sqlite")
 
 
+# The other direction. Kept next to db_for so the two spellings of the same
+# convention cannot drift, and narrow on purpose: whatever removes files must
+# only ever see names this tool wrote itself.
+DB_NAME = re.compile(r"nixgen-(nixos-(?:\d\d\.(?:05|11)|unstable))\.sqlite")
+
+
+def indexes(data_dir):
+    """channel -> path, for every database in data_dir that nixgen named.
+
+    A rebuild replaces a channel's file rather than adding one, so this grows
+    by one entry per channel ever picked, and never shrinks by itself.
+    """
+    out = {}
+    try:
+        names = os.listdir(data_dir)
+    except OSError:
+        return out
+    for name in names:
+        m = DB_NAME.fullmatch(name)
+        if m:
+            out[m.group(1)] = os.path.join(data_dir, name)
+    return out
+
+
 def build(data_dir, channel, on_done=None):
     """Fetch and index one release into its own database file.
 
