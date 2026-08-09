@@ -3,6 +3,7 @@
 
 import argparse
 import datetime
+import errno
 import json
 import os
 import re
@@ -220,6 +221,28 @@ def revision_for(channel):
     if rev:
         return rev, True
     return releases.revision(channel), False
+
+
+def unused_indexes():
+    """Databases for channels that can no longer be picked.
+
+    A channel drops off the list when NixOS moves on, and its 37 MB database
+    stays behind where nothing will ever look at it again. Three guards, all
+    of them load-bearing: only names nixgen wrote itself, never the database
+    in use, and never a channel still on offer.
+    """
+    keep = set(releases.releases()) | {get_meta().get("channel")}
+    here = os.path.abspath(DB_PATH)
+    out = []
+    for channel, path in sorted(releases.indexes(data_dir()).items()):
+        if channel in keep or os.path.abspath(path) == here:
+            continue
+        try:
+            size = os.path.getsize(path)
+        except OSError:
+            continue
+        out.append({"channel": channel, "path": path, "bytes": size})
+    return out
 
 
 def age_days(snapshot):
@@ -576,6 +599,10 @@ class Handler(BaseHTTPRequestHandler):
                 # `nixos-unstable` is 26.11 today and its name will never say so.
                 "release_of": {ch: get_meta(p).get("release")
                                for ch, p in built.items()},
+                # Indexes for channels that dropped off the list. Nothing else
+                # would ever remove them, and each one is about 37 MB.
+                "unused": [{"channel": u["channel"], "bytes": u["bytes"]}
+                           for u in unused_indexes()],
             })
         if u.path == "/api/reindex/status":
             return self._json(releases.status)
@@ -635,6 +662,23 @@ class Handler(BaseHTTPRequestHandler):
             releases.build(data_dir(), channel,
                            on_done=lambda ch, path: switch_db(path))
             return self._json({"started": True, "channel": channel})
+        if u.path == "/api/indexes/remove":
+            # The client names channels, never paths, and only channels this
+            # side has already decided are unreachable can be removed. Nothing
+            # a request says can widen that set.
+            wanted = set(payload.get("channels") or [])
+            removed, freed = [], 0
+            for entry in unused_indexes():
+                if entry["channel"] not in wanted:
+                    continue
+                try:
+                    os.remove(entry["path"])
+                except OSError as exc:
+                    return self._json({"error": str(exc)}, 200)
+                _KNOWN_DBS.pop(entry["channel"], None)
+                removed.append(entry["channel"])
+                freed += entry["bytes"]
+            return self._json({"removed": removed, "bytes": freed})
         if u.path == "/api/validate":
             return self._json(validate(payload.get("text", "")))
         return self._send(404, b"not found", "text/plain")
@@ -673,6 +717,25 @@ def main():
             remember_db()
 
     url = f"http://{args.host}:{args.port}/"
+
+    # Bind before announcing anything. Printing "serving …" and opening a
+    # browser and only then failing to listen sends someone to whatever else
+    # is on that port — which, when it is an older nixgen, looks exactly like
+    # the new one having started and changed nothing.
+    try:
+        httpd = ThreadingHTTPServer((args.host, args.port), Handler)
+    except OSError as exc:
+        if exc.errno != errno.EADDRINUSE:
+            sys.exit(f"could not listen on {args.host}:{args.port} — {exc}")
+        sys.exit(
+            f"port {args.port} is already in use, so nixgen did not start.\n"
+            f"\n"
+            f"  Often it is nixgen itself, left running from earlier. Open\n"
+            f"  {url} and look at the build id in the header: if it is\n"
+            f"  not the version you expected, that is the old one answering.\n"
+            f"\n"
+            f"  Otherwise use another port:  nixgen --port {args.port + 1}")
+
     meta = get_meta()
     print(f"nixgen — {meta.get('channel')} · "
           f"{int(meta.get('option_count', 0)):,} options · "
@@ -683,7 +746,7 @@ def main():
             webbrowser.open(url)
         except Exception:
             pass
-    ThreadingHTTPServer((args.host, args.port), Handler).serve_forever()
+    httpd.serve_forever()
 
 
 if __name__ == "__main__":
