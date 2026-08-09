@@ -226,6 +226,31 @@ def get_option(path):
     return out
 
 
+def options_by_path(paths):
+    """The ones this channel has, in the order asked for.
+
+    The same shape as `packages_by_attr`, and for the same reason: the presets
+    name several possible spellings of a setting because the names have moved
+    — `services.displayManager.lightdm.enable` on one release,
+    `services.xserver.displayManager.lightdm.enable` on another — and asking
+    for each in turn meant a 404 for every one that was not it. A name this
+    release does not have is simply absent from the answer.
+    """
+    if not paths:
+        return []
+    con = db()
+    rows = con.execute(
+        "SELECT * FROM options WHERE path IN (%s)" % ",".join("?" * len(paths)),
+        paths).fetchall()
+    con.close()
+    found = {}
+    for row in rows:
+        out = dict(row)
+        out["type"] = json.loads(out.pop("type_json"))
+        found[out["path"]] = out
+    return [found[p] for p in paths if p in found]
+
+
 def get_meta(path=None):
     con = db(path)
     rows = con.execute("SELECT key, value FROM meta").fetchall()
@@ -865,6 +890,9 @@ class Handler(BaseHTTPRequestHandler):
             # are a handful each, and nothing else should be asking.
             attrs = [a for a in one("attrs", "").split(",") if a][:40]
             return self._json({"results": with_icons(packages_by_attr(attrs))})
+        if u.path == "/api/options":
+            paths = [p for p in one("paths", "").split(",") if p][:40]
+            return self._json({"results": options_by_path(paths)})
         if u.path == "/api/option":
             opt = get_option(one("path", ""))
             return self._json(opt or {"error": "not found"}, 200 if opt else 404)

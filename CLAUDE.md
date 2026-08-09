@@ -202,6 +202,12 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
 - **A row says whether it has an icon; the page never asks blind.** An `<img>`
   per package meant a 404 for every one without an icon — 128 in a single
   search. `with_icons` puts the answer in the row that was already being sent.
+- **Ordinary use answers 404 nowhere.** Both places that used to — an icon that
+  does not exist, and a preset trying candidate option paths one at a time —
+  ask a question that has an answer instead: `/api/packages?attrs=` and
+  `/api/options?paths=` return the ones that exist, in the order asked. A
+  console with two red lines in it every time somebody picks a desktop is a
+  console nobody reads when something is actually wrong.
 - **Repainting the package list must keep the category.** `runSearch` is what
   every repaint goes through, and it knew only about the search box, so adding
   the first package from a category replaced that category with the default

@@ -9,6 +9,17 @@ option counts.
 
 ## English
 
+### build 2026-08-10n
+
+- **The presets ask for every spelling at once and get back the ones that
+  exist**, the way the app categories already ask about packages. Adding a
+  desktop used to try each candidate in turn, so a name this release does not
+  use — `services.displayManager.lightdm.enable` on 26.05 — came back 404 and
+  put a failure in the browser console for something that is not one.
+  **Nothing in the app answers 404 during ordinary use now**, which makes the
+  console worth reading again.
+- The winner is used as it arrives rather than asked for a second time.
+
 ### build 2026-08-10m
 
 Another pass over the whole app, driving it rather than reading it.
@@ -584,6 +595,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10n
+
+- **プリセットが、候補の綴りをまとめて1回で問い合わせ、存在するものだけを受け取る**ようにしました。アプリ分野のパッケージ照合と同じやり方です。これまでは候補を1つずつ試していたため、**そのリリースが使わない名前**(26.05 における `services.displayManager.lightdm.enable` など)が404を返し、**失敗ではないものが失敗としてブラウザのコンソールに出て**いました。**通常の操作で404を返す箇所は無くなり**、コンソールを読む価値が戻りました。
+- 見つかったものは**その場で使います**。もう一度問い合わせることはしません。
 
 ### build 2026-08-10m
 

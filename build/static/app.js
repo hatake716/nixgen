@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-10m';
+const BUILD = '2026-08-10n';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -715,10 +715,10 @@ function freeKey(path) {
   return path + '#' + n;
 }
 
-async function addOption(path) {
-  if (state.selected.has(path)) { flashCard(path); return; }
-  const opt = await fetch('/api/option?path=' + encodeURIComponent(path)).then(r => r.json());
-  if (opt.error) return;
+/* Put a card on screen for an option the catalogue has already handed over.
+   Split out from addOption so a caller that looked several paths up at once
+   does not have to ask for the winner a second time. */
+function placeOption(path, opt) {
   const slots = (path.match(SLOT) || []);
   state.selected.set(path, {
     path,
@@ -732,6 +732,13 @@ async function addOption(path) {
   });
   state.lastTouched = path;
   renderEditor(); runSearch(); pushRender();
+}
+
+async function addOption(path) {
+  if (state.selected.has(path)) { flashCard(path); return; }
+  const opt = await fetch('/api/option?path=' + encodeURIComponent(path)).then(r => r.json());
+  if (opt.error) return;
+  placeOption(path, opt);
 }
 
 /* A desktop is three settings, and their names have already moved once in a
@@ -789,16 +796,23 @@ const DESKTOPS = {
    a raw one takes Nix source, so its caller passes quotes. Returns the path
    used, or null when the channel has none of them. */
 async function addWithValue(paths, value) {
-  for (const path of paths) {
-    await addOption(path);            // a no-op when the catalogue lacks it
-    if (!state.selected.has(path)) continue;
-    const entry = state.selected.get(path);
-    if (value !== undefined) {
-      entry.value = entry.type.kind === 'nullable' ? { __null: false, v: value } : value;
-    }
-    return path;
+  /* One question with every spelling in it, rather than one request per
+     candidate: asking for each in turn meant a 404 for every name this
+     release does not use, and those are ordinary — `lightdm` never left
+     `services.xserver` while `gdm` did. What comes back is the ones that
+     exist, in the order asked, so the first is the one to use. */
+  const url = '/api/options?paths=' + encodeURIComponent(paths.join(','));
+  const { results } = await fetch(url).then(r => r.json());
+  const opt = (results || [])[0];
+  if (!opt) return null;
+  const path = opt.path;
+  if (state.selected.has(path)) flashCard(path);
+  else placeOption(path, opt);
+  const entry = state.selected.get(path);
+  if (value !== undefined) {
+    entry.value = entry.type.kind === 'nullable' ? { __null: false, v: value } : value;
   }
-  return null;
+  return path;
 }
 
 async function addDesktop(key) {
