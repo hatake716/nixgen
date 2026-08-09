@@ -62,7 +62,14 @@ header {
 
 .counts { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); }
 
-header .actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+/* The header wraps; this has to wrap too. Four buttons in a row are wider than
+   a phone, and a flex row that cannot wrap will not go narrower than its
+   contents — so the whole page scrolled sideways rather than the buttons
+   moving onto a second line. */
+header .actions {
+  margin-left: auto; display: flex; gap: 8px; align-items: center;
+  flex-wrap: wrap; justify-content: flex-end;
+}
 
 .btn {
   border: 1px solid var(--rule); background: var(--panel-2);
@@ -190,6 +197,11 @@ main {
 #howto .after p { margin: 0 0 9px; }
 #howto .after p:last-child { margin-bottom: 0; }
 #howto a { color: var(--accent); }
+/* English above, Japanese below, with enough of a gap that the second eyebrow
+   reads as the start of the same thing again rather than as a sixth step. */
+#howto .ja { margin-top: 34px; padding-top: 30px; border-top: 2px solid var(--panel-2); }
+#howto .ja .lede { line-height: 1.9; }
+#howto .ja li { line-height: 1.9; }
 
 .card { border-bottom: 1px solid var(--rule); padding: 12px 16px; border-left: 3px solid transparent; }
 .card.touched { border-left-color: var(--accent); background: #fff; }

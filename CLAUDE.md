@@ -186,6 +186,15 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   `order: -1` when it has something to say. It was below the module for a while,
   which put "kept as written: not an option in this release" — the one thing
   `nixos-rebuild` refuses outright — a screen or two down, where it went unread.
+- **The five steps are written twice, English then Japanese, and the two
+  halves are kept in step by hand.** They name tabs and buttons, so a machine
+  translation of them points at names that are not on the screen — which is the
+  same argument the option paths and the dropdown labels are held to. Two
+  things follow. A line break between two Japanese characters is whitespace and
+  renders as a visible space, so the Japanese half runs off the right of
+  `index.html` rather than being wrapped like the English. And a space before a
+  Japanese character is only right when what precedes it is Latin: `</b> 何も`
+  showed a gap mid-sentence, `</b> <b class="w">Setup</b>` does not.
 - **The five steps live where the module will be.** Nothing is stored between
   visits, so anything with a dismiss button would ask to be dismissed on every
   launch; putting the steps in the empty module pane means adding a setting is
@@ -346,6 +355,8 @@ once in ways nothing else caught.
 | `日本語` and `Grüße` come back as mojibake | the unescaper was Python's `unicode_escape`, which reads UTF-8 bytes as latin-1 |
 | `services.nice.level = __sub 0 5` in a carried-over line | Nix has no negative literal; its parser's form was passed straight through |
 | an empty `environment.systemPackages = [ ]` cannot be added to | `[ ]` was read as "not a list of packages" rather than as any list |
+| the whole page scrolls sideways on a phone | four header buttons in a flex row with no `flex-wrap` |
+| half a dropdown label is missing | a closed select drops what does not fit, and what did not fit was the Japanese |
 
 ---
 

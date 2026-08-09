@@ -9,6 +9,17 @@ option counts.
 
 ## English
 
+### build 2026-08-09u
+
+- **"How this works" is in both languages**: the English five steps, then the
+  same five in Japanese below them. Written, not translated — the steps name
+  the tabs and buttons, and a machine translation of them names things that are
+  not on any tab or button.
+- **The buttons in the header wrap on a narrow screen.** Four of them in a row
+  are wider than a phone, and a flex row that cannot wrap will not go narrower
+  than its contents, so the whole page scrolled sideways instead. Checked at
+  320, 375, 768, 1280 and 1800 pixels; none of them scrolls sideways now.
+
 ### build 2026-08-09t
 
 - **Every dropdown carries its Japanese now**, not just the app categories:
@@ -341,6 +352,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-09u
+
+- **How this works を英語と日本語の二段構成にしました。** 上半分が英語の5ステップ、下半分が同じ内容の日本語です。**翻訳ではなく書き下ろし**です。各ステップはタブやボタンの名前を指しているため、機械翻訳にかけると**画面のどこにも無い名前**を指すことになるからです。
+- **狭い画面でヘッダーのボタンが折り返すようにしました。** ボタン4つを一列に並べると携帯電話の幅を超えます。折り返さない flex の行は**中身より狭くなれない**ため、代わりにページ全体が横スクロールしていました。320・375・768・1280・1800ピクセルで確認し、**いずれも横スクロールしません**。
 
 ### build 2026-08-09t
 

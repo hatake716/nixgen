@@ -247,6 +247,36 @@
               <a href="https://hatake716.github.io/nixgen/" target="_blank"
                  rel="noreferrer">The longer version</a>.</p>
           </div>
+          <!-- The same five steps in Japanese, written rather than translated.
+               This is the first thing anyone sees, and a machine translation of
+               it turns the tab and button names into words that are not on any
+               tab or button. The two halves have to be kept in step by hand.
+
+               The Japanese runs off the right of this file on purpose. A line
+               break between two Japanese characters is whitespace, and the
+               browser renders it as a space, so wrapping the source the way the
+               English above is wrapped puts gaps in the middle of sentences. -->
+          <div class="ja">
+            <p class="eyebrow">使い方</p>
+            <p class="lede">nixgen は新しいファイルを作ります。今あるファイルは読むだけで、書き換えることはありません。</p>
+            <ol>
+              <li><b>flake がまだ無い、新しいマシンですか。</b> <b class="w">Setup</b> タブが、インストール直後に足りない2つを用意します。手で書く側の <code>configuration.nix</code> と、システム全体の入口になる <code>flake.nix</code> です。ファイルタブからそれぞれ受け取り、4つを同じディレクトリに置いてください。
+                <pre class="tree">/etc/nixos/
+|-- flake.nix                   Setup から
+|-- configuration.nix           Setup から
+|-- hardware-configuration.nix  インストール時に作られたもの。触りません
+`-- generated.nix               ここで作るファイル</pre>
+                <code>flake.nix</code> が <code>configuration.nix</code> を読み、そこから残りの2つを読みます。適用するコマンドは Setup が表示します。</li>
+              <li><b>すでに <code>configuration.nix</code> がありますか。</b> <b class="w">Import configuration.nix</b> を押してください。今の設定が、編集できる入力欄として戻ってきます。</li>
+              <li><b>設定を足す。</b> <b class="w">Options</b> を開いて、探しているものを入力します — <code>ssh</code>、<code>firewall</code>、<code>timeZone</code> など。結果をクリックすると、ここに入ります。</li>
+              <li><b>ソフトを足す。</b> <b class="w">Packages</b> を開いて、欲しいものをクリックします。<code>environment.systemPackages</code> に入ります。</li>
+              <li><b>できたファイルを使う。</b> <b class="w">Download generated.nix</b> を押し、<code>configuration.nix</code> の隣に置いて、<code>imports</code> に <code>./generated.nix</code> を足します。切り替える前に、<code>sudo nixos-rebuild dry-build</code> で確かめてください。</li>
+            </ol>
+            <div class="after">
+              <p><b>タブを閉じると、入力した内容は消えます。</b>何も保存していないので、保存にあたるのはファイルです。<code>generated.nix</code> をダウンロードしておけば、<b class="w">Import configuration.nix</b> で元のとおりに戻せます。<b class="w">Setup</b> の入力欄はこれに含まれません。</p>
+              <p><b class="w">Check syntax</b> が見るのは Nix の文法だけです。値が正しい<i>型</i>かどうかは <code>dry-build</code> が答えます。<a href="https://hatake716.github.io/nixgen/" target="_blank" rel="noreferrer">詳しい説明</a>。</p>
+            </div>
+          </div>
         </div>
         <div id="editor"></div>
         <div id="notice"></div>
