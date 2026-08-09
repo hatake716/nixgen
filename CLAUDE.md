@@ -63,6 +63,7 @@ build/
 tools/
   fuzz.py           regression + fuzz harness. Run before shipping renderer changes.
   import_check.py   the same for the importer, through both of its readers.
+  shots.py          retakes docs/screenshot*.png by driving the real app.
 docs/               the GitHub Pages homepage
 ```
 
@@ -200,6 +201,11 @@ them through `nix-instantiate --parse`. The fixed regression cases at the top
 matter as much as the random part: random sampling did **not** catch the
 negative-number bug when it was deliberately reintroduced, because that seed
 happened not to put a negative number in a list.
+
+`tools/shots.py` retakes the three screenshots by driving the running app, so
+they cannot drift the way they did — they had gone three features out of date,
+because retaking them by hand was a chore nobody remembered. The build id and
+the option counts are visible in every shot, which is how a stale one is spotted.
 
 `tools/import_check.py` reads configurations back in and checks that every line
 is accounted for, comes back as the value it went in as, and rebuilds into a
@@ -341,6 +347,10 @@ once in ways nothing else caught.
 
 ## Open items
 
-- `docs/screenshot*.png` need retaking whenever the UI changes shape. They now
-  predate the channel selector, the pin choice and the index-age line, so the
-  Setup tab in them is three features out of date.
+- **The import summary sits below the module, not above it.** `4c8545a` swapped
+  `#notice` and `#editor` to get the package box to the top of the column, which
+  it does — but after reading in a real file the "kept as written: not an option
+  in this release" line is now under a screen or two of cards, and that is the
+  one thing `nixos-rebuild` will refuse to accept. It was a deliberate trade, so
+  it is written down rather than quietly reversed. `#notice:not(:empty) { order:
+  -1 }` on a flex `.pane-body` would give both.

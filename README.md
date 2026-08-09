@@ -499,6 +499,7 @@ build/
 tools/
   fuzz.py           regression + fuzz harness for the renderer
   import_check.py   the same for the importer, through both of its readers
+  shots.py          retakes the screenshots by driving the real app
 data/
   nixgen.sqlite     the database it builds, not in git
 docs/

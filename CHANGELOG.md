@@ -9,6 +9,13 @@ option counts.
 
 ## English
 
+### Documentation
+
+- **The screenshots are current again.** They had gone three features out of
+  date — no channel selector, no choice of what `flake.nix` points at, no line
+  saying how old the option list is. Retaking them is a command now
+  (`tools/shots.py`, which drives the real app), so they should stop drifting.
+
 ### build 2026-08-09f
 
 - **A real message when port 8823 is taken**, instead of a Python traceback. It
@@ -170,6 +177,10 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### ドキュメント
+
+- **スクリーンショットを最新の状態にしました。** チャンネル選択も、`flake.nix` が何を指すかの選択も、オプション一覧の鮮度表示も写っていない、3世代前のものでした。撮り直しはコマンド化してあります(`tools/shots.py`。実際のアプリを操作します)。今後はずれにくくなるはずです。
 
 ### build 2026-08-09f
 

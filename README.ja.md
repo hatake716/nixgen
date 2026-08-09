@@ -398,6 +398,7 @@ build/
 tools/
   fuzz.py           レンダラの回帰テスト + ファジング
   import_check.py   読み込み側の回帰テスト。2つのリーダー両方を通します
+  shots.py          実際のアプリを操作してスクリーンショットを撮り直します
 data/
   nixgen.sqlite     作られるデータベース。gitには入れません
 docs/
