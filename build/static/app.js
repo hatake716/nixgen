@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-09z';
+const BUILD = '2026-08-10a';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -653,6 +653,24 @@ const DESKTOPS = {
      'services.xserver.displayManager.lightdm.enable'],
     ['services.desktopManager.xfce.enable',
      'services.xserver.desktopManager.xfce.enable'],
+  ] },
+  // Cinnamon has not moved out of services.xserver, the way xfce has not.
+  // lightdm is the greeter it is normally paired with.
+  cinnamon: { label: 'Cinnamon', roles: [
+    ['services.xserver.enable'],
+    ['services.displayManager.lightdm.enable',
+     'services.xserver.displayManager.lightdm.enable'],
+    ['services.desktopManager.cinnamon.enable',
+     'services.xserver.desktopManager.cinnamon.enable'],
+  ] },
+  /* COSMIC is Wayland, and its two options are the only two: no
+     `services.xserver.enable` here, which is not an omission — turning X on
+     for a desktop that does not use it builds an X server nothing runs. It
+     brings its own greeter, which is why sddm and lightdm are not offered
+     either. */
+  cosmic: { label: 'COSMIC', roles: [
+    ['services.displayManager.cosmic-greeter.enable'],
+    ['services.desktopManager.cosmic.enable'],
   ] },
 };
 

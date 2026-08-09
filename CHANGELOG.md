@@ -9,6 +9,22 @@ option counts.
 
 ## English
 
+### build 2026-08-10a
+
+- **Cinnamon and COSMIC in the Desktop dropdown**, alongside GNOME, Plasma and
+  Xfce. Cinnamon is the X server, lightdm and the desktop — and like `xfce`,
+  `cinnamon` has not moved out of `services.xserver`.
+- **COSMIC is two settings rather than three.** It is Wayland, so there is no X
+  server to turn on, and it brings its own greeter. Adding `services.xserver`
+  for it would build an X server nothing runs.
+- Both were evaluated as actual NixOS systems at the indexed revision:
+  `cinnamon-6.6.8` and `cosmic-session-1.2.0` come out as the session, and
+  both carry the CJK and emoji fonts the language preset counts on — checked
+  rather than assumed, since that claim was made about the other three.
+- The app categories still hold what GNOME, Plasma and Xfce ship. Working out
+  what these two add means evaluating them the same way, and that has not been
+  done yet.
+
 ### build 2026-08-09z
 
 - **A Download all three button in the header**, beside the download that
@@ -401,6 +417,13 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10a
+
+- **Desktop のプルダウンに Cinnamon と COSMIC を追加しました。** GNOME・Plasma・Xfce に並びます。Cinnamon は Xサーバー・lightdm・デスクトップ本体の3項目です。`xfce` と同じく、**`cinnamon` も `services.xserver` の外には移っていません。**
+- **COSMIC だけ2項目です。** Wayland なので**有効にするXサーバーが存在せず**、ログイン画面も自前のものを持っているためです。ここで `services.xserver` を足すと、**誰も使わないXサーバーをビルドする**ことになります。
+- どちらも索引と同じリビジョンで**実際の NixOS システムとして評価**しました。セッションとして `cinnamon-6.6.8` と `cosmic-session-1.2.0` が出ること、**言語プリセットが前提にしている CJK フォントと絵文字フォントを両方とも持っている**ことを確認しています。この前提は他の3つについて調べたものだったので、推測せず確かめました。
+- アプリのカテゴリに入っているのは、いまのところ GNOME・Plasma・Xfce の標準アプリだけです。この2つが何を追加するのかは**同じ方法で評価しないと分からない**ため、まだ手を付けていません。
 
 ### build 2026-08-09z
 

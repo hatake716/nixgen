@@ -300,15 +300,19 @@ NVIDIA driver is regularly a few weeks behind a brand-new release. Run
 
 ### Picking a desktop
 
-Under **Options** there is a **Desktop** dropdown: GNOME, KDE Plasma or Xfce.
-Each adds the three settings the NixOS manual lists for it, as ordinary options
-you can then change or remove like any other.
+Under **Options** there is a **Desktop** dropdown: GNOME, KDE Plasma, Xfce,
+Cinnamon or COSMIC. Each adds the settings the NixOS manual lists for it, as
+ordinary options you can then change or remove like any other.
+
+Four of them are three settings: the X server, a greeter and the desktop.
+**COSMIC is two**, and the difference is not an oversight — it is Wayland, so
+there is no `services.xserver.enable` to set, and it brings its own greeter.
 
 The names are the reason it is there. `gdm` and `sddm` have moved out of
 `services.xserver` and **`lightdm` has not**; `gnome` and `plasma6` have moved
-out and **`xfce` has not**; `plasma5` is gone. nixgen looks each part up in the
-catalogue for the channel you are on, so you get the name that exists rather
-than the one that used to.
+out and **`xfce` has not** — nor has `cinnamon`; `plasma5` is gone. nixgen looks
+each part up in the catalogue for the channel you are on, so you get the name
+that exists rather than the one that used to.
 
 Ticking *Hide options that need hand-written Nix* narrows the list to **the
 settings that have a proper input field** — 88.3% of them. The rest need you to

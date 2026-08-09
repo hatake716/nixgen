@@ -282,11 +282,19 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   possible names per role and takes the first the catalogue has, because these
   have already moved once and asymmetrically: `gdm` and `sddm` left
   `services.xserver`, `lightdm` did not; `gnome` and `plasma6` left it, `xfce`
-  did not; `plasma5` is gone. A hard-coded path would have been right for two
-  of the three and silently wrong later for all of them. They add ordinary
-  option cards rather than writing into the starter file — the starter has no
-  catalogue to check against, and a preset nobody can see or edit is the wrong
-  shape for this tool.
+  and `cinnamon` did not; `plasma5` is gone. A hard-coded path would have been
+  right for two of the three and silently wrong later for all of them. They add
+  ordinary option cards rather than writing into the starter file — the starter
+  has no catalogue to check against, and a preset nobody can see or edit is the
+  wrong shape for this tool.
+- **A role a desktop does not have is left out, not filled in.** COSMIC is two
+  settings where the others are three: it is Wayland, so there is no
+  `services.xserver.enable` to set, and it ships its own greeter, so neither
+  sddm nor lightdm belongs to it. Symmetry with the other four would mean
+  building an X server nothing runs. The five were each evaluated as a NixOS
+  system to see what actually comes out — that is also how the language
+  preset's "the CJK fonts come with the desktop" was rechecked against the two
+  new ones rather than assumed to still hold.
 - No browser storage. State lives in `state` in `app.js`.
 
 > 上記はいずれも「見た目は正しいのに後で壊れる」類の落とし穴です。触る前に一読してください。
