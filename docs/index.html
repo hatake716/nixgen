@@ -396,9 +396,15 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
     <h2 class="ja">できないこと。</h2>
 
     <ul class="en">
-      <li><b>Unstable.</b> Options cannot be mixed across channels — an unstable
-        <code>services.foo.*</code> needs unstable's module set, so there is no way to emit it for
-        a stable system. One channel, one truth.</li>
+      <li><b>Unstable — unfinished, not impossible.</b> <code>nixos-unstable</code> publishes the
+        same option data. The problem is that the channel always serves its newest snapshot while
+        your <code>flake.lock</code> pins one commit, and unstable moves every day, so the form
+        would offer settings the commit you build does not have. <b>Check syntax would still
+        pass</b>; the failure would only surface at <code>nixos-rebuild</code>. Every channel
+        publishes a <code>git-revision</code>, so pinning the flake to the snapshot that was
+        indexed would close that gap — that, plus showing how stale an index is, is what this
+        needs. Mixing channels is a separate matter and stays out of scope: packages could come
+        from unstable through an overlay, options could not.</li>
       <li><b>Write back to your existing file.</b> Reading one is supported; writing values back
         while preserving structure and comments is a much harder problem, and getting it wrong
         means damaging a working system.</li>
@@ -407,9 +413,14 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
         <code>nixos-rebuild dry-build</code> to say.</li>
     </ul>
     <ul class="ja">
-      <li><b>unstable。</b> オプションはチャンネルをまたいで混在させられません。unstableの
-        <code>services.foo.*</code> はunstableのモジュールセットを前提にしているため、
-        安定版向けに出力する手段がそもそも存在しません。1チャンネル・1つの真実です。</li>
+      <li><b>unstable — 不可能ではなく、未実装です。</b> <code>nixos-unstable</code> も同じオプションデータを
+        公開しています。問題は時点のずれで、チャンネルは常に最新のスナップショットを返すのに対し
+        <code>flake.lock</code> は特定のコミットを固定します。unstableは毎日変わるため、
+        <b>ビルド対象に存在しないオプションをフォームが提示してしまいます。</b>
+        しかも <code>Check syntax</code> は通り、失敗が出るのは <code>nixos-rebuild</code> の段階です。
+        全チャンネルが <code>git-revision</code> を公開しているので、取り込んだスナップショットのコミットに
+        flakeを固定すればずれは消えます。それとインデックスの鮮度表示。この2つが要ります。
+        チャンネルの混在は別の話で対象外です。パッケージはoverlayで持ってこられますが、オプションはできません。</li>
       <li><b>既存ファイルへの書き戻し。</b> 読み込みは対応していますが、構造とコメントを保ったまま値を書き戻すのは桁違いに難しく、
         失敗したときの代償が「動いているシステムの破壊」です。</li>
       <li><b>型チェック。</b> 内蔵のチェックは <code>nix-instantiate --parse</code> で、壊れたNixは捕まえます。

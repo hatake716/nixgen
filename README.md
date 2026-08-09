@@ -318,8 +318,7 @@ rm -rf ~/.local/share/nixgen
 NIXGEN_CHANNEL=nixos-25.11 nixgen
 ```
 
-**Numbered releases only.** The rolling `unstable` channel is not supported and
-is not planned — see *What it cannot do*.
+**Numbered releases only** for now — see *What it cannot do* for why.
 
 ### Using it from another computer
 
@@ -405,9 +404,21 @@ a complete NixOS system** to prove they hold up.
 
 ## What it cannot do
 
-**The unstable channel.** Settings cannot be mixed across releases — an unstable
-setting assumes unstable's machinery, so there is no way to emit it for a
-numbered release.
+**The unstable channel.** `nixos-unstable` does publish the same option data, so
+this is not impossible — it is unfinished. The problem is that the channel
+always serves its newest snapshot while your `flake.lock` pins one commit, and
+unstable moves every day. The form would offer settings the commit you build
+does not have. **Check syntax would still pass**, and the failure would only
+turn up at `nixos-rebuild`, which is the least helpful place for it to appear.
+
+There is a way out: every channel publishes a `git-revision`, so the flake could
+be pinned to the exact snapshot that was indexed. That, plus showing how old an
+index is, is what unstable support would need. It is not built yet.
+
+Mixing channels is a separate thing and stays out of scope. Packages could be
+pulled from unstable through an overlay, but options cannot — an unstable
+`services.foo.*` needs unstable's module set — and a tool where half the
+catalogue is selectable and half is not would be worse than no support at all.
 
 **Writing back to your original file.** It can read one; it will not write to
 one. Replacing values while preserving the existing layout and comments is a far

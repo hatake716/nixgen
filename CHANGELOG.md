@@ -9,6 +9,14 @@ option counts.
 
 ## English
 
+### Documentation
+
+- **Corrected what is said about unstable.** It had been described as
+  impossible, which is wrong: `nixos-unstable` publishes the same option data.
+  The real obstacle is that the channel serves its newest snapshot while
+  `flake.lock` pins one commit, and unstable moves daily. Mixing channels is a
+  separate matter and does remain out of scope.
+
 ### build 2026-08-05h
 
 - **Setup is the first tab and the one you land on**, before Options and
@@ -63,6 +71,10 @@ option counts.
 ---
 
 ## 日本語
+
+### ドキュメント
+
+- **unstableについての記述を訂正しました。** 「仕組み上むずかしい」と書いていましたが誤りで、`nixos-unstable` も同じオプションデータを公開しています。本当の障害は、チャンネルが常に最新のスナップショットを返すのに対し `flake.lock` は特定のコミットを固定すること、そしてunstableが毎日変わることです。チャンネルの混在は別の話で、こちらは引き続き対象外です。
 
 ### build 2026-08-05h
 
