@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-09l';
+const BUILD = '2026-08-09m';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -674,12 +674,10 @@ $('#btn-desktop').addEventListener('click', () => {
    `zeroad`, `superTuxKart` is `supertuxkart`, and none of those are guessable.
    This is a short pick and says so on screen: it is the one place in the tool
    where somebody's taste decides what you see, so it stays small, and the
-   search box remains the way to find anything else.
-
-   Steam is deliberately absent. It wants `programs.steam.enable`, not a line
-   in environment.systemPackages, and the Options tab has it. */
+   search box remains the way to find anything else. */
 const APPS = {
-  browser: ['firefox', 'chromium', 'librewolf', 'brave', 'ungoogled-chromium'],
+  browser: ['firefox', 'chromium', 'google-chrome', 'librewolf', 'brave',
+            'ungoogled-chromium'],
   mail:    ['thunderbird', 'evolution', 'geary', 'claws-mail'],
   office:  ['libreoffice', 'onlyoffice-desktopeditors', 'gnumeric', 'abiword',
             'xournalpp'],
@@ -689,8 +687,8 @@ const APPS = {
   // Both spellings of one game on purpose: 25.11 has `superTuxKart` and 26.05
   // has `supertuxkart`. Only whichever exists comes back, so listing the two
   // costs nothing and the list keeps working across a rename.
-  games:   ['lutris', 'prismlauncher', 'supertuxkart', 'superTuxKart', 'zeroad',
-            'retroarch', 'mangohud'],
+  games:   ['steam', 'lutris', 'prismlauncher', 'supertuxkart', 'superTuxKart',
+            'zeroad', 'retroarch', 'mangohud'],
   system:  ['htop', 'btop', 'gparted', 'keepassxc', 'baobab', 'timeshift',
             'fastfetch'],
   dev:     ['git', 'neovim', 'helix', 'vscodium', 'gh', 'direnv', 'tmux'],
@@ -1174,6 +1172,15 @@ async function doRender() {
   if (unfree.length) {
     notes.push(`${unfree.join(', ')} ${unfree.length > 1 ? 'are' : 'is'} unfree. ` +
                `Set nixpkgs.config.allowUnfree = true; in your configuration.nix.`);
+  }
+  /* Steam runs from the package, but the module is what puts the 32-bit
+     graphics drivers in place and can open the remote-play ports. Saying so
+     beats leaving Steam out of the list, which only sent people looking. */
+  const listed = findEntry(TOP_OPTION);
+  if (listed && Array.isArray(listed.value) && listed.value.includes('steam')) {
+    notes.push(`steam is listed as a package. programs.steam.enable under ` +
+               `Options is the fuller way — it sets up the 32-bit graphics ` +
+               `drivers, and can open the remote-play ports.`);
   }
   if (notes.length) setStatus(notes.join('\n'), 'todo');
   else if ($('#status').classList.contains('todo')) setStatus('');

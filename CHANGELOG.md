@@ -9,6 +9,16 @@ option counts.
 
 ## English
 
+### build 2026-08-09m
+
+- **Google Chrome joins the browsers, Steam joins the games.** Both are unfree,
+  so both come with the reminder to set
+  `nixpkgs.config.allowUnfree = true;` — without it the build refuses outright.
+- **Picking Steam now says what the better way is** rather than leaving it out
+  of the list. It runs from the package, but `programs.steam.enable` under
+  **Options** is what puts the 32-bit graphics drivers in place and can open
+  the remote-play ports. Leaving it out only sent people looking for it.
+
 ### build 2026-08-09l
 
 - **A "common apps" dropdown on the Packages tab**, for when you know the kind
@@ -245,6 +255,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-09m
+
+- **ブラウザに Google Chrome、ゲームに Steam を追加しました。** どちらも unfree なので、`nixpkgs.config.allowUnfree = true;` を設定するよう促す表示が出ます。**これが無いとビルドは拒否されます。**
+- **Steam を選ぶと、より適した方法を案内するようにしました。** 一覧から外すのではなく、こちらの形にしました。パッケージとしても動きますが、32bit のグラフィックドライバを揃え、リモートプレイのポートを開けられるのは **Options** タブの `programs.steam.enable` です。**一覧から外すと、探させるだけでした。**
 
 ### build 2026-08-09l
 

@@ -264,8 +264,10 @@ formality: `kdenlive` is really `kdePackages.kdenlive`, `0ad` is `zeroad`, and
 `superTuxKart` became `supertuxkart` between 25.11 and 26.05. Anything your
 channel does not have simply is not listed.
 
-Steam is deliberately absent: it wants `programs.steam.enable` under
-**Options**, not a line in `environment.systemPackages`.
+Steam is in the games list, and picking it says so in the status bar: it runs
+from the package, but `programs.steam.enable` under **Options** is the fuller
+way — that is what puts the 32-bit graphics drivers in place, and it can open
+the remote-play ports for you.
 
 ### Picking a desktop
 

@@ -219,7 +219,7 @@ rm -rf ~/.local/share/nixgen
 
 名前は**いま選んでいるチャンネルのカタログで1つずつ照合**します。形式的な作業ではありません。`kdenlive` の実体は `kdePackages.kdenlive`、`0ad` は `zeroad`、`superTuxKart` は 25.11 と 26.05 の間に `supertuxkart` へ改名されています。**そのチャンネルに無いものは一覧に出ません。**
 
-Steam は意図的に外してあります。`environment.systemPackages` に書く形ではなく、**Options** タブの `programs.steam.enable` を使うのが正しいためです。
+Steam はゲームの一覧に入っています。選ぶとステータス欄に案内が出ます。**パッケージとしても動きますが、`programs.steam.enable`(Options タブ)のほうが本筋です。** 32bit のグラフィックドライバを揃えるのはこちらで、リモートプレイのポート開放もできます。
 
 ### デスクトップ環境を選ぶ
 

@@ -200,9 +200,12 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   Every name is looked up rather than rendered, so one the channel does not
   have is absent instead of broken: `kdenlive` is `kdePackages.kdenlive`, `0ad`
   is `zeroad`, and `superTuxKart` became `supertuxkart` between 25.11 and
-  26.05 — both spellings are listed and only the real one comes back. Steam is
-  left out: it wants `programs.steam.enable`, not a line in
-  `environment.systemPackages`.
+  26.05 — both spellings are listed and only the real one comes back.
+- **Steam is in the list, with a note rather than a silence.** It runs from the
+  package, but `programs.steam.enable` is what puts the 32-bit graphics drivers
+  in place and can open the remote-play ports. It was left out at first, which
+  only sent people looking for it; a line in the status bar when `steam` is in
+  the package list says the better way without taking the choice away.
 - **The desktop presets name candidates, not paths.** `DESKTOPS` lists a few
   possible names per role and takes the first the catalogue has, because these
   have already moved once and asymmetrically: `gdm` and `sddm` left
