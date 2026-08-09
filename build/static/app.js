@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-09y';
+const BUILD = '2026-08-09z';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -529,7 +529,8 @@ function showFile(name) {
   $$('.filetabs .tab').forEach(x =>
     x.setAttribute('aria-selected', String(x.dataset.file === name)));
   $('#btn-dl').textContent = 'Download ' + name;
-  $('#btn-copy').hidden = name === ALL;   // there is nothing here to paste
+  $('#btn-copy').hidden = name === ALL;      // there is nothing here to paste
+  $('#btn-dl-all').hidden = name === ALL;    // the button beside it says this
   paintCode(currentText());
 }
 
@@ -1667,6 +1668,8 @@ $('#btn-dl').addEventListener('click', () => {
   if (state.file === ALL) return downloadBundle();
   saveBlob(new Blob([currentText()], { type: 'text/plain' }), state.file);
 });
+
+$('#btn-dl-all').addEventListener('click', downloadBundle);
 
 const checkText = text => fetch('/api/validate', {
   method: 'POST',

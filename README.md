@@ -380,9 +380,10 @@ The **Setup** tab produces the two files you need: a `configuration.nix` that
 reads in your generated settings, and a `flake.nix` that assembles the system.
 Switch between them with the tabs at the top right and download each one.
 
-**Or take all three at once.** The last of those tabs is **all three**, and the
-Download button on it hands you a `.tar.gz` holding `configuration.nix`,
-`flake.nix` and `generated.nix` in a directory named after the host:
+**Or take all three at once.** **Download all three** in the header hands you a
+`.tar.gz` holding `configuration.nix`, `flake.nix` and `generated.nix` in a
+directory named after the host. The last of the file tabs, **all three**, says
+what is in it and downloads the same archive:
 
 ```bash
 tar -xzf desktop.tar.gz

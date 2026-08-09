@@ -9,6 +9,13 @@ option counts.
 
 ## English
 
+### build 2026-08-09z
+
+- **A Download all three button in the header**, beside the download that
+  follows the file tabs. Same archive as the `all three` tab, without going to
+  that tab first. It steps aside while that tab is open, where the button next
+  to it already says the same thing.
+
 ### build 2026-08-09y
 
 - **A fourth file tab, `all three`**, whose Download button hands you
@@ -394,6 +401,10 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-09z
+
+- **ヘッダーに Download all three ボタンを追加しました。** ファイルタブに追従するダウンロードボタンの隣です。`all three` タブと**同じ書庫**を、そのタブに移動せずに受け取れます。`all three` タブを開いている間は、**隣のボタンが同じことを言う**ので引っ込みます。
 
 ### build 2026-08-09y
 
