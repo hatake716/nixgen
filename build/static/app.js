@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-09j';
+const BUILD = '2026-08-09k';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -156,6 +156,7 @@ function selectKind(kind) {
   if (setup) return;
 
   $('#filterline').style.display = kind === 'options' ? '' : 'none';
+  $('#presetline').style.display = kind === 'options' ? '' : 'none';
   $('#q').placeholder = kind === 'options'
     ? 'openssh, firewall, timeZone…'
     : 'firefox, ripgrep, obsidian…';
@@ -594,6 +595,69 @@ async function addOption(path) {
   state.lastTouched = path;
   renderEditor(); runSearch(); pushRender();
 }
+
+/* A desktop is three settings, and their names have already moved once in a
+   way nobody would guess: gdm and sddm left `services.xserver`, lightdm did
+   not; gnome and plasma6 left it, xfce did not; plasma5 is gone entirely. That
+   is what makes it worth a shortcut — and why each role lists candidates and
+   takes the first the catalogue actually has, instead of a hard-coded path
+   that will move again. Nothing is invented: these are the settings the NixOS
+   manual lists, added as ordinary options you can read and change. */
+const DESKTOPS = {
+  gnome: { label: 'GNOME', roles: [
+    ['services.xserver.enable'],
+    ['services.displayManager.gdm.enable',
+     'services.xserver.displayManager.gdm.enable'],
+    ['services.desktopManager.gnome.enable',
+     'services.xserver.desktopManager.gnome.enable'],
+  ] },
+  plasma: { label: 'KDE Plasma', roles: [
+    ['services.xserver.enable'],
+    ['services.displayManager.sddm.enable',
+     'services.xserver.displayManager.sddm.enable'],
+    ['services.desktopManager.plasma6.enable',
+     'services.desktopManager.plasma5.enable',
+     'services.xserver.desktopManager.plasma5.enable'],
+  ] },
+  xfce: { label: 'Xfce', roles: [
+    ['services.xserver.enable'],
+    ['services.displayManager.lightdm.enable',
+     'services.xserver.displayManager.lightdm.enable'],
+    ['services.desktopManager.xfce.enable',
+     'services.xserver.desktopManager.xfce.enable'],
+  ] },
+};
+
+async function addDesktop(key) {
+  const d = DESKTOPS[key];
+  if (!d) return;
+  const added = [], missing = [];
+  for (const candidates of d.roles) {
+    let found = null;
+    for (const path of candidates) {
+      await addOption(path);          // no-op when the catalogue lacks it
+      if (state.selected.has(path)) { found = path; break; }
+    }
+    if (!found) { missing.push(candidates[0]); continue; }
+    const entry = state.selected.get(found);
+    if (entry.type.kind === 'bool') entry.value = true;
+    added.push(found);
+  }
+  renderEditor();
+  pushRender();
+  if (missing.length) {
+    setStatus(`${d.label}: added ${added.length}, but this release has no ` +
+              `${missing.join(', ')}. Check the result before applying it.`, 'bad');
+  } else {
+    setStatus(`${d.label}: ${added.length} settings added. Change or remove ` +
+              `any of them like the rest.`, 'ok');
+  }
+}
+
+$('#btn-desktop').addEventListener('click', () => {
+  const key = $('#s-desktop').value;
+  if (key) addDesktop(key);
+});
 
 /* Find a selection entry by the path it will actually render to. Import can
    file the same option under a suffixed key, so looking it up by map key is

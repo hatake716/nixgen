@@ -108,6 +108,12 @@ main {
   margin-top: 7px; display: flex; align-items: center; gap: 6px;
   font-size: 11px; color: var(--ink-soft);
 }
+.presetline {
+  margin-top: 7px; display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--ink-soft);
+}
+.presetline select { flex: 1; min-width: 0; padding: 4px 6px; }
+.presetline .mini { padding: 4px 9px; }
 
 .row {
   display: block; width: 100%; text-align: left;

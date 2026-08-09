@@ -249,6 +249,18 @@ first.
 The tabs run **Setup**, **Options** (settings), **Packages** (software) — in the order you would use them on a new machine. Setup is where the app opens; click **Options** to start searching.
 Anything you pick under Packages is added to the list of programs to install.
 
+### Picking a desktop
+
+Under **Options** there is a **Desktop** dropdown: GNOME, KDE Plasma or Xfce.
+Each adds the three settings the NixOS manual lists for it, as ordinary options
+you can then change or remove like any other.
+
+The names are the reason it is there. `gdm` and `sddm` have moved out of
+`services.xserver` and **`lightdm` has not**; `gnome` and `plasma6` have moved
+out and **`xfce` has not**; `plasma5` is gone. nixgen looks each part up in the
+catalogue for the channel you are on, so you get the name that exists rather
+than the one that used to.
+
 Ticking *Hide options that need hand-written Nix* narrows the list to **the
 settings that have a proper input field** — 88.3% of them. The rest need you to
 write a piece of Nix yourself, and hiding them keeps things simpler while you

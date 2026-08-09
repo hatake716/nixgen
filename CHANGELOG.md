@@ -9,6 +9,18 @@ option counts.
 
 ## English
 
+### build 2026-08-09k
+
+- **Pick a desktop from a dropdown.** GNOME, KDE Plasma or Xfce, on the
+  **Options** tab. Each adds the three settings the NixOS manual lists for it,
+  as ordinary options you can then read, change or remove — nothing goes into
+  a file you cannot see.
+- The names are worth the shortcut on their own: `gdm` and `sddm` have moved
+  out of `services.xserver`, **`lightdm` has not**; `gnome` and `plasma6` have
+  moved out, **`xfce` has not**; `plasma5` is gone. Nobody is going to guess
+  that, so each part is looked up in the catalogue rather than hard-coded, and
+  whichever name this channel actually has is the one that gets used.
+
 ### build 2026-08-09j
 
 - **The panel now says what to do about losing your work.** Nothing is kept
@@ -218,6 +230,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-09k
+
+- **デスクトップ環境をプルダウンから選べるようにしました。** **Options** タブで GNOME、KDE Plasma、Xfce のいずれかを選ぶと、NixOSマニュアルが挙げている3項目が追加されます。**追加されるのは通常のオプションと同じカード**なので、中身を読んで、変更も削除もできます。見えないファイルに何かが書き込まれることはありません。
+- 項目名だけでもこの機能の価値があります。`gdm` と `sddm` は `services.xserver` の外に移動しましたが、**`lightdm` は移動していません。** `gnome` と `plasma6` は外に出ましたが、**`xfce` は中に残っています。** `plasma5` は消滅しました。**推測で当てられる並びではありません。** そのため各項目は決め打ちせずカタログを照合し、**そのチャンネルに実在する名前**を使います。
 
 ### build 2026-08-09j
 

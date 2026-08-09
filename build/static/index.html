@@ -40,6 +40,20 @@
         <label class="filterline" id="filterline">
           <input type="checkbox" id="only-supported"> Hide options that need hand-written Nix
         </label>
+        <!-- A desktop is three settings whose names nobody remembers, in two
+             different namespaces. Adding them here rather than to the starter
+             file is deliberate: they are ordinary options, so they arrive as
+             cards you can read, edit and remove. -->
+        <div class="presetline" id="presetline">
+          <span>Desktop</span>
+          <select id="s-desktop">
+            <option value="">choose…</option>
+            <option value="gnome">GNOME</option>
+            <option value="plasma">KDE Plasma</option>
+            <option value="xfce">Xfce</option>
+          </select>
+          <button class="mini" id="btn-desktop">Add</button>
+        </div>
       </div>
       <div class="pane-body" id="results"></div>
       <div class="pane-body" id="setup" hidden>

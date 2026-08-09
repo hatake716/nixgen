@@ -193,6 +193,15 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
 - **The directory listing in the steps is ASCII, not box drawing.** `--mono`
   falls back to a proportional face for `├─└` on some machines, and a tree
   whose columns do not line up is worse than no tree.
+- **The desktop presets name candidates, not paths.** `DESKTOPS` lists a few
+  possible names per role and takes the first the catalogue has, because these
+  have already moved once and asymmetrically: `gdm` and `sddm` left
+  `services.xserver`, `lightdm` did not; `gnome` and `plasma6` left it, `xfce`
+  did not; `plasma5` is gone. A hard-coded path would have been right for two
+  of the three and silently wrong later for all of them. They add ordinary
+  option cards rather than writing into the starter file — the starter has no
+  catalogue to check against, and a preset nobody can see or edit is the wrong
+  shape for this tool.
 - No browser storage. State lives in `state` in `app.js`.
 
 > 上記はいずれも「見た目は正しいのに後で壊れる」類の落とし穴です。触る前に一読してください。
