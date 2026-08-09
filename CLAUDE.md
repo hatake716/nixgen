@@ -334,6 +334,15 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   in place and can open the remote-play ports. It was left out at first, which
   only sent people looking for it; a line in the status bar when `steam` is in
   the package list says the better way without taking the choice away.
+- **The Flatpak row adds the portal, and says the part that is not a setting.**
+  `services.flatpak.enable` alone produces applications with no file dialog and
+  no screen sharing, because a Flatpak reaches the system through an xdg
+  portal — so `xdg.portal.enable` and `xdg-desktop-portal-gtk` go in with it,
+  a spare on GNOME and Plasma and the only backend anywhere else. The thing no
+  option covers is the remote: a fresh install has none, so the status bar
+  prints the `flatpak remote-add … flathub` line. A row with no dropdown is
+  right here — there is nothing to choose — and it is a row rather than a
+  search result because it is three settings, not one.
 - **The language preset stops where it stops, on purpose.** Locale, console
   keymap, X layout, and an input method for Japanese, Korean and Chinese.
   **Not fonts:** `fonts.packages` is a `list of absolute path`, so the form

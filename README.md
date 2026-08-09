@@ -437,6 +437,29 @@ ship the CJK and emoji fonts already, so there is nothing to add. And the time
 zone: a language is not a place, so nothing here guesses `Asia/Tokyo` from
 Japanese — search for `timeZone` under **Options** and set it yourself.
 
+### Options — turning on Flatpak
+
+The last row under **Options** has no dropdown, because there is nothing to
+choose: **Flatpak** is on or it is not. Pressing **Add** puts in three
+settings — `services.flatpak.enable`, `xdg.portal.enable`, and
+`xdg-desktop-portal-gtk` in `xdg.portal.extraPortals`.
+
+The portal is not optional plumbing. **A Flatpak application talks to the rest
+of your system through an xdg portal**, so without one it opens with no file
+dialog and no screen sharing. GNOME and Plasma bring their own backend, so on
+those the GTK one is a spare — delete that card if you would rather not have
+it.
+
+**One thing no option covers:** a fresh install has no remote, so `flatpak
+install` finds nothing until you add flathub, once, after the rebuild:
+
+```bash
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+```
+
+nixgen says this in the status bar when you press Add, because it is the step
+everybody hits and no configuration file can do for you.
+
 ### Packages — common apps
 
 Under **Packages** there is a **Common apps** dropdown. Its entries name each

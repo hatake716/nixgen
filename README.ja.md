@@ -335,6 +335,20 @@ Intel には VAAPI ドライバも入ります。これが無いと動画のハ�
 
 **あえてやっていないことが2つあります。** ひとつはフォントです。GNOME・Plasma・Xfce はいずれもCJKフォントと絵文字フォントを既に持っているので、足すものがありません。もうひとつは**タイムゾーン**です。**言語は場所ではない**ので、日本語だから `Asia/Tokyo`、とは決めつけません。**Options** で `timeZone` を検索して、ご自分で設定してください。
 
+### Options — Flatpak を有効にする
+
+**Options** タブのいちばん下の行にはプルダウンがありません。**Flatpak は有効か無効かのどちらか**で、選ぶものが無いからです。**Add** を押すと3つの設定が入ります。`services.flatpak.enable`、`xdg.portal.enable`、そして `xdg.portal.extraPortals` の `xdg-desktop-portal-gtk` です。
+
+**portal は付け足しの配管ではありません。** Flatpak のアプリは、**xdg portal を通してシステムの外とやり取りします。** これが無いと、**ファイル選択ダイアログも画面共有も出ません。** GNOME と Plasma は自前のバックエンドを持っているので、その環境では GTK 版は予備です。不要ならそのカードを削除してください。
+
+**設定ファイルでは代われない手順が1つあります。** インストール直後は**リモートが1つも登録されていない**ので、`flatpak install` は何も見つけられません。rebuild のあとに、flathub を一度だけ追加してください。
+
+```bash
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+```
+
+nixgen は Add を押したときにステータス欄でこれを案内します。**誰もが必ず引っかかる**うえに、**設定ファイルでは肩代わりできない**手順だからです。
+
 ### Packages — よく使うアプリから選ぶ
 
 **Packages** タブに **Common apps** のプルダウンがあります。カテゴリを選ぶと結果一覧にアプリが並ぶので、**検索結果と同じようにクリックして追加します。** 勝手に入るものはありません。

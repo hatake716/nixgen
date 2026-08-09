@@ -121,6 +121,9 @@ main {
 }
 .presetline select { flex: 1; min-width: 0; padding: 4px 6px; }
 .presetline .mini { padding: 4px 9px; }
+/* The Flatpak row has no dropdown to stretch, so something has to take
+   the space the select takes on the rows above it. */
+.presetline .grow { flex: 1; }
 /* The category names carry their Japanese, and a closed select cuts whatever
    does not fit — which was the second half, the half a translated page relies
    on. This row has no Add button beside it, so the select can have the line to

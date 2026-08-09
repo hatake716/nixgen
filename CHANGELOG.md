@@ -9,6 +9,22 @@ option counts.
 
 ## English
 
+### build 2026-08-10q
+
+- **A Flatpak row under Options.** No dropdown — Flatpak is on or it is not —
+  and pressing **Add** puts in `services.flatpak.enable`, `xdg.portal.enable`
+  and `xdg-desktop-portal-gtk` under `xdg.portal.extraPortals`.
+- **The portal is the part people miss.** A Flatpak application reaches the
+  rest of the system through an xdg portal, so `services.flatpak.enable` on its
+  own gives you applications with no file dialog and no screen sharing. GNOME
+  and Plasma bring their own backend, so there the GTK one is a spare and the
+  card can be deleted.
+- **And one step no option covers**: a fresh install has no remote, so the
+  status bar prints the `flatpak remote-add … flathub` line to run once after
+  the rebuild.
+- Evaluated as an actual NixOS system at the indexed revision: flatpak in the
+  systemd packages, the portal enabled, `xdg-desktop-portal-gtk` in the list.
+
 ### build 2026-08-10p
 
 - **Three more packages**, 189 across 12 categories: `localsend` under Chat and
@@ -620,6 +636,13 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10q
+
+- **Options タブに Flatpak の行を追加しました。** プルダウンはありません(**有効か無効かのどちらか**です)。**Add** を押すと `services.flatpak.enable`、`xdg.portal.enable`、`xdg.portal.extraPortals` の `xdg-desktop-portal-gtk` が入ります。
+- **見落とされがちなのは portal のほうです。** Flatpak のアプリは xdg portal を通してシステムの外とやり取りするため、`services.flatpak.enable` だけでは**ファイル選択ダイアログも画面共有も出ない**アプリになります。GNOME と Plasma は自前のバックエンドを持つので、そこでは GTK 版は予備です。不要ならカードを削除できます。
+- **設定では代われない手順も1つ**あります。インストール直後はリモートが無いため、rebuild のあとに一度だけ実行する `flatpak remote-add … flathub` をステータス欄に表示します。
+- 索引と同じリビジョンで**実際の NixOS システムとして評価**しました。systemd のパッケージに flatpak が入り、portal が有効になり、`xdg-desktop-portal-gtk` が一覧に入ることを確認しています。
 
 ### build 2026-08-10p
 

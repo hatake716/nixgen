@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-10p';
+const BUILD = '2026-08-10q';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -912,6 +912,52 @@ async function addLanguage(key) {
                   `${L.label}: ${added.length}件の設定を追加しました。${tailJa}`), 'ok');
   }
 }
+
+/* Flatpak is three settings and one command.
+
+   `services.flatpak.enable` on its own installs it and starts nothing you can
+   use: a Flatpak application talks to the outside through an xdg portal, so
+   without one it opens with no file dialog and no screen sharing. GNOME and
+   Plasma bring their own backend, which is why the GTK one goes in as well
+   rather than instead — it is the fallback for the desktops that do not, and
+   an extra backend on a desktop that has one is a card you can delete.
+
+   The command is the part no option covers: a fresh install has no remote, so
+   `flatpak install` finds nothing until flathub is added once, by hand. That
+   is said in the status bar rather than left to be discovered. */
+async function addFlatpak() {
+  const steps = [
+    { paths: ['services.flatpak.enable'], value: true },
+    { paths: ['xdg.portal.enable'], value: true },
+    { paths: ['xdg.portal.extraPortals'], value: ['xdg-desktop-portal-gtk'] },
+  ];
+  const added = [], missing = [];
+  for (const step of steps) {
+    const used = await addWithValue(step.paths, step.value);
+    used ? added.push(used) : missing.push(step.paths[0]);
+  }
+  renderEditor();
+  pushRender();
+  if (missing.length) {
+    setStatus(say(
+      `Flatpak: added ${added.length}, but this release has no ` +
+      `${missing.join(', ')}. Check the result before applying it.`,
+      `Flatpak: ${added.length}件を追加しましたが、このリリースには ` +
+      `${missing.join('、')} がありません。適用する前に結果を確認してください。`), 'bad');
+    return;
+  }
+  setStatus(say(
+    'Flatpak: 3 settings added. Nothing is installed from it yet — a fresh ' +
+    'install has no remote, so add flathub once after the rebuild: ' +
+    'flatpak remote-add --if-not-exists flathub ' +
+    'https://flathub.org/repo/flathub.flatpakrepo',
+    'Flatpak: 3件の設定を追加しました。まだ何も入れられません。' +
+    'インストール直後はリモートが1つも無いので、rebuild のあとに flathub を' +
+    '一度だけ追加してください: flatpak remote-add --if-not-exists flathub ' +
+    'https://flathub.org/repo/flathub.flatpakrepo'), 'ok');
+}
+
+$('#btn-flatpak').addEventListener('click', addFlatpak);
 
 $('#btn-lang').addEventListener('click', () => {
   const key = $('#s-lang').value;
