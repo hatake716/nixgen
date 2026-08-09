@@ -280,24 +280,6 @@ from the package, but `programs.steam.enable` under **Options** is the fuller
 way — that is what puts the 32-bit graphics drivers in place, and it can open
 the remote-play ports for you.
 
-### Picking a graphics driver
-
-**Options** has a **Graphics** dropdown too: AMD, Intel or NVIDIA. Each turns on
-`hardware.graphics` and its 32-bit half — that second one is what Steam and wine
-need — and then does only what the card actually requires.
-
-Intel also gets a VAAPI driver, because hardware video decoding does not work
-without one. AMD gets nothing further: mesa already carries it. NVIDIA names its
-X driver, turns on modesetting, and sets `hardware.nvidia.open = false`, the
-proprietary kernel module, which works on every card the driver supports.
-
-`services.xserver.videoDrivers` is set for NVIDIA only. The default is
-`modesetting`, and on any current kernel that is the right answer for AMD and
-Intel.
-
-**The NVIDIA driver is unfree.** Picking it says so and keeps saying so — set
-`nixpkgs.config.allowUnfree = true;` or the build refuses.
-
 ### Picking a kernel
 
 **Options** has a **Kernel** dropdown: standard, latest, LTS or Zen. It writes
@@ -315,19 +297,6 @@ Standard is what you get without the setting. **Latest and Zen move**, and an
 out-of-tree module has to be built against whatever kernel is running — the
 NVIDIA driver is regularly a few weeks behind a brand-new release. Run
 `nixos-rebuild dry-build` before you switch.
-
-### Picking a language
-
-Next to the desktop dropdown under **Options** is a **Language** one: English,
-Japanese, French, German, Spanish, Korean or Chinese. Picking one sets the
-language up in full — the locale, the keymap the console uses, and the layout X
-uses. For Japanese, Korean and Chinese it also sets up fcitx5 with the right
-input engine, because none of those can be typed without one.
-
-Two things it does not do, both deliberately. Fonts: GNOME, Plasma and Xfce all
-ship the CJK and emoji fonts already, so there is nothing to add. And the time
-zone: a language is not a place, so nothing here guesses `Asia/Tokyo` from
-Japanese — search for `timeZone` under **Options** and set it yourself.
 
 ### Picking a desktop
 
@@ -349,6 +318,37 @@ are learning.
 Package lists come out in alphabetical order — on import, and as you add to
 them. Nix does not care about the order, but a sorted list is far easier to
 read and produces a much smaller diff when you change one entry.
+
+### Picking a graphics driver
+
+**Options** has a **Graphics** dropdown too: AMD, Intel or NVIDIA. Each turns on
+`hardware.graphics` and its 32-bit half — that second one is what Steam and wine
+need — and then does only what the card actually requires.
+
+Intel also gets a VAAPI driver, because hardware video decoding does not work
+without one. AMD gets nothing further: mesa already carries it. NVIDIA names its
+X driver, turns on modesetting, and sets `hardware.nvidia.open = false`, the
+proprietary kernel module, which works on every card the driver supports.
+
+`services.xserver.videoDrivers` is set for NVIDIA only. The default is
+`modesetting`, and on any current kernel that is the right answer for AMD and
+Intel.
+
+**The NVIDIA driver is unfree.** Picking it says so and keeps saying so — set
+`nixpkgs.config.allowUnfree = true;` or the build refuses.
+
+### Picking a language
+
+The last of the four dropdowns under **Options** is **Language**: English,
+Japanese, French, German, Spanish, Korean or Chinese. Picking one sets the
+language up in full — the locale, the keymap the console uses, and the layout X
+uses. For Japanese, Korean and Chinese it also sets up fcitx5 with the right
+input engine, because none of those can be typed without one.
+
+Two things it does not do, both deliberately. Fonts: GNOME, Plasma and Xfce all
+ship the CJK and emoji fonts already, so there is nothing to add. And the time
+zone: a language is not a place, so nothing here guesses `Asia/Tokyo` from
+Japanese — search for `timeZone` under **Options** and set it yourself.
 
 ### Loading your existing configuration.nix
 

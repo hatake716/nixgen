@@ -9,6 +9,13 @@ option counts.
 
 ## English
 
+### build 2026-08-09w
+
+- **The four dropdowns under Options are in build order now**: kernel, desktop,
+  graphics, language — the part everything else runs on first, and outwards
+  from there. Both READMEs were resequenced to match, so the reading order and
+  the screen order are the same again.
+
 ### build 2026-08-09v
 
 - **A Kernel dropdown under Options**: standard, latest, LTS or Zen. It writes
@@ -365,6 +372,10 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-09w
+
+- **Options タブの4つのプルダウンを、組み立てる順に並べ替えました。** カーネル → デスクトップ → グラフィックス → 言語です。**他のすべてがその上で動くものを先頭**に置き、そこから外側へ向かう順序です。READMEも英語版・日本語版とも同じ順序に並べ替えたので、**読む順序と画面の順序が一致**します。
 
 ### build 2026-08-09v
 
