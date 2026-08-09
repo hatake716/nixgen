@@ -167,6 +167,14 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   their own text in `data-keep`; a MutationObserver puts it back. Not every
   browser honours the attribute, and a translated `services.openssh.enable` is
   not valid Nix. Descriptions are the only prose meant to be translated.
+- **Every dropdown option is written `English — 日本語`, and every one of them
+  has to fit the closed select.** A select shows what fits and silently drops
+  the rest, and the rest is the Japanese, which is the half a translated page
+  depends on. Three labels were over the 302px box and one list was over its
+  221px one; the fix was shorter wording for the first three and giving
+  `#appsline` the whole line for the last. Measure, do not eyeball — the tools
+  clone the select with `width: max-content` and compare against its real box.
+  Adding an option means checking the same thing.
 - **Adding a package must not rebuild the card.** It would reset a text box the
   user had dragged taller. `addPackage` edits the textarea in place.
 - **Adding a package must not replace the value.** When the list came in

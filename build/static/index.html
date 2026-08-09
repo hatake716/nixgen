@@ -46,8 +46,8 @@
              cards you can read, edit and remove. -->
         <div class="presetline" id="presetline">
           <span>Desktop</span>
-          <select id="s-desktop">
-            <option value="">choose…</option>
+          <select id="s-desktop" class="notranslate" translate="no">
+            <option value="">choose… — 選ぶ</option>
             <option value="gnome">GNOME</option>
             <option value="plasma">KDE Plasma</option>
             <option value="xfce">Xfce</option>
@@ -59,9 +59,9 @@
              one adds all of them, as cards you can read and change. -->
         <div class="presetline" id="langline">
           <span>Language</span>
-          <select id="s-lang">
-            <option value="">choose…</option>
-            <option value="en">English</option>
+          <select id="s-lang" class="notranslate" translate="no">
+            <option value="">choose… — 選ぶ</option>
+            <option value="en">English — 英語</option>
             <option value="ja">日本語 — Japanese</option>
             <option value="fr">Français — French</option>
             <option value="de">Deutsch — German</option>
@@ -73,8 +73,8 @@
         </div>
         <div class="presetline" id="gpuline">
           <span>Graphics</span>
-          <select id="s-gpu">
-            <option value="">choose…</option>
+          <select id="s-gpu" class="notranslate" translate="no">
+            <option value="">choose… — 選ぶ</option>
             <option value="amd">AMD</option>
             <option value="intel">Intel</option>
             <option value="nvidia">NVIDIA</option>
@@ -123,14 +123,14 @@
           <label>Main user<input type="text" id="s-user" value="user" spellcheck="false"></label>
           <p class="warn" id="s-user-warn" hidden></p>
           <label>Architecture
-            <select id="s-system">
+            <select id="s-system" class="notranslate" translate="no">
               <option value="x86_64-linux">x86_64-linux</option>
               <option value="aarch64-linux">aarch64-linux</option>
             </select>
           </label>
 
           <label>nixpkgs channel
-            <select id="s-release"></select>
+            <select id="s-release" class="notranslate" translate="no"></select>
           </label>
           <p class="note" id="s-release-note"></p>
           <button class="btn" id="btn-reindex" hidden></button>
@@ -139,18 +139,18 @@
           <button class="btn" id="btn-prune" hidden></button>
 
           <label>What flake.nix points at
-            <select id="s-pin">
-              <option value="branch">the channel branch</option>
-              <option value="commit">the commit it was indexed at</option>
+            <select id="s-pin" class="notranslate" translate="no">
+              <option value="branch">the branch — チャンネルのブランチ</option>
+              <option value="commit">the commit — 取り込んだコミット</option>
             </select>
           </label>
           <p class="note" id="s-pin-note"></p>
 
           <label>Boot loader
-            <select id="s-bootloader">
-              <option value="systemd-boot">systemd-boot (UEFI)</option>
-              <option value="grub">GRUB (BIOS / legacy)</option>
-              <option value="none">none — set it elsewhere</option>
+            <select id="s-bootloader" class="notranslate" translate="no">
+              <option value="systemd-boot">systemd-boot (UEFI) — UEFIのマシン</option>
+              <option value="grub">GRUB (BIOS / legacy) — 古いBIOSのマシン</option>
+              <option value="none">none (set it elsewhere) — 他で設定する</option>
             </select>
           </label>
           <label id="s-grub-wrap" hidden>Disk for GRUB

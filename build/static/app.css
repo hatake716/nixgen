@@ -114,6 +114,12 @@ main {
 }
 .presetline select { flex: 1; min-width: 0; padding: 4px 6px; }
 .presetline .mini { padding: 4px 9px; }
+/* The category names carry their Japanese, and a closed select cuts whatever
+   does not fit — which was the second half, the half a translated page relies
+   on. This row has no Add button beside it, so the select can have the line to
+   itself and every name fits. */
+#appsline { flex-wrap: wrap; }
+#appsline select { flex-basis: 100%; }
 .presethint { margin: 5px 0 0; font-size: 10.5px; color: var(--ink-faint); }
 
 .row {

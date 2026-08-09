@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-09r';
+const BUILD = '2026-08-09t';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -126,9 +126,13 @@ function setStateVersion(release, channel) {
   // The file names, option paths and the directory listing in the steps are
   // Nix, not prose, so they are guarded like every other identifier here.
   $$('#howto code, #howto .tree').forEach(keep);
-  // The category names are already in both languages; a translator rewriting
-  // them is what the second language is there to prevent.
-  $$('#s-apps option').forEach(keep);
+  // Every choice in the form is written in both languages already, so a
+  // translator rewriting one is exactly what the second language is there to
+  // prevent. `translate="no"` says so and this makes it stick, because not
+  // every browser honours the attribute. #s-release is filled in later and
+  // guards its own options as it builds them.
+  $$('#s-desktop option, #s-lang option, #s-gpu option, #s-apps option, ' +
+     '#s-system option, #s-pin option, #s-bootloader option').forEach(keep);
   renderEditor();
   await loadReleases();
   await loadStarter();
@@ -204,10 +208,13 @@ async function loadReleases() {
   sel.innerHTML = '';
   state.releases.forEach(ch => {
     // The first numbered release is the current one; unstable is not a
-    // release at all, so it gets said rather than left to be inferred.
-    const tag = ch === state.unstable ? ' (moves every day)'
-              : ch === state.releases[0] ? ' (current)' : '';
-    const o = el('option', null, ch + tag);
+    // release at all, so it gets said rather than left to be inferred. The
+    // channel name is an identifier and the tag is prose, so the tag carries
+    // its Japanese like every other option in this form. Both halves have to
+    // fit the closed box — 300px — or the one that matters is the one cut off.
+    const tag = ch === state.unstable ? ' (daily) — 毎日変わります'
+              : ch === state.releases[0] ? ' (current) — 最新の安定版' : '';
+    const o = keep(el('option', null, ch + tag));
     o.value = ch;
     sel.appendChild(o);
   });

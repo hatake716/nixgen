@@ -9,6 +9,20 @@ option counts.
 
 ## English
 
+### build 2026-08-09t
+
+- **Every dropdown carries its Japanese now**, not just the app categories:
+  the channel, what `flake.nix` points at, the boot loader, the languages and
+  the two `choose…` placeholders. All of them are marked so a translator leaves
+  them alone, and all of them remember their own text, because the guard that
+  covers option paths has to cover the words a choice is made from too.
+- **The labels are cut to fit the closed box.** A select shows what fits and
+  drops the rest, and the rest was the Japanese half — the half a translated
+  page is reading. "the commit it was indexed at" became "the commit", the
+  unstable channel says "(daily)", and the category list, which had no room to
+  spare, was given the whole line instead. Measured rather than eyeballed: all
+  40 labels now fit the box they are shown in.
+
 ### build 2026-08-09r
 
 - **The category names carry their own Japanese**: `Audio and video —
@@ -327,6 +341,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-09t
+
+- **すべてのプルダウンに日本語を併記しました。** 分野名だけではなく、チャンネル、`flake.nix` が指すもの、ブートローダー、言語、そして `choose…` の行も対象です。いずれも**翻訳機能に書き換えられないよう固定**し、自分の文字列を覚えさせてあります。オプション名を守っている仕組みは、**選択肢の文言にも同じように必要**だからです。
+- **閉じた状態の幅に収まるよう、文言を詰めました。** プルダウンは閉じているとき、収まらない部分を切り捨てます。切り捨てられていたのは**後半の日本語** — 翻訳して読んでいる人が頼っている側です。`the commit it was indexed at` は `the commit` に、unstable の注記は `(daily)` にしました。分野の一覧は余裕が無かったため、**選択欄を一行まるごと使う形**に変えました。目視ではなく実測して、**40個すべてが枠に収まる**ことを確認しています。
 
 ### build 2026-08-09r
 
