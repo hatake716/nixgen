@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-10c';
+const BUILD = '2026-08-10e';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -116,6 +116,24 @@ function setStateVersion(release, channel) {
 /* ------------------------------------------------------------------ boot */
 
 (async function init() {
+  try {
+    await boot();
+  } catch (err) {
+    /* One failed request used to end the boot sequence part-way through: the
+       Setup pane is unhidden by selectKind at the end of it, so the first
+       thing anyone sees was an empty column with nothing said. The usual cause
+       is the server not being up yet, or a channel switch swapping the index
+       underneath the page, and both are fixed by reloading — but only if you
+       are told that. */
+    setStatus(`Could not load from the nixgen server (${err.message}). It may ` +
+              `still be starting, or busy rebuilding the index. Reload the ` +
+              `page; if it keeps happening, look at the terminal it was ` +
+              `started from.`, 'bad');
+    $('#setup').hidden = false;
+  }
+})();
+
+async function boot() {
   const meta = await fetch('/api/meta').then(r => r.json());
   state.channel = meta.channel || 'nixos';
   $('#channel').textContent = state.channel;
@@ -139,7 +157,7 @@ function setStateVersion(release, channel) {
   await loadStarter();
   selectKind(state.kind);
   guardIdentifiers(document.body);
-})();
+}
 
 /* ---------------------------------------------------------------- search */
 
@@ -1401,6 +1419,9 @@ function flashCard(path) {
 /* ---------------------------------------------------------------- output */
 
 let renderTimer, generatedText = '';
+let renderRun = Promise.resolve();
+// True while what is on hand is older than what is on the form.
+let renderStale = false;
 
 const ALL = 'all three';
 
@@ -1451,7 +1472,27 @@ function currentText() {
 
 function pushRender() {
   clearTimeout(renderTimer);
-  renderTimer = setTimeout(doRender, 120);
+  renderTimer = setTimeout(() => { renderTimer = null; renderRun = doRender(); }, 120);
+}
+
+/* Rendering is debounced and happens on the server, so for a moment after a
+   keystroke `generatedText` is the file as it was before it. Anything that
+   hands that text over — the two downloads, Copy, Check syntax — has to wait
+   for the render the keystroke asked for, or it hands over the previous
+   version of the file and says nothing. Typing a host name and pressing
+   Download all three straight away was enough to get an archive that did not
+   match the screen. */
+async function settled() {
+  if (renderTimer) {
+    clearTimeout(renderTimer);
+    renderTimer = null;
+    renderRun = doRender();
+  }
+  // doRender reports its own failure; this only has to not throw out of a
+  // click handler on the way past. False means the file on hand is not the
+  // form's, and the caller stops rather than handing over the old one.
+  try { await renderRun; } catch { /* already said */ }
+  return !renderStale;
 }
 
 /* Split on dots but keep <placeholders> and "quoted names" atomic — a few
@@ -1476,16 +1517,49 @@ async function doRender() {
     value: e.value,
     note: e.note,
   }));
-  const res = await fetch('/api/render', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ entries, channel: state.channel }),
-  }).then(r => r.json());
+  /* If this fails, what is on screen and in `generatedText` is the file as it
+     was before the last change, and every button that hands the file over
+     would hand over that one. Say so instead: a stale file that downloads
+     cleanly is worse than a download that did not happen. */
+  let res;
+  try {
+    res = await fetch('/api/render', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entries, channel: state.channel }),
+    }).then(r => r.json());
+    if (typeof res.text !== 'string') throw new Error(res.error || 'no file came back');
+  } catch (err) {
+    renderStale = true;
+    setStatus(`The file could not be rendered (${err.message}). What is shown ` +
+              `is the last one that worked, and nothing will be handed over ` +
+              `until this succeeds — reload the page.`, 'bad');
+    return;
+  }
+  renderStale = false;
   generatedText = res.text;
   if (state.file === 'generated.nix') paintCode(res.text);
   const notes = [];
   const todo = (res.text.match(/CHANGE_ME/g) || []).length;
   if (todo) notes.push(`${todo} name${todo > 1 ? 's' : ''} still to fill in — look for CHANGE_ME.`);
+  /* Nothing should be able to put two cards on one attribute: import replaces
+     what it lands on, and adding an option you already have flashes that card
+     instead. If one gets through anyway the file will not build, and the reason
+     is not visible in the file — `already defined` names a line, not a card. So
+     it is said here, regenerated on every render so it cannot be wiped. Paths
+     with a slot still to fill are left out; they are all CHANGE_ME until the
+     name is typed, and the line above is already about them. */
+  const seenPath = new Map();
+  for (const e of state.selected.values()) {
+    const path = resolvePath(e);
+    if (path.includes('CHANGE_ME')) continue;
+    seenPath.set(path, (seenPath.get(path) || 0) + 1);
+  }
+  const twice = [...seenPath].filter(([, n]) => n > 1).map(([path]) => path);
+  if (twice.length) {
+    notes.push(`Set twice: ${twice.join(', ')}. NixOS refuses a file that ` +
+               `defines one attribute twice, so remove one of the cards.`);
+  }
   const clashes = [...state.starterDefines].filter(
     p => new RegExp('^  ' + p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ' =', 'm').test(res.text));
   if (clashes.length) {
@@ -1571,8 +1645,9 @@ $('#file').addEventListener('change', async ev => {
     return;
   }
 
-  for (const m of r.matched) {
-    state.selected.set(freeKey(m.path), {
+  const incoming = r.matched.map(m => ({
+    path: m.path,
+    entry: {
       path: m.path,
       type: m.type,
       type_str: m.type_str,
@@ -1581,27 +1656,47 @@ $('#file').addEventListener('change', async ev => {
       example_txt: m.example_txt,
       slots: m.slots || [],
       value: m.value,
-    });
-  }
+    },
+  }));
   const verbatim = [
     ...(r.structure || []).map(x => ({ ...x, from: x.path, kind: 'structure' })),
     ...r.expression.map(x => ({ ...x, path: x.option, from: x.path, kind: 'expression' })),
     ...r.unknown.map(x => ({ ...x, from: x.path, kind: 'unknown' })),
   ];
   for (const v of verbatim) {
-    state.selected.set(freeKey(v.from), {
+    incoming.push({
       path: v.from,
-      segments: v.segments,
-      type: { kind: 'raw', label: v.type_str || 'module structure' },
-      type_str: v.type_str || (v.kind === 'structure' ? 'module structure' : 'not an option in this release'),
-      description: v.why || '',
-      default_txt: null,
-      slots: [],
-      value: v.source,
-      note: v.note,
-      verbatim: v.kind,
+      entry: {
+        path: v.from,
+        segments: v.segments,
+        type: { kind: 'raw', label: v.type_str || 'module structure' },
+        type_str: v.type_str || (v.kind === 'structure' ? 'module structure' : 'not an option in this release'),
+        description: v.why || '',
+        default_txt: null,
+        slots: [],
+        value: v.source,
+        note: v.note,
+        verbatim: v.kind,
+      },
     });
   }
+
+  /* A file can land on a form that already has settings in it, and reading the
+     same file twice is the ordinary way to get there. Two cards that render the
+     same attribute produce a file NixOS refuses outright — `error: attribute
+     'services.openssh.enable' already defined` — so what the file says replaces
+     what was there rather than joining it. Compared by the path each card
+     renders to, not by its key: import files a repeat under a suffixed key, so
+     the keys can differ while the attribute is the same. */
+  const arriving = new Set(incoming.map(x => resolvePath(x.entry)));
+  const replaced = [];
+  for (const [key, entry] of [...state.selected]) {
+    const path = resolvePath(entry);
+    if (!arriving.has(path)) continue;
+    state.selected.delete(key);
+    replaced.push(path);
+  }
+  for (const x of incoming) state.selected.set(freeKey(x.path), x.entry);
   state.lastTouched = null;
 
   const notes = [];
@@ -1610,6 +1705,14 @@ $('#file').addEventListener('change', async ev => {
                  ? 'Parsed with nix-instantiate. Your file was not modified.'
                  : 'Read directly — nix-instantiate was not on PATH.' });
   (r.notes || []).forEach(n => notes.push({ cls: 'warn', title: 'Adjusted while reading', body: n }));
+  if (replaced.length) {
+    notes.push({ cls: 'warn',
+      title: `${replaced.length} setting(s) already in the form were replaced`,
+      list: replaced,
+      body: 'The file you just read is what they say now. Two cards for one ' +
+            'attribute cannot both be written — NixOS refuses a file that ' +
+            'defines the same one twice.' });
+  }
   if (r.structure && r.structure.length) {
     notes.push({ cls: 'ok',
       title: `${r.structure.length} module-structure line(s) carried over`,
@@ -1657,6 +1760,7 @@ function showNotice(items) {
 /* --------------------------------------------------------------- actions */
 
 $('#btn-copy').addEventListener('click', async () => {
+  if (!await settled()) return;
   try {
     await navigator.clipboard.writeText(currentText());
     setStatus('Copied to clipboard.', 'ok');
@@ -1676,7 +1780,16 @@ function saveBlob(blob, name) {
 /* The three files are already here; the server builds the archive because
    Python has tarfile and the browser has nothing that writes a tar. */
 async function downloadBundle() {
+  if (!await settled()) return;
   const n = bundleName();
+  /* The starter files come from the server when the Setup tab is filled in. If
+     that never happened — the first request failed, the page was opened while
+     the index was still building — the archive would be two empty files and a
+     module, which looks like a download that worked. */
+  if (!state.starter['configuration.nix'] || !state.starter['flake.nix']) {
+    return setStatus('The starter files are not ready yet — open Setup, check ' +
+                     'the fields, and try again. Nothing was downloaded.', 'bad');
+  }
   setStatus('Packing…');
   const res = await fetch('/api/bundle', {
     method: 'POST',
@@ -1697,7 +1810,8 @@ async function downloadBundle() {
             `keep the one this machine already has.`, 'ok');
 }
 
-$('#btn-dl').addEventListener('click', () => {
+$('#btn-dl').addEventListener('click', async () => {
+  if (!await settled()) return;
   if (state.file === ALL) return downloadBundle();
   saveBlob(new Blob([currentText()], { type: 'text/plain' }), state.file);
 });
@@ -1711,6 +1825,7 @@ const checkText = text => fetch('/api/validate', {
 }).then(r => r.json());
 
 $('#btn-check').addEventListener('click', async () => {
+  if (!await settled()) return;
   setStatus('Checking…');
   if (state.file !== ALL) {
     const r = await checkText(currentText());

@@ -314,6 +314,17 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   system to see what actually comes out — that is also how the language
   preset's "the CJK fonts come with the desktop" was rechecked against the two
   new ones rather than assumed to still hold.
+- **Anything that hands the file over waits for the render first.** `pushRender`
+  is debounced by 120ms and the render happens on the server, so `generatedText`
+  trails the form for a moment after every keystroke. `settled()` forces the
+  pending render and waits for it, and returns false when the last one failed —
+  the two downloads, Copy and Check syntax all go through it. Typing a host name
+  and pressing Download all three immediately was enough to get an archive that
+  did not match the screen, and nothing said so.
+- **A failed request must not leave the app looking empty or looking fine.** The
+  boot sequence unhides the Setup pane at its end, so one failed fetch used to
+  leave a blank column and no message; a failed render used to leave the last
+  file that worked on screen and downloadable. Both now say what happened.
 - No browser storage. State lives in `state` in `app.js`.
 
 > 上記はいずれも「見た目は正しいのに後で壊れる」類の落とし穴です。触る前に一読してください。
@@ -403,6 +414,9 @@ once in ways nothing else caught.
 | the whole page scrolls sideways on a phone | four header buttons in a flex row with no `flex-wrap` |
 | half a dropdown label is missing | a closed select drops what does not fit, and what did not fit was the Japanese |
 | a preset row appears on every tab | the tab switch hid rows by id, and a new row was not on the list |
+| the downloaded file is one edit behind the screen | rendering is debounced, and nothing waited for it |
+| `attribute … already defined` after reading a file in | import joined the form instead of replacing what it landed on |
+| the first screen is blank and says nothing | one failed fetch ended the boot sequence before the Setup pane was shown |
 
 ---
 

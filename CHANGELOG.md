@@ -9,6 +9,34 @@ option counts.
 
 ## English
 
+### build 2026-08-10e
+
+Five defects, found by driving the app rather than by reading it. The first two
+handed over a file that was not what the screen said.
+
+- **A download could be one edit behind.** Rendering is debounced and happens on
+  the server, so for a moment after a keystroke the file on hand is the previous
+  one. Typing a host name and pressing **Download all three** straight away was
+  enough to get an archive that did not match the screen. Both downloads, Copy
+  and Check syntax now wait for the render the keystroke asked for.
+- **A failed render used to be invisible.** If `/api/render` failed, the pane
+  kept showing the last file that worked and every button would still hand it
+  over. Now it says so and hands over nothing until a render succeeds.
+- **Reading a file into a form that already had settings produced a file NixOS
+  refuses.** Two cards for one attribute is `error: attribute
+  'services.openssh.enable' already defined`, and **reading the same file twice
+  was enough to get there.** What the file says replaces what was there, and the
+  summary lists what it replaced. A second guard reports any duplicate that
+  turns up another way, on every render.
+- **A failed request while the page was loading left an empty screen.** The
+  Setup pane is unhidden at the end of the boot sequence, so one failed fetch —
+  the server still starting, an index being swapped — meant a blank column and
+  no explanation. It says what happened and to reload.
+- **A malformed request dropped the connection.** A body that is not JSON, or a
+  field of the wrong shape, reached the handler and raised; the terminal got a
+  traceback and the browser got nothing. Those get a 400 and a message now. An
+  archive can no longer be built from starter files that are not there either.
+
 ### Documentation, 2026-08-10
 
 - **The README walks through the app in the order you use it.** The sections
@@ -461,6 +489,16 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10e
+
+不具合5件を修正しました。いずれもコードを読んで見つけたものではなく、**実際にアプリを操作して**見つけたものです。最初の2件は、**画面の内容と違うファイルを渡していました。**
+
+- **ダウンロードしたファイルが、1回分の編集より古いことがありました。** レンダリングは遅延実行でサーバー側で行われるため、キーを打った直後の一瞬は**手元にあるのが1つ前のファイル**です。ホスト名を入力してすぐ **Download all three** を押すと、**画面と一致しない書庫**が出ていました。2つのダウンロードと Copy、Check syntax は、**そのキー入力が要求したレンダリングを待ってから**動くようにしました。
+- **レンダリングの失敗が見えませんでした。** `/api/render` が失敗すると、画面には**最後に成功したファイル**が残り、どのボタンもそれを渡していました。今は**その旨を表示し、成功するまで何も渡しません。**
+- **設定が入っている状態でファイルを読み込むと、NixOSが拒否するファイルが出来ていました。** 1つの属性に2枚のカードがある状態で、`error: attribute 'services.openssh.enable' already defined` になります。**同じファイルを2回読み込むだけで再現しました。** 読み込んだファイルの内容が既存を**置き換える**ようにし、置き換えた項目は取り込みサマリに一覧で出します。別経路で重複が生じた場合に備え、**レンダリングのたびに検出して報告**する二重の防御も入れました。
+- **読み込み中にリクエストが1つ失敗すると、画面が空のままでした。** Setup タブは起動処理の最後に表示されるため、途中で1つ失敗すると(サーバーがまだ起動中、インデックス切り替え中など)**空の列と無言**が残っていました。今は**何が起きたかと、再読み込みすればよいこと**を表示します。
+- **不正なリクエストで接続が切れていました。** JSONでない本文や型の違うフィールドがハンドラまで届いて例外になり、ターミナルにトレースバック、ブラウザには何も返らない状態でした。**400とメッセージ**を返すようにしました。スターターファイルが用意できていない状態で**書庫を作ることもできなくなりました。**
 
 ### ドキュメント 2026-08-10
 

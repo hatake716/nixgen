@@ -568,7 +568,7 @@ def bundle_name(host):
     up as a path in an archive somebody will extract, and `nixos` is a better
     answer than a clever one.
     """
-    clean = re.sub(r"[^A-Za-z0-9._-]", "", (host or "").strip())
+    clean = re.sub(r"[^A-Za-z0-9._-]", "", host.strip() if isinstance(host, str) else "")
     return clean.strip(".-") or "nixos"
 
 
@@ -588,7 +588,8 @@ def bundle(payload):
     Deterministic: fixed mtimes and modes, so the same three files produce the
     same bytes and a diff of two downloads is about their contents.
     """
-    files = payload.get("files") or {}
+    files = payload.get("files")
+    files = files if isinstance(files, dict) else {}
     root = bundle_name(payload.get("host"))
     buf = io.BytesIO()
     # mtime=0 in the gzip header too — the default writes the current time,
@@ -596,7 +597,8 @@ def bundle(payload):
     with gzip.GzipFile(filename="", mode="wb", fileobj=buf, mtime=0) as gz:
         with tarfile.open(fileobj=gz, mode="w") as tar:
             for name in BUNDLE_FILES:
-                raw = (files.get(name) or "").encode("utf-8")
+                text = files.get(name)
+                raw = (text if isinstance(text, str) else "").encode("utf-8")
                 info = tarfile.TarInfo(f"{root}/{name}")
                 info.size = len(raw)
                 info.mtime = 0
@@ -708,9 +710,27 @@ class Handler(BaseHTTPRequestHandler):
         return self._send(404, b"not found", "text/plain")
 
     def do_POST(self):
+        """Answer, or say why not.
+
+        Without this, a request the UI would never send — a truncated body, a
+        field of the wrong shape — reached the handler, raised, and the
+        connection was dropped with the traceback going to the terminal. The
+        browser sees a failed fetch either way, but a status and a message can
+        be read, and the terminal is where somebody is watching for real
+        trouble. This catches the malformed request, not the broken index:
+        those still raise on their own.
+        """
+        try:
+            return self._post()
+        except (ValueError, TypeError, AttributeError, KeyError) as exc:
+            return self._json({"error": f"{type(exc).__name__}: {exc}"}, 400)
+
+    def _post(self):
         u = urlparse(self.path)
         length = int(self.headers.get("Content-Length") or 0)
         payload = json.loads(self.rfile.read(length) or b"{}")
+        if not isinstance(payload, dict):
+            raise TypeError("the request body is not an object")
 
         if u.path == "/api/render":
             return self._json({"text": render(payload)})
