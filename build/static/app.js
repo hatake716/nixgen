@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-09d';
+const BUILD = '2026-08-09e';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -85,12 +85,32 @@ const state = {
   file: 'generated.nix', // which file the output pane is showing
   starter: {},           // configuration.nix / flake.nix, from /api/starter
   starterDefines: new Set(), // option paths the starter configuration.nix sets
-  releases: [],          // stable releases that publish option data
-  indexed: null,         // the release the search index was built from
-  built: [],             // releases already indexed on this machine
+  releases: [],          // channels that publish option data, unstable last
+  indexed: null,         // the channel the search index was built from
+  built: [],             // channels already indexed on this machine
+  releaseOf: {},         // channel -> NixOS version, for the built ones
+  unstable: 'nixos-unstable',
+  snapshot: null,        // when the channel published the indexed data
+  ageDays: null,         // …and how many days ago that was
+  stale: false,          // …and whether that is long enough to matter here
   unfree: new Set(),     // attrs that need nixpkgs.config.allowUnfree
   lastTouched: null,
+  stateTouched: false,   // whether stateVersion was typed in by hand
 };
+
+/* system.stateVersion follows the channel until someone types in the box.
+   `nixos-26.05` says its version in its name; `nixos-unstable` does not, so the
+   index records what the catalogue said — 26.11 today. Leaving 26.05 in the box
+   on unstable would be a wrong answer presented as a considered one, in the one
+   field the copy tells you not to change later. */
+function setStateVersion(release, channel) {
+  if (state.stateTouched) return;
+  // An index built before nixgen recorded the release has no answer, so fall
+  // back to the channel's own name — which is where it came from anyway, for
+  // everything except unstable.
+  const m = /\d\d\.\d\d/.exec(release || '') || /\d\d\.\d\d/.exec(channel || '');
+  if (m) $('#s-state').value = m[0];
+}
 
 /* ------------------------------------------------------------------ boot */
 
@@ -101,6 +121,7 @@ const state = {
   $('#counts').textContent =
     `${(+meta.option_count).toLocaleString()} options · ` +
     `${(+meta.package_count).toLocaleString()} packages · build ${BUILD}`;
+  setStateVersion(meta.release, meta.channel);
   renderEditor();
   await loadReleases();
   await loadStarter();
@@ -154,17 +175,38 @@ async function loadReleases() {
   state.releases = r.channels || [];
   state.indexed = r.indexed;
   state.built = r.built || [];
+  state.unstable = r.unstable || 'nixos-unstable';
+  state.snapshot = r.snapshot || null;
+  state.ageDays = r.age_days;
+  state.stale = !!r.stale;
+  state.releaseOf = r.release_of || {};
 
   const sel = $('#s-release');
   sel.innerHTML = '';
   state.releases.forEach(ch => {
-    const o = el('option', null, ch + (ch === state.releases[0] ? ' (current)' : ''));
+    // The first numbered release is the current one; unstable is not a
+    // release at all, so it gets said rather than left to be inferred.
+    const tag = ch === state.unstable ? ' (moves every day)'
+              : ch === state.releases[0] ? ' (current)' : '';
+    const o = el('option', null, ch + tag);
     o.value = ch;
     sel.appendChild(o);
   });
   sel.value = state.indexed && state.releases.includes(state.indexed)
     ? state.indexed : state.releases[0];
   syncRelease();
+}
+
+/* How old the option list is. On a numbered release this is background; on
+   unstable the channel has moved on by tomorrow, and an option list nobody
+   knows the age of is the reason unstable was unsupported for so long. */
+function ageNote() {
+  const frag = document.createDocumentFragment();
+  if (state.ageDays == null) return frag;
+  const d = state.ageDays;
+  const when = d === 0 ? 'today' : d === 1 ? 'yesterday' : `${d} days ago`;
+  frag.append(` The list was published ${when}.`);
+  return frag;
 }
 
 /* What flake.nix will name for a release: the exact commit the option index was
@@ -197,10 +239,17 @@ function syncPin() {
   const note = $('#s-pin-note');
   note.textContent = '';
   if ($('#s-pin').value === 'branch') {
-    note.className = 'note';
-    note.append('flake.lock still pins your first build, so it can be repeated. ' +
-                'But the branch moves on, and a setting you picked here may not ' +
-                'be in what you build later.');
+    // The same choice, with very different stakes: a numbered release drifts
+    // over months, unstable is a different tree tomorrow.
+    const daily = $('#s-release').value === state.unstable;
+    note.className = daily ? 'warn' : 'note';
+    note.append(daily
+      ? 'flake.lock pins your first build, but unstable is a different tree by ' +
+        'tomorrow — the options on the left and what you build drift apart ' +
+        'within days. The commit is what holds them together.'
+      : 'flake.lock still pins your first build, so it can be repeated. But the ' +
+        'branch moves on, and a setting you picked here may not be in what you ' +
+        'build later.');
     return;
   }
   if (state.starter.revision) {
@@ -214,9 +263,15 @@ function syncPin() {
               'Building the index for this release records one.');
 }
 
-/* The flake pins one release; the options you are picking from come from the
-   index. Letting those drift apart would offer settings the release does not
-   have, so say so and offer to line them up. */
+/* The flake follows one channel; the options you are picking from come from the
+   index. Letting those drift apart would offer settings the channel does not
+   have, so say so and offer to line them up.
+
+   Two ways they drift. The obvious one is picking a channel the index was not
+   built from. The other is time: the index stays where it was while the
+   channel moves, which takes weeks on a numbered release and one day on
+   unstable — the whole reason unstable needed this before it could be offered
+   at all. */
 function syncRelease() {
   const want = $('#s-release').value;
   const note = $('#s-release-note');
@@ -225,12 +280,21 @@ function syncRelease() {
   // No selector yet — the release list is fetched, so it can fail.
   if (!want) { btn.hidden = true; return; }
   if (want === state.indexed) {
-    note.append('The options on the left come from this release. ');
+    note.className = state.stale ? 'warn' : 'note';
+    note.append('The options on the left come from this channel. ');
     note.append(pinPhrase(want, false));
     note.append('.');
-    btn.hidden = true;
+    note.append(ageNote());
+    if (state.stale) {
+      note.append(want === state.unstable
+        ? ' Unstable has moved since; rebuild before trusting the list.'
+        : ' Worth rebuilding.');
+    }
+    btn.hidden = !state.stale;
+    btn.textContent = `Rebuild the ${want} index`;
     return;
   }
+  note.className = 'note';
   const ready = state.built.includes(want);
   note.append(pinPhrase(want, true));
   note.append(', but the options on the left are still from ');
@@ -242,15 +306,27 @@ function syncRelease() {
     : `Build the ${want} index (a few minutes)`;
 }
 
-$('#s-release').addEventListener('change', () => { syncRelease(); onSetupChange(); });
+$('#s-release').addEventListener('change', () => {
+  const want = $('#s-release').value;
+  // Follow the channel that was picked, not the one the index came from: the
+  // two can differ for as long as it takes to build an index, and a
+  // stateVersion from the wrong one is a bad answer with no visible cause.
+  setStateVersion(state.releaseOf[want], want);
+  syncRelease();
+  onSetupChange();
+});
 
 $('#btn-reindex').addEventListener('click', async () => {
   const channel = $('#s-release').value;
   const btn = $('#btn-reindex');
   btn.disabled = true;
+  // Rebuilding the channel already in use means fetching again; without
+  // `refresh` the server would see a database and simply switch to it, which
+  // on a channel that moves is the one thing that would not help.
+  const refresh = channel === state.indexed;
   const r = await fetch('/api/reindex', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ channel }),
+    body: JSON.stringify({ channel, refresh }),
   }).then(x => x.json());
   if (r.error) { showProgress('failed', r.error); btn.disabled = false; return; }
   if (r.switched) { await afterReindex(); btn.disabled = false; return; }
@@ -282,6 +358,7 @@ async function afterReindex() {
   $('#counts').textContent =
     `${(+meta.option_count).toLocaleString()} options · ` +
     `${(+meta.package_count).toLocaleString()} packages · build ${BUILD}`;
+  setStateVersion(meta.release, meta.channel);
   await loadReleases();
   showProgress('done', `Options now come from ${state.channel}.`);
   runSearch();
@@ -296,6 +373,9 @@ SETUP_FIELDS.forEach(id => {
   n.addEventListener('input', onSetupChange);
   n.addEventListener('change', onSetupChange);
 });
+// Once it has been typed in, it stays typed in: switching channel must not
+// quietly rewrite a stateVersion someone chose on purpose.
+$('#s-state').addEventListener('input', () => { state.stateTouched = true; });
 
 /* The host name becomes a Nix attribute (nixosConfigurations.<host>) and the
    user name an attribute under users.users, so both have to be plain

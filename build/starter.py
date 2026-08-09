@@ -15,7 +15,7 @@ paths that were emitted, so the UI can flag the ones generated.nix also sets.
 
 import re
 
-from releases import is_revision
+from releases import UNSTABLE, is_revision
 
 SYSTEMS = ["x86_64-linux", "aarch64-linux"]
 BOOTLOADERS = ["systemd-boot", "grub", "none"]
@@ -30,9 +30,18 @@ def _safe(value, fallback, pattern=_IDENT):
     return value if pattern.fullmatch(value) else fallback
 
 
-def _channel_version(channel):
-    """`nixos-26.05` -> `26.05`."""
+def _channel_version(channel, release=None):
+    """The NixOS version to start `system.stateVersion` at.
+
+    `nixos-26.05` says so in its name. `nixos-unstable` does not, so the index
+    records what the catalogue said `system.nixos.release` defaults to — which
+    on unstable is the release being worked towards, and is what a fresh
+    install would have picked for itself.
+    """
     m = _STATE_VERSION.search(channel or "")
+    if m:
+        return m.group(0)
+    m = _STATE_VERSION.search(release or "")
     return m.group(0) if m else "26.05"
 
 
@@ -177,16 +186,28 @@ PINNED_HEAD = '''  # nixpkgs, at the commit {channel} points at right now. nixge
 BRANCH = '''  # nixpkgs, following the {channel} branch, which is what nixgen was set to.
   # The first build takes whatever the branch holds at the time and flake.lock
   # records where it landed; `nix flake update` moves it on from there.
-  #
-  # The catch is that the option list you filled this in from was read at one
-  # moment and the branch keeps moving, so a setting that exists in nixgen may
-  # not exist in what you build. Within a numbered release that is unusual, but
-  # it is why naming a commit is the other choice.
+'''
+
+DRIFT = '''  #
+  # The option list you filled this in from was read at one moment and the
+  # branch keeps moving, so a setting that exists in nixgen may not exist in
+  # what you build. Within a numbered release that is unusual, but it is why
+  # naming the commit is the other choice.
 '''
 
 UNPINNED = '''  # nixpkgs, following the {channel} branch. A commit was asked for, but nixgen
-  # could not find one for this release, so the first build takes whatever the
+  # could not find one for this channel, so the first build takes whatever the
   # branch holds at the time and flake.lock records where it landed.
+'''
+
+# Following a branch is a mild caveat on a numbered release and a real one on
+# unstable, which is a different tree by tomorrow. Said here because this is
+# the file someone reads months later, long after the screen that explained it.
+UNSTABLE_DRIFT = '''  #
+  # nixos-unstable is a different tree by tomorrow. The option list you filled
+  # this in from and the tree you build come apart within days, and a setting
+  # that exists in nixgen may simply not be there. Naming the commit is what
+  # holds the two together; `nix flake update` is what moves you on afterwards.
 '''
 
 
@@ -203,11 +224,12 @@ def _pin(channel, revision, from_index, follow_branch):
     into a generated file verbatim, and the branch name is a safe thing to fall
     back to when anything looks off.
     """
+    drift = UNSTABLE_DRIFT if channel == UNSTABLE else DRIFT
     if follow_branch:
-        return BRANCH.format(channel=channel), channel
+        return BRANCH.format(channel=channel) + drift, channel
     revision = (revision or "").strip()
     if not is_revision(revision):
-        return UNPINNED.format(channel=channel), channel
+        return UNPINNED.format(channel=channel) + drift, channel
     body = PINNED_INDEXED if from_index else PINNED_HEAD
     return body.format(channel=channel), revision
 
@@ -226,7 +248,8 @@ def starter_files(host, user, system, channel, **kw):
         "groups": _groups(kw.get("groups")),
         "flakes": _flag(kw.get("flakes")),
     }
-    state = _safe(kw.get("state_version"), _channel_version(channel), _STATE_VERSION)
+    state = _safe(kw.get("state_version"),
+                  _channel_version(channel, kw.get("release")), _STATE_VERSION)
 
     configuration, defines = _configuration(host, user, system, state, opts)
     channel = channel or "nixos-26.05"

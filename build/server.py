@@ -196,25 +196,44 @@ def get_meta(path=None):
     return {r["key"]: r["value"] for r in rows}
 
 
+def meta_for(channel):
+    """The meta of that channel's own database, or {} if it has none here.
+
+    Deliberately does not go through built_channels(): that probes the channel
+    server for the channel list, and this runs on every keystroke in Setup.
+    """
+    path = _KNOWN_DBS.get(channel) or releases.db_for(data_dir(), channel)
+    return get_meta(path) if os.path.exists(path) else {}
+
+
 def revision_for(channel):
     """(commit, came_from_the_index) for the generated flake.nix to pin.
 
     A database records the revision it was indexed from, and that is the one
-    the options on offer actually came from, so it wins. A release with no
+    the options on offer actually came from, so it wins. A channel with no
     database here — picked in the selector but not built yet — falls back to
     asking the channel server, which pins something reproducible but says
     nothing about the option list; the generated file spells that difference
     out, so the two cases are kept apart rather than merged.
-
-    Deliberately does not go through built_channels(): that probes the channel
-    server for the release list, and this runs on every keystroke in Setup.
     """
-    path = _KNOWN_DBS.get(channel) or releases.db_for(data_dir(), channel)
-    if os.path.exists(path):
-        rev = get_meta(path).get("revision")
-        if rev:
-            return rev, True
+    rev = meta_for(channel).get("revision")
+    if rev:
+        return rev, True
     return releases.revision(channel), False
+
+
+def age_days(snapshot):
+    """Whole days between an ISO snapshot stamp and now, or None."""
+    if not snapshot:
+        return None
+    try:
+        when = datetime.datetime.fromisoformat(snapshot)
+    except ValueError:
+        return None
+    if when.tzinfo is None:
+        when = when.replace(tzinfo=datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.timezone.utc)
+    return max(0, (now - when).days)
 
 
 # --------------------------------------------------------------------- import
@@ -537,15 +556,31 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"results": search_options(q, limit, one("supported") == "1")})
         if u.path == "/api/releases":
             built = built_channels()
+            meta = get_meta()
+            snapshot = meta.get("snapshot")
+            age = age_days(snapshot)
+            indexed = meta.get("channel")
             return self._json({
                 "channels": releases.releases(one("refresh") == "1"),
-                "indexed": get_meta().get("channel"),
+                "indexed": indexed,
                 "built": sorted(built, reverse=True),
+                # How old the option list is, and when it stops being worth
+                # trusting. Unstable answers "tomorrow"; a numbered release
+                # takes weeks. Without this, an index quietly rots.
+                "snapshot": snapshot,
+                "age_days": age,
+                "stale": age is not None and age >= releases.stale_after(indexed),
+                "unstable": releases.UNSTABLE,
+                # The NixOS version each built channel is, so picking one in
+                # the selector can move `system.stateVersion` with it.
+                # `nixos-unstable` is 26.11 today and its name will never say so.
+                "release_of": {ch: get_meta(p).get("release")
+                               for ch, p in built.items()},
             })
         if u.path == "/api/reindex/status":
             return self._json(releases.status)
         if u.path == "/api/starter":
-            channel = (one("channel") if releases.is_release(one("channel"))
+            channel = (one("channel") if releases.is_channel(one("channel"))
                        else get_meta().get("channel", "nixos-26.05"))
             # Asking for the branch means no commit is needed, so do not go
             # looking for one — that lookup can reach the network. It is also
@@ -556,6 +591,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(starter_files(
                 one("host"), one("user"), one("system"), channel,
                 revision=rev, from_index=from_index, pin=pin,
+                release=meta_for(channel).get("release"),
                 bootloader=one("bootloader"),
                 grub_device=one("grub_device"),
                 networkmanager=one("networkmanager"),
@@ -582,9 +618,13 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json({"error": str(exc)}, 200)
         if u.path == "/api/reindex":
             channel = payload.get("channel", "")
-            if not releases.is_release(channel):
-                return self._json({"error": "not a release channel"}, 200)
-            ready = built_channels().get(channel)
+            if not releases.is_channel(channel):
+                return self._json({"error": "not a channel nixgen knows"}, 200)
+            # `refresh` asks for the data to be fetched again even though a
+            # database is already here. Without it there would be no way to
+            # follow a channel that moves — switching to unstable would keep
+            # handing back whatever snapshot happened to be indexed first.
+            ready = None if payload.get("refresh") else built_channels().get(channel)
             if ready:
                 switch_db(ready)
                 releases.status.update(state="done", channel=channel,
