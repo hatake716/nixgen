@@ -9,6 +9,23 @@ option counts.
 
 ## English
 
+### build 2026-08-09e
+
+- **`nixos-unstable` can be picked, alongside the numbered releases.** Choosing
+  it makes **everything** unstable: the options, the packages, the `flake.nix`
+  and the `system.stateVersion`. There is no mixing — taking packages from one
+  channel and options from another is not supported and is not planned.
+- **The Setup tab says when the option list was published, and offers to
+  rebuild it once that stops being true.** The next day on unstable, after some
+  weeks on a numbered release. The date is the channel's own, not when the
+  download happened. An option list nobody knows the age of is the reason
+  unstable went unsupported for so long.
+- **`system.stateVersion` follows the channel.** `nixos-unstable` has no number
+  in its name, so it is read out of the catalogue instead — 26.11 today. Typing
+  in the box stops it following.
+- The field is now labelled **nixpkgs channel** rather than release, because
+  one of the things in it is not a release.
+
 ### build 2026-08-09d
 
 - **What `flake.nix` points at now defaults to the release branch.** It shipped
@@ -141,6 +158,13 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-09e
+
+- **`nixos-unstable` を選べるようにしました。** 番号付きリリースと並びます。選ぶと**すべてがunstableになります。** オプション、パッケージ、`flake.nix`、`system.stateVersion` です。**混在はありません。** 「パッケージだけ別のチャンネルから」はできませんし、対応する予定もありません。
+- **オプション一覧がいつ公開されたものかをSetupタブに表示し、古くなったら再構築を提案します。** unstableなら翌日、番号付きリリースなら数週間後です。表示するのはチャンネル側の公開日時で、ダウンロードした日時ではありません。**「いつのオプション一覧か分からない」ことが、unstableを長く非対応にしていた理由**でした。
+- **`system.stateVersion` がチャンネルに追従します。** `nixos-unstable` は名前にバージョンを持たないため、カタログから読み取ります(現時点で26.11)。手で入力すると、以降は追従しなくなります。
+- 項目名を **nixpkgs release** から **nixpkgs channel** に変えました。並ぶものの1つがリリースではないためです。
 
 ### build 2026-08-09d
 

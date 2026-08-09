@@ -261,7 +261,7 @@ Everything in them is editable from the screen:
 |---|---|
 | Host name | The name of the machine |
 | Main user | Your everyday account. Untick to leave user setup out entirely |
-| nixpkgs release | The current numbered release or one of the two before it |
+| nixpkgs channel | The current numbered release, one of the two before it, or `nixos-unstable`. Whatever you pick, everything comes from it |
 | What `flake.nix` points at | The release branch by default, so updates arrive. Or the exact commit the option list was read at, so what you build has the options you were offered and nothing else |
 | Architecture | `x86_64-linux` for an ordinary PC |
 | Boot loader | systemd-boot for a UEFI machine, GRUB for an older BIOS one (it will ask which disk) |
@@ -322,21 +322,38 @@ nixgen --no-browser          # do not open a browser
 | Variable | Default | What it does |
 |---|---|---|
 | `NIXGEN_DATA` | `~/.local/share/nixgen` | where the database lives |
-| `NIXGEN_CHANNEL` | `nixos-26.05` | which release's settings to work with |
+| `NIXGEN_CHANNEL` | `nixos-26.05` | which channel's settings to work with |
 
-The easier way to change release is the **nixpkgs release** field in the Setup
-tab. Picking one that has not been indexed yet offers to build it — a few
-minutes the first time, instant on later switches, because each release keeps
-its own database. Your choice is remembered across restarts.
+The easier way to change channel is the **nixpkgs channel** field in the Setup
+tab: the current numbered release and the two before it, plus
+`nixos-unstable`. Picking one that has not been indexed yet offers to build it
+— a few minutes the first time, instant on later switches, because each
+channel keeps its own database. Your choice is remembered across restarts.
 
-`NIXGEN_CHANNEL` still decides which release is built on a first run:
+`NIXGEN_CHANNEL` still decides which channel is built on a first run:
 
 ```bash
 rm -rf ~/.local/share/nixgen
-NIXGEN_CHANNEL=nixos-25.11 nixgen
+NIXGEN_CHANNEL=nixos-unstable nixgen
 ```
 
-**Numbered releases only** for now — see *What it cannot do* for why.
+### Working on unstable
+
+`nixos-unstable` is offered alongside the numbered releases, and picking it
+makes **everything** unstable: the options, the packages, the `flake.nix` and
+the `system.stateVersion` — which unstable does not say in its name, so it is
+read out of the catalogue instead (26.11 at the time of writing).
+
+The one thing to keep an eye on is age. Unstable is a different tree by
+tomorrow, so the tab shows when the option list was published and offers to
+rebuild the index once it is a day old. **An option list nobody knows the age
+of is the reason unstable went unsupported for so long**, so it is now shown
+whichever channel you are on.
+
+If you would rather the two never drift, set *What `flake.nix` points at* to
+the commit. Then the tree you build is the one the option list was read from,
+and `nix flake update` has nothing to move to until you generate the file
+again.
 
 ### Using it from another computer
 
@@ -422,23 +439,13 @@ a complete NixOS system** to prove they hold up.
 
 ## What it cannot do
 
-**The unstable channel.** `nixos-unstable` does publish the same option data, so
-this is not impossible — it is unfinished. The problem is that the channel
-always serves its newest snapshot while your `flake.lock` pins one commit, and
-unstable moves every day. The form would offer settings the commit you build
-does not have. **Check syntax would still pass**, and the failure would only
-turn up at `nixos-rebuild`, which is the least helpful place for it to appear.
-
-Half the way out is now built: the generated `flake.nix` names the exact commit
-the option index was read from rather than a branch, so what you build matches
-what you were offered. The rest is showing how old an index is and making it
-easy to refresh, which a channel that moves every day needs and a numbered
-release does not. Until that exists, unstable stays unsupported.
-
-Mixing channels is a separate thing and stays out of scope. Packages could be
-pulled from unstable through an overlay, but options cannot — an unstable
-`services.foo.*` needs unstable's module set — and a tool where half the
-catalogue is selectable and half is not would be worse than no support at all.
+**Mixing channels.** Picking `nixos-unstable` makes *everything* unstable —
+the options, the packages, the `flake.nix`, the `system.stateVersion`. There is
+no way to take packages from one channel and options from another, and there is
+not going to be. Packages could be pulled across with an overlay; options could
+not, because an unstable `services.foo.*` needs unstable's module set. A
+catalogue where half the entries are selectable and half are not would be worse
+than no support at all.
 
 **Writing back to your original file.** It can read one; it will not write to
 one. Replacing values while preserving the existing layout and comments is a far

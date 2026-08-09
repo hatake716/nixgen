@@ -251,16 +251,27 @@ once in ways nothing else caught.
 - **`Check syntax` is `nix-instantiate --parse` and nothing more.** It cannot
   judge types. Every piece of copy that mentions it says so, because a user who
   thinks it validates will skip `dry-build`.
-- **Numbered releases only, for now.** `nixos-unstable` publishes the same data,
-  so this is unfinished rather than impossible. The obstacle is that the channel
-  serves its newest snapshot while `flake.lock` pins one commit, and unstable
-  moves daily — the form would offer settings the built commit lacks, Check
-  syntax would pass, and it would fail at `nixos-rebuild`.
-  **The way in:** pin the flake to the exact snapshot that was indexed — which
-  is now done, see below — and show how old an index is, so a daily-moving
-  channel can be refreshed knowingly. Mixing channels stays out of scope:
-  packages could come from unstable via an overlay, options could not, and a
-  catalogue where half is selectable would be worse than no support.
+- **Unstable is a channel like any other, and picking it makes everything
+  unstable** — options, packages, `flake.nix`, `system.stateVersion`. What
+  unblocked it was pinning the flake to the indexed snapshot and showing how old
+  an index is; without those, the form offered settings the built tree lacked,
+  Check syntax passed, and it failed at `nixos-rebuild`.
+  **Mixing channels stays out of scope, permanently.** Packages could come from
+  unstable via an overlay, options could not — an unstable `services.foo.*`
+  needs unstable's module set — and a catalogue where half is selectable would
+  be worse than no support. There is one seam where two channels can meet: the
+  selector can name a channel the index was not built from. That is why it is
+  flagged in red and offers to fix itself, rather than being allowed to pass.
+- **The snapshot date is the channel's, not ours.** `fetch-data.sh` keeps the
+  `Last-Modified` of the download, so the age shown is when nixpkgs published
+  the data, not when someone happened to fetch it. `releases.stale_after` is one
+  day for unstable and three weeks otherwise, which is the difference between a
+  tree that is replaced overnight and one that drifts.
+- **`system.stateVersion` comes out of the catalogue, not the channel name.**
+  `nixos-unstable` has no number in it, so `build_index` records what
+  `system.nixos.release` defaults to — 26.11 on unstable today. Guessing from
+  the newest numbered release would put a wrong answer in the one field the
+  copy tells you never to change afterwards.
 - **The generated `flake.nix` can name a commit rather than a branch, and the
   Setup tab chooses which.** `fetch-data.sh` saves the channel's
   `git-revision`, `build_index.py` puts it in `meta`, and `starter.py` writes
@@ -277,8 +288,11 @@ once in ways nothing else caught.
   and the outer two both produce a branch, which is exactly why merging them is
   tempting and wrong: only the first says the options match what gets built, and
   only the last means a request went unmet. Both facts are ones a reader acts on.
-- **One database per release**, so switching back is instant, with a `CURRENT`
-  marker so the choice survives a restart.
+- **One database per channel**, so switching back is instant, with a `CURRENT`
+  marker so the choice survives a restart. Rebuilding one in place needs
+  `refresh` on `/api/reindex`: without it the server sees a database and
+  switches to it, which on a channel that moves is the one thing that does not
+  help.
 - **Setup is the first tab and the one the app opens on.** On a fresh install
   those files are needed before anything else.
 
@@ -319,9 +333,9 @@ once in ways nothing else caught.
 
 ## Open items
 
-- Unstable support, as scoped above.
-- Show how old an index is, and offer to refresh it. `meta.revision` now says
-  which commit it came from; what is missing is a date and somewhere to show it.
 - A friendlier message when port 8823 is taken; right now it is a raw Python
-  traceback.
+  traceback. Hit again while testing unstable, so it is not hypothetical.
+- Nothing prunes old databases. Each channel keeps its own ~37 MB file and
+  `nixos-unstable` will be rebuilt often, so `~/.local/share/nixgen` grows and
+  never shrinks.
 - `docs/screenshot*.png` need retaking whenever the UI changes shape.
