@@ -267,6 +267,18 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   like every option path, since not every browser honours the attribute.
   Descriptions elsewhere are still meant to be translated; this is the
   exception, not a change of policy.
+- **Package icons come from the machine, and nothing was added to get them.**
+  `icon_index` in `server.py` reads the icon themes already installed and maps
+  a name to a file once; `/api/icon?attr=` answers from that map and **never
+  joins a request to a path**, which is the whole security story for serving
+  files out of an endpoint. Depending on an icon theme instead would be 252 MB
+  of closure for a tool whose index is 37 MB, and bundling a subset would put
+  GPL artwork in an MIT repository — so coverage is what the machine happens
+  to have (77% of `APPS` on the author's, single figures on a bare install)
+  and the fallback is the package's first letter on a colour derived from its
+  name. Themes disagree about directory order — `<theme>/64x64/apps` and
+  `<theme>/apps/scalable` are both real — and reading only the first shape
+  found 555 icons where there were 8,134.
 - **`APPS` is the one opinionated list in the tool, and stays small.** Picking a
   category fills the results with a handful of packages, which are then added
   by the same click as any search hit — nothing is installed on anyone's

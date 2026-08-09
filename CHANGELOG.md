@@ -9,6 +9,20 @@ option counts.
 
 ## English
 
+### build 2026-08-10g
+
+- **Packages have their icons in the list now**, in the categories and in
+  search results alike.
+- **They come from the icon themes your machine already has** — the system
+  path, your profile, `XDG_DATA_DIRS`. Nothing is downloaded and nixgen depends
+  on nothing new. The catch is stated rather than hidden: **how many appear
+  depends on what is installed.** 142 of the 183 listed packages have one on
+  the author's machine; a bare install will show far fewer.
+- **Anything without an icon gets its first letter** on a colour derived from
+  its name, so a row is never an empty square and a package keeps the same
+  colour every time you look for it. `tmux` and `gcc` have no icon anywhere,
+  and pretending otherwise would just mean a grey square repeated.
+
 ### build 2026-08-10f
 
 - **Reading in a configuration.nix fills the Setup tab.** The host name, the
@@ -507,6 +521,12 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10g
+
+- **パッケージ一覧にアイコンを表示するようにしました。** 分野から選んだときも、検索結果でも同じです。
+- **取得元は、そのマシンに既に入っているアイコンテーマ**です(システムのパス、ユーザープロファイル、`XDG_DATA_DIRS`)。**何もダウンロードせず、nixgenの依存も増えません。** 引き換えの条件は隠さず書いておきます。**表示される数は、何が入っているかで変わります。** 作者のマシンでは、一覧の183個中142個にアイコンが出ます。素のインストールではもっと少なくなります。
+- **アイコンが無いものには頭文字**を出します。色は名前から決まるので、**同じパッケージはいつも同じ色**です。空の四角が並ぶことはありません。`tmux` や `gcc` はそもそもどこにもアイコンが無く、灰色の四角を並べても意味がないからです。
 
 ### build 2026-08-10f
 

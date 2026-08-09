@@ -453,6 +453,14 @@ clicking, exactly like a search hit. Nothing is installed for you.
 It is a short pick, not a catalogue — the one place in the tool where somebody
 else's taste decides what you see, so it stays small. Search for anything else.
 
+**Each package carries its icon**, taken from the icon themes your machine
+already has — `/run/current-system/sw/share/icons`, your profile, and whatever
+`XDG_DATA_DIRS` points at. Nothing is downloaded and nixgen depends on nothing
+new for it, which is also the catch: **how many icons appear depends on what is
+installed.** A desktop with a full theme shows most of them; a bare install
+shows few. Anything without one gets its first letter on a colour of its own,
+and `tmux` and `gcc` are never going to have an icon anyway.
+
 The apps all five desktops ship are in there too — GNOME, Plasma, Xfce,
 Cinnamon and COSMIC. Not so they get installed twice — enabling a desktop
 already brings its own — but so you can take one without the desktop it came

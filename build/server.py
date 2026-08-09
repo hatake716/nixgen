@@ -558,6 +558,123 @@ def validate(text):
         os.unlink(tmp)
 
 
+# ---------------------------------------------------------------- app icons
+
+# Where a freedesktop icon theme puts application icons: <theme>/<size>/apps.
+# Scalable first, then the largest raster that is not enormous — 512px icons
+# for a 22px tile are a waste of bytes on every row.
+_ICON_SIZES = ["scalable", "256x256", "128x128", "96x96", "84x84", "72x72",
+               "64x64", "48x48", "42x42", "32x32", "24x24", "22x22", "16x16"]
+_ICONS = None
+
+
+def icon_roots():
+    """Icon directories this machine already has.
+
+    Nothing is downloaded and nothing is added to the closure: these are the
+    themes the system and the user profile carry, plus whatever `XDG_DATA_DIRS`
+    points at. Which means the icons you get are the ones your machine has —
+    good on a desktop with a full theme installed, thin on a bare install, and
+    the UI falls back to a letter rather than an empty square either way.
+    """
+    home = os.path.expanduser("~")
+    roots = ["/run/current-system/sw/share/icons",
+             os.path.join(home, ".nix-profile/share/icons"),
+             os.path.join(home, ".local/share/icons"),
+             "/usr/share/icons"]
+    roots += [os.path.join(d, "icons")
+              for d in (os.environ.get("XDG_DATA_DIRS") or "").split(":") if d]
+    seen, out = set(), []
+    for r in roots:
+        real = os.path.realpath(r)
+        if real in seen or not os.path.isdir(real):
+            continue
+        seen.add(real)
+        out.append(real)
+    return out
+
+
+def icon_index():
+    """name -> file, built once from the themes on the machine.
+
+    A lookup table rather than a path built from the request: the name in a
+    query is never joined to a directory, so there is nothing here to point at
+    /etc/shadow. Sizes are walked worst-first so the best one wins by
+    overwriting.
+    """
+    global _ICONS
+    if _ICONS is not None:
+        return _ICONS
+    index = {}
+    # Themes disagree about the order of the two directories: Papirus and
+    # hicolor are <theme>/64x64/apps, kora is <theme>/apps/scalable. Both are
+    # real and both are common, so the size is read from whichever component
+    # has it rather than assumed to be the first.
+    for root in icon_roots():
+        for theme in _subdirs(root):
+            found = []
+            for a in _subdirs(theme):
+                if os.path.basename(a) == "apps":
+                    found.append(a)
+                    found += _subdirs(a)
+                else:
+                    apps = os.path.join(a, "apps")
+                    if os.path.isdir(apps):
+                        found.append(apps)
+            for apps in sorted(found, key=_icon_rank, reverse=True):
+                try:
+                    entries = os.listdir(apps)
+                except OSError:
+                    continue
+                for fname in entries:
+                    stem, ext = os.path.splitext(fname)
+                    if ext.lower() in (".svg", ".png"):
+                        index[stem.lower()] = os.path.join(apps, fname)
+    _ICONS = index
+    return index
+
+
+def _subdirs(path):
+    try:
+        return [e.path for e in os.scandir(path) if e.is_dir()]
+    except OSError:
+        return []
+
+
+def _icon_rank(path):
+    """Worst first, so the better directory overwrites it."""
+    for part in path.split(os.sep):
+        if part in _ICON_SIZES:
+            return len(_ICON_SIZES) - _ICON_SIZES.index(part)
+    return 0
+
+
+def icon_for(attr):
+    """The file for a package attribute, or None.
+
+    The attribute is not the icon name: `kdePackages.gwenview` is `gwenview`,
+    `xfce.thunar` is `thunar`, and GNOME and KDE ship theirs under a reverse
+    domain. Every candidate is tried against the index; a name that matches
+    nothing simply has no icon, which the UI draws as a letter.
+    """
+    if not attr:
+        return None
+    last = attr.split(".")[-1]
+    trimmed = re.sub(r"-(gtk|qt|bin|full|desktop|desktopeditors|with-plugins)$", "", last)
+    candidates = [attr, last, trimmed,
+                  last.replace("_", "-"), last.replace("-", "_"),
+                  "org.gnome." + last, "org.kde." + last, "org.xfce." + last,
+                  last.replace("gnome-", "org.gnome."),
+                  last.replace("xfce4-", "org.xfce."),
+                  re.sub(r"^kde", "", last)]
+    index = icon_index()
+    for c in candidates:
+        hit = index.get(c.lower())
+        if hit:
+            return hit
+    return None
+
+
 BUNDLE_FILES = ("configuration.nix", "flake.nix", "generated.nix")
 
 
@@ -640,6 +757,26 @@ class Handler(BaseHTTPRequestHandler):
             return self._file("app.js", "text/javascript; charset=utf-8")
         if u.path == "/app.css":
             return self._file("app.css", "text/css; charset=utf-8")
+
+        if u.path == "/api/icon":
+            path = icon_for(one("attr", ""))
+            if not path:
+                return self._send(404, b"no icon", "text/plain")
+            try:
+                with open(path, "rb") as fh:
+                    raw = fh.read(400_000)
+            except OSError:
+                return self._send(404, b"no icon", "text/plain")
+            ctype = "image/svg+xml" if path.endswith(".svg") else "image/png"
+            self.send_response(200)
+            self.send_header("Content-Type", ctype)
+            self.send_header("Content-Length", str(len(raw)))
+            # The only thing here worth caching: a file in the store that
+            # cannot change while this server is running, asked for once per
+            # row of every list.
+            self.send_header("Cache-Control", "max-age=86400")
+            self.end_headers()
+            return self.wfile.write(raw)
 
         if u.path == "/api/meta":
             return self._json(get_meta())

@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-10f';
+const BUILD = '2026-08-10g';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -596,19 +596,58 @@ function paintOptions(rows, q) {
   });
 }
 
+/* A tile for each package: its own icon where the machine has one, and its
+   first letter where it does not.
+
+   The icons come from the icon themes already installed — nothing is
+   downloaded and nothing is added to what nixgen depends on — so how many of
+   them appear depends on the machine. The letter is not a placeholder waiting
+   for a better answer: `tmux` and `gcc` have no icon anywhere, and a row of
+   the same grey square would be worse than a letter that at least differs
+   between neighbours. The colour comes from the name, so a package sits in
+   the same colour every time you look for it. */
+function packageIcon(attr) {
+  const name = attr.split('.').pop();
+  let hash = 0;
+  for (const ch of attr) hash = (hash * 31 + ch.codePointAt(0)) % 360;
+  const tile = el('span', 'pkgicon');
+  const letter = el('span', 'letter', name[0] ? name[0].toUpperCase() : '?');
+  tile.style.background = `hsl(${hash}, 42%, 88%)`;
+  tile.style.color = `hsl(${hash}, 38%, 32%)`;
+  tile.appendChild(letter);
+  const img = el('img');
+  img.loading = 'lazy';
+  img.alt = '';
+  img.src = '/api/icon?attr=' + encodeURIComponent(attr);
+  // No icon for this one: drop the image and the letter underneath shows.
+  img.addEventListener('error', () => img.remove());
+  // One that did load covers the tile, so the letter and its colour go — an
+  // icon on its own square looks like a badge on a badge, and the square is
+  // still there under a transparent icon when the row is hovered.
+  img.addEventListener('load', () => {
+    tile.style.background = 'none';
+    letter.hidden = true;
+  });
+  tile.appendChild(img);
+  return tile;
+}
+
 function paintPackages(rows) {
   const box = $('#results');
   box.innerHTML = '';
   if (!rows.length) { box.appendChild(el('div', 'empty', 'No package matches that.')); return; }
   rows.forEach(r => {
-    const b = el('button', 'row');
+    const b = el('button', 'row pkg');
+    b.appendChild(packageIcon(r.attr));
+    const text = el('div', 'rowtext');
     const p = el('div', 'p');
     p.appendChild(ident(r.attr));
     if (r.unfree) p.appendChild(el('span', 'badge unfree', 'unfree'));
     if (r.broken) p.appendChild(el('span', 'badge broken', 'broken'));
-    b.appendChild(p);
-    if (r.description) b.appendChild(el('div', 'd', r.description));
-    b.appendChild(ident(r.version || '', 't'));
+    text.appendChild(p);
+    if (r.description) text.appendChild(el('div', 'd', r.description));
+    text.appendChild(ident(r.version || '', 't'));
+    b.appendChild(text);
     b.addEventListener('click', () => addPackage(r.attr, r.unfree));
     box.appendChild(b);
   });
