@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-10h';
+const BUILD = '2026-08-10i';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -1040,7 +1040,7 @@ const APPS = {
   // on its row and again in the status bar.
   dev:     ['git', 'neovim', 'helix', 'kdePackages.kate', 'vscode', 'vscodium', 'gh',
             'direnv', 'tmux', 'gcc', 'clang', 'rustc', 'cargo', 'claude-code',
-            'opencode', 'bash-language-server'],
+            'opencode', 'lmstudio', 'bash-language-server'],
 };
 
 async function showApps(key) {

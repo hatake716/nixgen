@@ -9,6 +9,15 @@ option counts.
 
 ## English
 
+### build 2026-08-10i
+
+- **`lmstudio` is in the Development category** — a desktop app for running
+  language models locally. 185 packages across 12 categories.
+- It is **unfree**, so its row says so and the status bar repeats it: without
+  `nixpkgs.config.allowUnfree = true;` the build refuses it. No icon theme here
+  carries one for it, so it takes the letter tile — which is the fallback doing
+  its job rather than something missing.
+
 ### build 2026-08-10h
 
 - **`vscode` is in the Development category**, next to `vscodium`. 184 packages
@@ -530,6 +539,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10i
+
+- **開発カテゴリに `lmstudio` を追加しました。** ローカルで言語モデルを動かすデスクトップアプリです。12分野185パッケージになりました。
+- **unfree** なので、行にもステータス欄にもその表示が出ます。`nixpkgs.config.allowUnfree = true;` が無いと**ビルドが拒否されます**。この環境のアイコンテーマには該当するアイコンが無いため、**頭文字のタイル**になります。欠けているのではなく、**代替表示が働いている**状態です。
 
 ### build 2026-08-10h
 
