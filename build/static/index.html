@@ -66,6 +66,14 @@
           <button class="btn" id="btn-reindex" hidden></button>
           <p class="warn" id="s-release-progress" hidden></p>
 
+          <label>What flake.nix points at
+            <select id="s-pin">
+              <option value="commit">the commit it was indexed at</option>
+              <option value="branch">the release branch</option>
+            </select>
+          </label>
+          <p class="note" id="s-pin-note"></p>
+
           <label>Boot loader
             <select id="s-bootloader">
               <option value="systemd-boot">systemd-boot (UEFI)</option>

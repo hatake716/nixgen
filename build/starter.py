@@ -15,6 +15,8 @@ paths that were emitted, so the UI can flag the ones generated.nix also sets.
 
 import re
 
+from releases import is_revision
+
 SYSTEMS = ["x86_64-linux", "aarch64-linux"]
 BOOTLOADERS = ["systemd-boot", "grub", "none"]
 
@@ -136,7 +138,7 @@ def _configuration(host, user, system, state, opts):
 FLAKE = '''{{
   description = "NixOS configuration for {host}";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/{channel}";
+{pin}  inputs.nixpkgs.url = "github:NixOS/nixpkgs/{ref}";
 
   outputs = {{ self, nixpkgs }}: {{
     nixosConfigurations.{host} = nixpkgs.lib.nixosSystem {{
@@ -148,6 +150,66 @@ FLAKE = '''{{
   }};
 }}
 '''
+
+# Naming a commit instead of the branch is what keeps the built system and the
+# option list in step, so the comment says which commit it is and where it came
+# from. Those are two different claims: one is the snapshot the options were
+# read from, the other is only wherever the branch happens to be today.
+PINNED_INDEXED = '''  # nixpkgs, at the exact commit {channel} pointed at when nixgen built the
+  # option list you filled this in from — so the system you build has those
+  # options and not whatever the branch has moved to since.
+  #
+  # `nix flake update` cannot move a named commit. To take a newer snapshot,
+  # generate this file again; to follow the branch instead, put "{channel}"
+  # back in place of the commit.
+'''
+
+PINNED_HEAD = '''  # nixpkgs, at the commit {channel} points at right now. nixgen could not
+  # tell which commit its option list was read from, so the options you filled
+  # this in from may have come from a slightly different snapshot — the build
+  # is reproducible either way, but treat that list as a guide rather than a
+  # promise about this commit.
+  #
+  # `nix flake update` cannot move a named commit. To follow the branch
+  # instead, put "{channel}" back in place of the commit.
+'''
+
+BRANCH = '''  # nixpkgs, following the {channel} branch, as asked for in nixgen. The first
+  # build takes whatever the branch holds at the time and flake.lock records
+  # where it landed; `nix flake update` moves it on from there.
+  #
+  # The catch is that the option list you filled this in from was read at one
+  # moment and the branch keeps moving, so a setting that exists in nixgen may
+  # not exist in what you build. Within a numbered release that is unusual, but
+  # it is why naming a commit is the other choice.
+'''
+
+UNPINNED = '''  # nixpkgs, following the {channel} branch. A commit was asked for, but nixgen
+  # could not find one for this release, so the first build takes whatever the
+  # branch holds at the time and flake.lock records where it landed.
+'''
+
+
+def _pin(channel, revision, from_index, follow_branch):
+    """(comment, ref) for the nixpkgs input.
+
+    Four outcomes, and they are kept apart on purpose: a commit that matches the
+    option list, a commit that only makes the build reproducible, a branch the
+    user chose, and a branch fallen back to because no commit was available.
+    Collapsing the last two would tell someone their choice was honoured when
+    it was, or was not, for reasons they cannot see.
+
+    The revision is re-checked here as well as where it was read: it is written
+    into a generated file verbatim, and the branch name is a safe thing to fall
+    back to when anything looks off.
+    """
+    if follow_branch:
+        return BRANCH.format(channel=channel), channel
+    revision = (revision or "").strip()
+    if not is_revision(revision):
+        return UNPINNED.format(channel=channel), channel
+    body = PINNED_INDEXED if from_index else PINNED_HEAD
+    return body.format(channel=channel), revision
 
 
 def starter_files(host, user, system, channel, **kw):
@@ -167,10 +229,18 @@ def starter_files(host, user, system, channel, **kw):
     state = _safe(kw.get("state_version"), _channel_version(channel), _STATE_VERSION)
 
     configuration, defines = _configuration(host, user, system, state, opts)
+    channel = channel or "nixos-26.05"
+    pin, ref = _pin(channel, kw.get("revision"),
+                    _flag(kw.get("from_index"), False),
+                    kw.get("pin") == "branch")
 
     return {
         "configuration.nix": configuration,
-        "flake.nix": FLAKE.format(host=host, channel=channel or "nixos-26.05",
-                                  system=system),
+        "flake.nix": FLAKE.format(host=host, pin=pin, ref=ref, system=system),
         "defines": defines,
+        # What the flake ended up naming, so the UI can say which it is. A
+        # commit was wanted but not found leaves `revision` empty, which is how
+        # the note ends up admitting the branch rather than claiming a pin.
+        "channel": channel,
+        "revision": ref if ref != channel else None,
     }

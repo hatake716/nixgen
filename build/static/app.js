@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-05i';
+const BUILD = '2026-08-09b';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -167,6 +167,53 @@ async function loadReleases() {
   syncRelease();
 }
 
+/* What flake.nix will name for a release: the exact commit the option index was
+   built from when that is known, the branch when it is not. The commit is an
+   identifier, so it goes through ident() rather than into a template string.
+
+   `state.starter` lags a release change by one debounce, so its channel is
+   checked — labelling nixos-25.11 with the nixos-26.05 commit would be worse
+   than saying nothing. */
+function pinPhrase(channel, willPin) {
+  const frag = document.createDocumentFragment();
+  const rev = channel === state.starter.channel ? state.starter.revision : null;
+  if (rev) {
+    frag.append(willPin ? 'flake.nix will pin commit ' : 'flake.nix pins commit ');
+    frag.append(ident(rev.slice(0, 12)));
+  } else {
+    frag.append(willPin ? 'flake.nix will follow the ' : 'flake.nix follows the ');
+    frag.append(ident(channel));
+    frag.append(' branch');
+  }
+  return frag;
+}
+
+/* A commit is not always there to be had: an index built before nixgen started
+   recording one, or a release whose channel server cannot be reached. The
+   generated file says which of the four cases it is; this says the same thing
+   where the choice was made, because a request for a commit that quietly came
+   back as a branch would otherwise look like it had been honoured. */
+function syncPin() {
+  const note = $('#s-pin-note');
+  note.textContent = '';
+  if ($('#s-pin').value === 'branch') {
+    note.className = 'note';
+    note.append('flake.lock still pins your first build, so it can be repeated. ' +
+                'But the branch moves on, and a setting you picked here may not ' +
+                'be in what you build later.');
+    return;
+  }
+  if (state.starter.revision) {
+    note.className = 'note';
+    note.append('What you were offered and what you build are the same tree. ' +
+                'This is the safer of the two.');
+    return;
+  }
+  note.className = 'warn';
+  note.append('No commit was available, so flake.nix names the branch instead. ' +
+              'Building the index for this release records one.');
+}
+
 /* The flake pins one release; the options you are picking from come from the
    index. Letting those drift apart would offer settings the release does not
    have, so say so and offer to line them up. */
@@ -174,15 +221,21 @@ function syncRelease() {
   const want = $('#s-release').value;
   const note = $('#s-release-note');
   const btn = $('#btn-reindex');
-  if (!want || want === state.indexed) {
-    note.textContent = `flake.nix pins this release, and the options on the left come from it.`;
+  note.textContent = '';
+  // No selector yet — the release list is fetched, so it can fail.
+  if (!want) { btn.hidden = true; return; }
+  if (want === state.indexed) {
+    note.append('The options on the left come from this release. ');
+    note.append(pinPhrase(want, false));
+    note.append('.');
     btn.hidden = true;
     return;
   }
   const ready = state.built.includes(want);
-  note.textContent =
-    `flake.nix will pin ${want}, but the options on the left are still from ` +
-    `${state.indexed}.`;
+  note.append(pinPhrase(want, true));
+  note.append(', but the options on the left are still from ');
+  note.append(ident(state.indexed));
+  note.append('.');
   btn.hidden = false;
   btn.textContent = ready
     ? `Switch the options to ${want}`
@@ -237,7 +290,7 @@ async function afterReindex() {
 
 const SETUP_FIELDS = ['s-host', 's-user', 's-system', 's-bootloader',
   's-grub-device', 's-networkmanager', 's-flakes', 's-make-user',
-  's-groups', 's-state'];
+  's-groups', 's-state', 's-pin'];
 SETUP_FIELDS.forEach(id => {
   const n = $('#' + id);
   n.addEventListener('input', onSetupChange);
@@ -300,9 +353,14 @@ async function loadStarter() {
     flakes: $('#s-flakes').checked ? '1' : '0',
     state_version: $('#s-state').value.trim(),
     channel: $('#s-release').value,
+    pin: $('#s-pin').value,
   });
   state.starter = await fetch('/api/starter?' + q).then(r => r.json());
   state.starterDefines = new Set(state.starter.defines || []);
+  // Both notes name what flake.nix ended up with, which is only known once the
+  // server has answered.
+  syncRelease();
+  syncPin();
   pushRender();
   $('#s-cmd2').textContent = `sudo nixos-rebuild switch --flake /etc/nixos#${host}`;
   if (state.file !== 'generated.nix') paintCode(currentText());

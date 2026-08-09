@@ -16,6 +16,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from nixgen_core import parse_type, is_supported  # noqa: E402
+from releases import is_revision  # noqa: E402
 
 
 # How prominent each top-level namespace is, used only to break ties in search
@@ -144,6 +145,21 @@ def load_packages(con, path):
     return len(rows)
 
 
+def load_revision(data_dir):
+    """The nixpkgs commit fetch-data.sh recorded for this snapshot, if any.
+
+    Stored alongside the counts so the generated flake.nix can pin the exact
+    tree these options were read from. Older databases predate this and simply
+    do not have the row.
+    """
+    try:
+        with open(os.path.join(data_dir, "git-revision"), encoding="utf-8") as fh:
+            rev = fh.read(200)
+    except OSError:
+        return None
+    return rev.strip() if is_revision(rev) else None
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", default="data")
@@ -165,11 +181,19 @@ def main():
     n_pkg = load_packages(con, os.path.join(args.data, "packages.json"))
     print(f"  {n_pkg:,} packages", flush=True)
 
-    con.executemany("INSERT INTO meta VALUES (?,?)", [
+    rows = [
         ("channel", args.channel),
         ("option_count", str(n_opt)),
         ("package_count", str(n_pkg)),
-    ])
+    ]
+    rev = load_revision(args.data)
+    if rev:
+        rows.append(("revision", rev))
+        print(f"  built from {rev}", flush=True)
+    else:
+        print("  no git-revision recorded — flake.nix will name the branch",
+              flush=True)
+    con.executemany("INSERT INTO meta VALUES (?,?)", rows)
     con.commit()
     con.execute("VACUUM")
     con.close()

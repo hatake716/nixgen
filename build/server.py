@@ -195,6 +195,27 @@ def get_meta(path=None):
     return {r["key"]: r["value"] for r in rows}
 
 
+def revision_for(channel):
+    """(commit, came_from_the_index) for the generated flake.nix to pin.
+
+    A database records the revision it was indexed from, and that is the one
+    the options on offer actually came from, so it wins. A release with no
+    database here — picked in the selector but not built yet — falls back to
+    asking the channel server, which pins something reproducible but says
+    nothing about the option list; the generated file spells that difference
+    out, so the two cases are kept apart rather than merged.
+
+    Deliberately does not go through built_channels(): that probes the channel
+    server for the release list, and this runs on every keystroke in Setup.
+    """
+    path = _KNOWN_DBS.get(channel) or releases.db_for(data_dir(), channel)
+    if os.path.exists(path):
+        rev = get_meta(path).get("revision")
+        if rev:
+            return rev, True
+    return releases.revision(channel), False
+
+
 # --------------------------------------------------------------------- import
 
 def match_option(segments):
@@ -512,10 +533,16 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/api/reindex/status":
             return self._json(releases.status)
         if u.path == "/api/starter":
+            channel = (one("channel") if releases.is_release(one("channel"))
+                       else get_meta().get("channel", "nixos-26.05"))
+            # Asking for the branch means no commit is needed, so do not go
+            # looking for one — that lookup can reach the network.
+            pin = one("pin", "commit")
+            rev, from_index = ((None, False) if pin == "branch"
+                               else revision_for(channel))
             return self._json(starter_files(
-                one("host"), one("user"), one("system"),
-                one("channel") if releases.is_release(one("channel"))
-                else get_meta().get("channel", "nixos-26.05"),
+                one("host"), one("user"), one("system"), channel,
+                revision=rev, from_index=from_index, pin=pin,
                 bootloader=one("bootloader"),
                 grub_device=one("grub_device"),
                 networkmanager=one("networkmanager"),

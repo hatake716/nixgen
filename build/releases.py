@@ -21,10 +21,15 @@ import urllib.request
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 CHANNEL_RE = re.compile(r"^nixos-(\d\d)\.(05|11)$")
+REVISION_RE = re.compile(r"[0-9a-f]{40}")
 KEEP = 3          # the current release and the two before it
 PROBE_TIMEOUT = 12
+# Shorter than PROBE_TIMEOUT: a starter file is regenerated on every keystroke,
+# so the first miss must not hang the form for twelve seconds.
+REVISION_TIMEOUT = 6
 
 _cache = {"channels": None, "at": None}
+_revisions = {}   # channel -> commit, or None for "asked and got nothing"
 _lock = threading.Lock()
 
 # Progress of a build in flight, read by /api/reindex/status.
@@ -74,6 +79,47 @@ def releases(refresh=False):
 
 def is_release(channel):
     return bool(CHANNEL_RE.match(channel or ""))
+
+
+# ------------------------------------------------------------------ revisions
+
+def is_revision(text):
+    """A 40-character hex commit and nothing else.
+
+    Checked wherever a revision arrives from outside, because it is written
+    straight into the generated flake.nix.
+    """
+    return bool(REVISION_RE.fullmatch((text or "").strip()))
+
+
+def revision(channel):
+    """The commit `channel` points at right now, asked of the channel server.
+
+    This is the fallback. A database records the revision it was built from,
+    and that is the one matching the options the form offers, so callers should
+    prefer it and come here only for a release that has no database yet.
+    """
+    if not is_release(channel):
+        return None
+    with _lock:
+        if channel in _revisions:
+            return _revisions[channel]
+
+    rev = None
+    try:
+        url = f"https://channels.nixos.org/{channel}/git-revision"
+        with urllib.request.urlopen(url, timeout=REVISION_TIMEOUT) as r:
+            text = r.read(200).decode("ascii", "replace")
+        if is_revision(text):
+            rev = text.strip()
+    except Exception:                                # noqa: BLE001
+        pass
+
+    with _lock:
+        # Failures are remembered too. Without that, a machine that is offline
+        # would try again on every keystroke in the Setup tab.
+        _revisions[channel] = rev
+    return rev
 
 
 # -------------------------------------------------------------------- indexes

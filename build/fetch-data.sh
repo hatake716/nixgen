@@ -52,6 +52,18 @@ fetch options
 fetch packages
 echo "$CHANNEL" > "${DEST}/CHANNEL"
 
+# The nixpkgs commit this snapshot was built from. The generated flake.nix
+# pins it, so what gets built is the release the options came from rather than
+# whatever the branch has moved to since. Served as a redirect, hence -L.
+# Not fatal if it is missing: the flake falls back to naming the branch.
+echo "  git-revision"
+if curl -fsSL --max-time 60 "${BASE}/git-revision" -o "${DEST}/git-revision.part"; then
+  mv "${DEST}/git-revision.part" "${DEST}/git-revision"
+else
+  rm -f "${DEST}/git-revision.part" "${DEST}/git-revision"
+  echo "  warning: no git-revision for ${CHANNEL}; flake.nix will name the branch" >&2
+fi
+
 if [ -z "${NIXGEN_DATA:-}" ]; then
   echo
   echo "done. now run:"
