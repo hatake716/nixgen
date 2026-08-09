@@ -11,6 +11,9 @@ option counts.
 
 ### Documentation
 
+- **Documented why `nix run github:…` can start an old build.** Nix caches a
+  `github:` reference for an hour, and `nix profile install` pins one outright.
+  Neither is a bug; both look exactly like a fix that did not work.
 - **Corrected what is said about unstable.** It had been described as
   impossible, which is wrong: `nixos-unstable` publishes the same option data.
   The real obstacle is that the channel serves its newest snapshot while
@@ -74,6 +77,7 @@ option counts.
 
 ### ドキュメント
 
+- **`nix run github:…` が古いビルドで起動する理由を明記しました。** Nixは `github:` の参照を1時間キャッシュし、`nix profile install` で入れたものは固定されます。どちらも不具合ではありませんが、**修正が効いていない状態と見分けが付きません。**
 - **unstableについての記述を訂正しました。** 「仕組み上むずかしい」と書いていましたが誤りで、`nixos-unstable` も同じオプションデータを公開しています。本当の障害は、チャンネルが常に最新のスナップショットを返すのに対し `flake.lock` は特定のコミットを固定すること、そしてunstableが毎日変わることです。チャンネルの混在は別の話で、こちらは引き続き対象外です。
 
 ### build 2026-08-05h

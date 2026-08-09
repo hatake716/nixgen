@@ -111,6 +111,16 @@ top result — if a line appears on the right, everything is working.
 Press **Ctrl-C** in the terminal to stop. Later runs start in about a second,
 because the database is already built.
 
+**Not seeing a change you expected?** Nix remembers where `github:` points for
+an hour, so a run started soon after an update can still be the previous
+version. Force a re-check:
+
+```bash
+nix run --refresh github:hatake716/nixgen
+```
+
+The build id in the header tells you which one you are on.
+
 ### Step 3 — Keep it around (optional)
 
 So you can start it by typing `nixgen`:
@@ -118,6 +128,13 @@ So you can start it by typing `nixgen`:
 ```bash
 nix profile install github:hatake716/nixgen
 nixgen
+```
+
+**A copy installed this way is pinned** — it stays as it is until you say
+otherwise:
+
+```bash
+nix profile upgrade nixgen
 ```
 
 Remove it later with `nix profile remove nixgen`.

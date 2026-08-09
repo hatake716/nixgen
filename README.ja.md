@@ -93,6 +93,14 @@ nix run github:hatake716/nixgen
 
 終わるときはターミナルで **Ctrl-C** を押します。2回目以降はデータベースが出来ているので、1秒ほどで立ち上がります。
 
+**更新したはずなのに変わらないときは。** Nixは `github:` の指す先を**1時間ほど記憶します。** 更新直後に起動すると、前のバージョンが動くことがあります。取得し直すにはこうします。
+
+```bash
+nix run --refresh github:hatake716/nixgen
+```
+
+いまどちらが動いているかは、画面上部のビルド番号で分かります。
+
 ### ステップ3 — 毎回使うなら(任意)
 
 `nixgen` と打つだけで起動できるようにしておけます。
@@ -100,6 +108,12 @@ nix run github:hatake716/nixgen
 ```bash
 nix profile install github:hatake716/nixgen
 nixgen
+```
+
+**この方法で入れたものは固定されます。** 明示的に指示するまで更新されません。
+
+```bash
+nix profile upgrade nixgen
 ```
 
 要らなくなったら `nix profile remove nixgen` で消せます。
@@ -394,6 +408,8 @@ flake.lock          nixpkgsのバージョンを固定します
 [CHANGELOG.md](CHANGELOG.md#日本語) を参照してください。前半が英語、後半が日本語です。
 
 動かしているバージョンは、アプリ画面上部のオプション数の右側に出ています。**直したはずの挙動が変わらないときは、まずこの番号を見てください。** 古いファイルが配信されている状態と、修正が効いていない状態は、見た目では区別が付きません。
+
+古いものが出る原因は3つあります。ブラウザのキャッシュ(**Ctrl+Shift+R**)、Nixが `github:` の指す先を1時間記憶していること(`nix run --refresh …`)、`nix profile` で入れたものが固定されていること(`nix profile upgrade nixgen`)。
 
 ---
 
