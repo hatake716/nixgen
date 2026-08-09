@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-05f';
+const BUILD = '2026-08-05g';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -85,6 +85,9 @@ const state = {
   file: 'generated.nix', // which file the output pane is showing
   starter: {},           // configuration.nix / flake.nix, from /api/starter
   starterDefines: new Set(), // option paths the starter configuration.nix sets
+  releases: [],          // stable releases that publish option data
+  indexed: null,         // the release the search index was built from
+  built: [],             // releases already indexed on this machine
   unfree: new Set(),     // attrs that need nixpkgs.config.allowUnfree
   lastTouched: null,
 };
@@ -100,6 +103,7 @@ const state = {
     `${(+meta.package_count).toLocaleString()} packages · build ${BUILD}`;
   runSearch();
   renderEditor();
+  await loadReleases();
   loadStarter();
   guardIdentifiers(document.body);
 })();
@@ -137,6 +141,94 @@ function onSetupChange() {
   clearTimeout(starterTimer);
   starterTimer = setTimeout(loadStarter, 200);
 }
+/* ---------------------------------------------------------------- releases */
+
+async function loadReleases() {
+  const r = await fetch('/api/releases').then(x => x.json());
+  state.releases = r.channels || [];
+  state.indexed = r.indexed;
+  state.built = r.built || [];
+
+  const sel = $('#s-release');
+  sel.innerHTML = '';
+  state.releases.forEach(ch => {
+    const o = el('option', null, ch + (ch === state.releases[0] ? ' (current)' : ''));
+    o.value = ch;
+    sel.appendChild(o);
+  });
+  sel.value = state.indexed && state.releases.includes(state.indexed)
+    ? state.indexed : state.releases[0];
+  syncRelease();
+}
+
+/* The flake pins one release; the options you are picking from come from the
+   index. Letting those drift apart would offer settings the release does not
+   have, so say so and offer to line them up. */
+function syncRelease() {
+  const want = $('#s-release').value;
+  const note = $('#s-release-note');
+  const btn = $('#btn-reindex');
+  if (!want || want === state.indexed) {
+    note.textContent = `flake.nix pins this release, and the options on the left come from it.`;
+    btn.hidden = true;
+    return;
+  }
+  const ready = state.built.includes(want);
+  note.textContent =
+    `flake.nix will pin ${want}, but the options on the left are still from ` +
+    `${state.indexed}.`;
+  btn.hidden = false;
+  btn.textContent = ready
+    ? `Switch the options to ${want}`
+    : `Build the ${want} index (a few minutes)`;
+}
+
+$('#s-release').addEventListener('change', () => { syncRelease(); onSetupChange(); });
+
+$('#btn-reindex').addEventListener('click', async () => {
+  const channel = $('#s-release').value;
+  const btn = $('#btn-reindex');
+  btn.disabled = true;
+  const r = await fetch('/api/reindex', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ channel }),
+  }).then(x => x.json());
+  if (r.error) { showProgress('failed', r.error); btn.disabled = false; return; }
+  if (r.switched) { await afterReindex(); btn.disabled = false; return; }
+  pollReindex();
+});
+
+function showProgress(stateName, message) {
+  const p = $('#s-release-progress');
+  p.hidden = !message;
+  p.textContent = message;
+  p.style.color = stateName === 'failed' ? '#9a3b3b' : 'var(--ink-soft)';
+}
+
+async function pollReindex() {
+  const s = await fetch('/api/reindex/status').then(x => x.json());
+  showProgress(s.state, s.message);
+  if (s.state === 'fetching' || s.state === 'indexing' || s.state === 'starting') {
+    setTimeout(pollReindex, 1500);
+    return;
+  }
+  $('#btn-reindex').disabled = false;
+  if (s.state === 'done') await afterReindex();
+}
+
+async function afterReindex() {
+  const meta = await fetch('/api/meta').then(r => r.json());
+  state.channel = meta.channel || state.channel;
+  $('#channel').textContent = state.channel;
+  $('#counts').textContent =
+    `${(+meta.option_count).toLocaleString()} options · ` +
+    `${(+meta.package_count).toLocaleString()} packages · build ${BUILD}`;
+  await loadReleases();
+  showProgress('done', `Options now come from ${state.channel}.`);
+  runSearch();
+  loadStarter();
+}
+
 const SETUP_FIELDS = ['s-host', 's-user', 's-system', 's-bootloader',
   's-grub-device', 's-networkmanager', 's-flakes', 's-make-user',
   's-groups', 's-state'];
@@ -201,6 +293,7 @@ async function loadStarter() {
     groups: $('#s-groups').value,
     flakes: $('#s-flakes').checked ? '1' : '0',
     state_version: $('#s-state').value.trim(),
+    channel: $('#s-release').value,
   });
   state.starter = await fetch('/api/starter?' + q).then(r => r.json());
   state.starterDefines = new Set(state.starter.defines || []);

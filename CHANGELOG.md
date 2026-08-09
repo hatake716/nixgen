@@ -9,6 +9,18 @@ option counts.
 
 ## English
 
+### build 2026-08-05g
+
+- **Pick the nixpkgs release in the Setup tab.** The current numbered release
+  and the two before it; `flake.nix` is pinned to whichever you choose. The
+  list is discovered by asking the channel server, so it does not go stale.
+- **The option index follows the release you picked.** If the two drift apart
+  the tab says so and offers to build the index for that release — a few
+  minutes the first time, instant afterwards, since each release keeps its own
+  database. The choice survives a restart.
+- `fetch-data.sh` now falls back to Python's brotli module when the `brotli`
+  command is not around, so a rebuild works outside `nix develop` too.
+
 ### build 2026-08-05f
 
 - **Package lists are alphabetical**, on import and as you add to them. Nix does
@@ -45,6 +57,12 @@ option counts.
 ---
 
 ## 日本語
+
+### build 2026-08-05g
+
+- **Setupタブでnixpkgsのリリースを選べるようにしました。** 最新の安定版とその前2つ、計3つです。`flake.nix` は選んだリリースを指します。一覧はチャンネルサーバーに問い合わせて作るので、古くなりません。
+- **選んだリリースにオプション一覧も追従します。** ずれている場合はその旨を表示し、そのリリースのインデックス構築を提案します。初回のみ数分、以降は瞬時です。リリースごとに別のデータベースを持つためで、選択は再起動後も保持されます。
+- `brotli` コマンドが無い環境では、`fetch-data.sh` がPythonのbrotliモジュールにフォールバックするようにしました。`nix develop` の外でも再構築できます。
 
 ### build 2026-08-05f
 

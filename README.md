@@ -244,6 +244,7 @@ Everything in them is editable from the screen:
 |---|---|
 | Host name | The name of the machine |
 | Main user | Your everyday account. Untick to leave user setup out entirely |
+| nixpkgs release | The current numbered release or one of the two before it. `flake.nix` is pinned to this |
 | Architecture | `x86_64-linux` for an ordinary PC |
 | Boot loader | systemd-boot for a UEFI machine, GRUB for an older BIOS one (it will ask which disk) |
 | NetworkManager | Manages network connections. Unticking removes the line |
@@ -305,7 +306,12 @@ nixgen --no-browser          # do not open a browser
 | `NIXGEN_DATA` | `~/.local/share/nixgen` | where the database lives |
 | `NIXGEN_CHANNEL` | `nixos-26.05` | which release's settings to work with |
 
-To switch releases, delete the database and name the one you want:
+The easier way to change release is the **nixpkgs release** field in the Setup
+tab. Picking one that has not been indexed yet offers to build it — a few
+minutes the first time, instant on later switches, because each release keeps
+its own database. Your choice is remembered across restarts.
+
+`NIXGEN_CHANNEL` still decides which release is built on a first run:
 
 ```bash
 rm -rf ~/.local/share/nixgen
@@ -436,6 +442,7 @@ build/
   nixgen_core.py    reads the type sentences, writes the Nix (no dependencies)
   nix_import.py     reads an existing configuration.nix
   starter.py        the Setup tab's configuration.nix and flake.nix
+  releases.py       which releases exist, and building an index for one
   build_index.py    published data -> SQLite + full-text search
   server.py         HTTP server, standard library only
   fetch-data.sh     downloads the published data

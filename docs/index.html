@@ -320,6 +320,16 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
       nixgen側で設定した値が衝突せずに優先されます。それでも両方が同じオプションを定義した場合は、行が赤くなりカードにも表示が出ます。
       同じ優先度の <code>mkDefault</code> が2つあると、NixOSはどちらを採るか決められないためです。</p>
 
+    <p class="en">The <b>nixpkgs release</b> is a choice too — the current numbered release or
+      one of the two before it, discovered by asking the channel server rather than from a list
+      that goes stale. <code>flake.nix</code> is pinned to whichever you pick, and the options on
+      the left follow: if the two drift apart the tab offers to build the index for that release.
+      A few minutes the first time, instant afterwards.</p>
+    <p class="ja"><b>nixpkgsのリリース</b>も選べます。最新の安定版とその前2つで、固定の一覧ではなく
+      チャンネルサーバーに問い合わせて作るため古くなりません。<code>flake.nix</code> は選んだリリースを指し、
+      左側のオプション一覧も追従します。ずれている場合は、そのリリースのインデックス構築を提案します。
+      初回のみ数分、以降は瞬時です。</p>
+
     <p class="en">The boot loader is a choice, not a fixed block: systemd-boot for UEFI, GRUB
       for BIOS (which then asks for the disk), or none if another module already sets one. Both
       variants are checked by evaluating them as an actual NixOS system.</p>

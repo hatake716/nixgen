@@ -58,6 +58,13 @@
             </select>
           </label>
 
+          <label>nixpkgs release
+            <select id="s-release"></select>
+          </label>
+          <p class="note" id="s-release-note"></p>
+          <button class="btn" id="btn-reindex" hidden></button>
+          <p class="warn" id="s-release-progress" hidden></p>
+
           <label>Boot loader
             <select id="s-bootloader">
               <option value="systemd-boot">systemd-boot (UEFI)</option>

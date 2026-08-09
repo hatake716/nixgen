@@ -20,9 +20,22 @@ if [[ "$CHANNEL" == *unstable* ]]; then
   exit 1
 fi
 
-for tool in curl brotli; do
-  command -v "$tool" >/dev/null || { echo "missing: $tool" >&2; exit 1; }
-done
+command -v curl >/dev/null || { echo "missing: curl" >&2; exit 1; }
+
+# The channel data is brotli-compressed. `nix develop` and the flake wrapper
+# both provide the CLI; outside them, Python's brotli module will do.
+if command -v brotli >/dev/null; then
+  decompress() { brotli -df "$1" -o "$2"; }
+elif python3 -c "import brotli" 2>/dev/null; then
+  decompress() {
+    python3 -c "import brotli,sys
+open(sys.argv[2],'wb').write(brotli.decompress(open(sys.argv[1],'rb').read()))" "$1" "$2"
+  }
+else
+  echo "need either the brotli command or Python's brotli module" >&2
+  echo "  nix-shell -p brotli   (or: nix develop)" >&2
+  exit 1
+fi
 
 mkdir -p "$DEST"
 
@@ -30,7 +43,7 @@ fetch() {
   local name="$1"
   echo "  ${name}.json.br"
   curl -fL --progress-bar "${BASE}/${name}.json.br" -o "${DEST}/${name}.json.br"
-  brotli -df "${DEST}/${name}.json.br" -o "${DEST}/${name}.json"
+  decompress "${DEST}/${name}.json.br" "${DEST}/${name}.json"
   rm -f "${DEST}/${name}.json.br"
 }
 

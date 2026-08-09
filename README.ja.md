@@ -206,6 +206,7 @@ NixOSを入れたばかりで、まだ `flake.nix` が無い場合に使いま�
 |---|---|
 | Host name | マシンの名前です |
 | Main user | 普段使うアカウント名。チェックを外せば、ユーザーの設定ごと省けます |
+| nixpkgs release | 最新の安定版か、その前2つ。`flake.nix` がこれを指します |
 | Architecture | 普通のパソコンなら `x86_64-linux` です |
 | Boot loader | UEFIの機械なら systemd-boot、古いBIOSの機械ならGRUB(ディスク名を聞かれます) |
 | NetworkManager | ネットワーク接続の管理ソフト。外すと該当の行が消えます |
@@ -256,7 +257,9 @@ nixgen --no-browser          # ブラウザを自動で開かない
 | `NIXGEN_DATA` | `~/.local/share/nixgen` | データベースの置き場所 |
 | `NIXGEN_CHANNEL` | `nixos-26.05` | どのバージョンの項目を扱うか |
 
-別のバージョンに切り替えるときは、データベースを消してから指定します。
+リリースを切り替える簡単な方法は、Setupタブの **nixpkgs release** です。まだ作られていないリリースを選ぶと、インデックスの構築を提案します。初回のみ数分、以降の切り替えは瞬時です。リリースごとに別のデータベースを持つためで、**選択は再起動後も保持されます。**
+
+`NIXGEN_CHANNEL` は、初回にどのリリースを作るかの指定として引き続き使えます。
 
 ```bash
 rm -rf ~/.local/share/nixgen
@@ -361,6 +364,7 @@ build/
   nixgen_core.py    型の文章を解釈して、Nixのコードを組み立てる部分(外部ライブラリなし)
   nix_import.py     既存の configuration.nix を読む部分
   starter.py        Setupタブの configuration.nix / flake.nix
+  releases.py       存在するリリースの探索と、インデックスの構築
   build_index.py    公開データ -> SQLite + 全文検索
   server.py         標準ライブラリだけのHTTPサーバ
   fetch-data.sh     公開データのダウンロード

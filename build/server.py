@@ -21,9 +21,54 @@ from nixgen_core import parse_type, render_module, sort_key  # noqa: E402
 from nix_import import (read_config, strip_self_import, sort_list_expr,  # noqa: E402
                         NixSyntaxError)
 from starter import starter_files  # noqa: E402
+import releases  # noqa: E402
 
 DB_PATH = None
 STATIC = os.path.join(HERE, "static")
+
+
+# Databases we know about, by release. The one named on the command line does
+# not follow the nixgen-<channel>.sqlite convention, so it is recorded here at
+# startup rather than found by scanning.
+_KNOWN_DBS = {}
+
+
+def data_dir():
+    return os.path.dirname(os.path.abspath(DB_PATH))
+
+
+def remember_db(path=None):
+    path = path or DB_PATH
+    channel = get_meta(path).get("channel")
+    if channel:
+        _KNOWN_DBS[channel] = path
+    return channel
+
+
+def switch_db(path):
+    """Point every later query at another release's database."""
+    global DB_PATH
+    DB_PATH = path
+    channel = remember_db(path)
+    # Survive a restart: without this, the next launch quietly goes back to
+    # whatever --db pointed at.
+    if channel:
+        try:
+            with open(os.path.join(data_dir(), "CURRENT"), "w") as fh:
+                fh.write(channel)
+        except OSError:
+            pass
+
+
+def built_channels():
+    """Releases that already have a database here, so switching is instant."""
+    out = dict(_KNOWN_DBS)
+    here = data_dir()
+    for channel in releases.releases():
+        path = releases.db_for(here, channel)
+        if os.path.exists(path):
+            out[channel] = path
+    return out
 
 
 # --------------------------------------------------------------------- search
@@ -39,8 +84,8 @@ def fts_query(raw):
     return " AND ".join('"%s"*' % t.replace('"', '') for t in tokens)
 
 
-def db():
-    con = sqlite3.connect(DB_PATH)
+def db(path=None):
+    con = sqlite3.connect(path or DB_PATH)
     con.row_factory = sqlite3.Row
     return con
 
@@ -143,8 +188,8 @@ def get_option(path):
     return out
 
 
-def get_meta():
-    con = db()
+def get_meta(path=None):
+    con = db(path)
     rows = con.execute("SELECT key, value FROM meta").fetchall()
     con.close()
     return {r["key"]: r["value"] for r in rows}
@@ -457,10 +502,20 @@ class Handler(BaseHTTPRequestHandler):
             if kind == "packages":
                 return self._json({"results": search_packages(q, limit)})
             return self._json({"results": search_options(q, limit, one("supported") == "1")})
+        if u.path == "/api/releases":
+            built = built_channels()
+            return self._json({
+                "channels": releases.releases(one("refresh") == "1"),
+                "indexed": get_meta().get("channel"),
+                "built": sorted(built, reverse=True),
+            })
+        if u.path == "/api/reindex/status":
+            return self._json(releases.status)
         if u.path == "/api/starter":
             return self._json(starter_files(
                 one("host"), one("user"), one("system"),
-                get_meta().get("channel", "nixos-26.05"),
+                one("channel") if releases.is_release(one("channel"))
+                else get_meta().get("channel", "nixos-26.05"),
                 bootloader=one("bootloader"),
                 grub_device=one("grub_device"),
                 networkmanager=one("networkmanager"),
@@ -485,6 +540,21 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(import_config(payload.get("text", "")))
             except NixSyntaxError as exc:
                 return self._json({"error": str(exc)}, 200)
+        if u.path == "/api/reindex":
+            channel = payload.get("channel", "")
+            if not releases.is_release(channel):
+                return self._json({"error": "not a release channel"}, 200)
+            ready = built_channels().get(channel)
+            if ready:
+                switch_db(ready)
+                releases.status.update(state="done", channel=channel,
+                                       message=f"Switched to {channel}.")
+                return self._json({"switched": True, "channel": channel})
+            if releases.status["state"] in ("starting", "fetching", "indexing"):
+                return self._json({"busy": True, "status": releases.status})
+            releases.build(data_dir(), channel,
+                           on_done=lambda ch, path: switch_db(path))
+            return self._json({"started": True, "channel": channel})
         if u.path == "/api/validate":
             return self._json(validate(payload.get("text", "")))
         return self._send(404, b"not found", "text/plain")
@@ -510,6 +580,17 @@ def main():
     DB_PATH = args.db
     if not os.path.exists(DB_PATH):
         sys.exit(f"index not found at {DB_PATH}\nrun ./fetch-data.sh then python3 build/build_index.py")
+    remember_db()
+
+    # Pick up the release chosen on a previous run.
+    marker = os.path.join(data_dir(), "CURRENT")
+    if os.path.exists(marker):
+        with open(marker) as fh:
+            wanted = fh.read().strip()
+        path = releases.db_for(data_dir(), wanted)
+        if wanted != get_meta().get("channel") and os.path.exists(path):
+            DB_PATH = path
+            remember_db()
 
     url = f"http://{args.host}:{args.port}/"
     meta = get_meta()
