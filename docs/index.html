@@ -280,11 +280,12 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
       when the list was published, and offers to rebuild once that has stopped being true — the
       next day on unstable, after some weeks on a release.</p>
     <p class="ja"><b>nixpkgsのチャンネル</b>も選べます。最新の安定版とその前2つ、それに
-      <code>nixos-unstable</code>。固定の一覧ではなくチャンネルサーバーに問い合わせて作るため古くなりません。
-      <b>選んだものから全部が来ます。</b>オプションもパッケージも <code>flake.nix</code> も
-      <code>system.stateVersion</code> もです。<code>flake.nix</code> が「どこ」を指すかも選べます。
-      既定はブランチで、更新が届きます。もう一方は、オプション一覧を取り込んだ時点の正確なコミットです。
-      オプション一覧の公開日時を表示し、古くなったら再構築を提案します。unstableなら翌日、リリースなら数週間後です。</p>
+      <code>nixos-unstable</code>。固定の一覧ではなくチャンネルサーバーに問い合わせて作るため、古くなりません。
+      <b>選んだチャンネルから、すべてが来ます。</b>オプションもパッケージも <code>flake.nix</code> も
+      <code>system.stateVersion</code> もです。その <code>flake.nix</code> が何を指すかも選べます。
+      既定はブランチで、更新が順に届きます。もう一方はコミットで、画面に出ていたオプションと
+      実際にビルドされるものが必ず一致します。オプション一覧の公開日時も表示し、古くなれば再構築を提案します。
+      unstableなら翌日、番号付きリリースなら数週間後です。</p>
 
     <p class="en">The boot loader is a choice, not a fixed block: systemd-boot for UEFI, GRUB
       for BIOS (which then asks for the disk), or none if another module already sets one. Both
@@ -423,10 +424,10 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
     <ul class="ja">
       <li><b>チャンネルの混在。</b> <code>nixos-unstable</code> を選ぶと、<b>すべてunstableになります。</b>
         オプションもパッケージも <code>flake.nix</code> も <code>system.stateVersion</code> もです。
-        「パッケージだけ別のチャンネルから」はできませんし、対応する予定もありません。
-        パッケージはoverlayで持ってこられますが、オプションはできません。unstableの
-        <code>services.foo.*</code> はunstableのモジュールセットを前提にするためです。
-        カタログの半分しか選べない道具は、対応しないより悪いと考えています。</li>
+        「オプションは安定版から、パッケージだけunstableから」という使い方はできません。今後対応する予定もありません。
+        パッケージだけならoverlayで持ってこられますが、オプションはそうはいきません。unstableの
+        <code>services.foo.*</code> は、unstable側のモジュールがあって初めて成り立つからです。
+        カタログの半分しか選べない道具になるくらいなら、対応しないほうがましだと考えています。</li>
       <li><b>既存ファイルへの書き戻し。</b> 読み込みは対応していますが、構造とコメントを保ったまま値を書き戻すのは桁違いに難しく、
         失敗したときの代償が「動いているシステムの破壊」です。</li>
       <li><b>型チェック。</b> 内蔵のチェックは <code>nix-instantiate --parse</code> で、壊れたNixは捕まえます。

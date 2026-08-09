@@ -144,6 +144,13 @@ Remove it later with `nix profile remove nixgen`.
 Press **Download generated.nix** at the top right and save the file next to the
 `configuration.nix` you already have — usually in `/etc/nixos/`.
 
+```
+/etc/nixos/
+├── configuration.nix           the one you already have; one line gets added
+├── hardware-configuration.nix  written when you installed; left alone
+└── generated.nix               <- save it here
+```
+
 Then open `configuration.nix` and add one line to the `imports` list:
 
 ```nix
@@ -207,14 +214,29 @@ rm -rf ~/.local/share/nixgen
 ```
 
 **It is using more disk than you expected**
-Each channel keeps its own index, about 37 MB. Rebuilding one replaces its
-file rather than adding another, so this grows by one file per channel you have
-ever picked. When a channel drops off the list, the Setup tab says how much its
-leftover index is taking and offers to remove it.
+Each channel keeps its own index, about 37 MB. Rebuilding one replaces its file
+rather than adding another, so this grows by one file per channel you have ever
+picked and by nothing else.
+
+```
+~/.local/share/nixgen/
+├── nixgen.sqlite                  the one built on the first run
+├── nixgen-nixos-unstable.sqlite   one more each time you switch channel
+├── nixgen-nixos-25.11.sqlite      about 37 MB apiece
+└── CURRENT                        which channel you picked last
+```
+
+When a channel drops off the list its index can no longer be reached. The Setup
+tab says how much it is taking and offers to remove it.
 
 ---
 
 ## Using it
+
+Opening it puts **five steps** in the middle of the screen: the starter files,
+reading in a configuration you already have, adding a setting, adding software,
+and what to do with the file afterwards. Add anything and that panel becomes
+the thing you added. What follows is the longer version.
 
 ### Finding things
 
@@ -265,6 +287,23 @@ For when you have just installed NixOS and do not have a `flake.nix` yet.
 The **Setup** tab produces the two files you need: a `configuration.nix` that
 reads in your generated settings, and a `flake.nix` that assembles the system.
 Switch between them with the tabs at the top right and download each one.
+
+With all four in place it looks like this:
+
+```
+/etc/nixos/
+├── flake.nix                   from Setup; the way in to the whole system
+├── configuration.nix           from Setup; the hand-written half
+├── hardware-configuration.nix  written when you installed; left alone
+└── generated.nix               what you built under Options and Packages
+```
+
+`flake.nix` reads `configuration.nix`, which reads the other two. The command
+that applies it is on the screen as well:
+
+```bash
+sudo nixos-rebuild switch --flake /etc/nixos#your-host-name
+```
 
 Everything in them is editable from the screen:
 
