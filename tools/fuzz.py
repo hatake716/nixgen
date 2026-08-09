@@ -8,6 +8,12 @@ bugs came out of it that no amount of reading the code had found:
   * `[ -1 ]` does not parse; negative numbers inside a list need parentheses
   * `if`, `rec`, `or`, `let` are reserved and must be quoted as attribute names
 
+A fourth got past it, and the reason is worth keeping: package values were only
+ever sampled from `["ripgrep", "firefox"]`, so a missing `pkgs.` prefix on the
+83% of the catalogue whose names contain a dot never showed up here. It was
+found by clicking one in a browser. Widen the sample when the shape of a value
+is wider than the examples.
+
 Usage:
     python3 tools/fuzz.py                    # a few seeds, default index
     python3 tools/fuzz.py --seeds 1 2 3 --n 8000
@@ -29,11 +35,19 @@ import tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(HERE), "build"))
 
-from nixgen_core import render_module, split_path  # noqa: E402
+from nixgen_core import render_module, render_value, split_path  # noqa: E402
 
 # Values chosen to break naive quoting and escaping.
 VALUES = ['hello', 'Asia/Tokyo', 'a"b\\c', '${notInterp}', 'multi\nline',
           "it's", "''weird''", '', '#comment', '*/', '日本語']
+
+# Package attributes in the shapes the catalogue actually holds: 83% of them
+# contain a dot, some carry a segment that had to be quoted, and one of those
+# quotes contains a dot of its own. Sampling only short names is what let the
+# missing `pkgs.` prefix through — that bug was found in a browser, not here.
+PACKAGES = ['ripgrep', 'firefox', 'python313Packages.requests',
+            'CuboCore.coreaction', 'linuxKernel.packages.linux_6_6.nvidia_x11',
+            'rubyPackages."http_parser.rb"', 'aspellDicts."or"']
 
 # Substituted for <name> placeholders. The last four are Nix keywords and a
 # leading digit, all of which need quoting as attribute names.
@@ -58,7 +72,7 @@ def value_for(node, depth=0):
     if kind == "path":
         return random.choice(["/etc/foo", "./rel", "relative"])
     if kind == "package":
-        return random.choice(["ripgrep", "firefox"])
+        return random.choice(PACKAGES)
     if kind == "nullable":
         return None if random.random() < .3 else value_for(node["inner"], depth + 1)
     if kind == "list":
@@ -140,6 +154,32 @@ REGRESSIONS = [
      [{"segments": ["time", "timeZone"],
        "type": {"kind": "nullable", "inner": {"kind": "str"}},
        "value": {"__null": True, "v": None}}]),
+    ("package attributes with dots and quoted segments",
+     [{"segments": ["environment", "systemPackages"],
+       "type": {"kind": "list", "inner": {"kind": "package"}},
+       "value": ["CuboCore.coreaction", 'rubyPackages."http_parser.rb"',
+                 'aspellDicts."or"', "firefox", "pkgs.git"]}]),
+]
+
+# What `pkgs.` should and should not be put in front of. Asserted against the
+# rendered text rather than left to the parser: a bare `CuboCore.coreaction`
+# is syntactically valid Nix, so a parse check can pass while the file fails
+# at nixos-rebuild with `undefined variable`.
+PACKAGE_CASES = [
+    ("firefox", "pkgs.firefox"),
+    ("python313Packages.requests", "pkgs.python313Packages.requests"),
+    ("CuboCore.coreaction", "pkgs.CuboCore.coreaction"),
+    ('rubyPackages."http_parser.rb"', 'pkgs.rubyPackages."http_parser.rb"'),
+    ('aspellDicts."or"', 'pkgs.aspellDicts."or"'),
+    # Already qualified, or rooted at something else the module has in scope.
+    ("pkgs.firefox", "pkgs.firefox"),
+    ("config.boot.kernelPackages.nvidia_x11", "config.boot.kernelPackages.nvidia_x11"),
+    ("inputs.self.packages.x86_64-linux.default",
+     "inputs.self.packages.x86_64-linux.default"),
+    # Not an attribute path at all — an expression, left exactly as written.
+    ('(vscode.override { commandLineArgs = "--ozone-platform=wayland"; })',
+     '(vscode.override { commandLineArgs = "--ozone-platform=wayland"; })'),
+    ("callPackage ./mine.nix { }", "callPackage ./mine.nix { }"),
 ]
 
 
@@ -171,7 +211,18 @@ def regressions():
              if ln.strip().startswith("pkgs.")]
     ok = names == sorted(names)
     print(f"  {'OK  ' if ok else 'FAIL'} package lists are sorted")
-    return failed + (0 if ok else 1)
+    failed += 0 if ok else 1
+
+    # A catalogue attribute gets `pkgs.`; anything already in scope, and
+    # anything that is not an attribute path, is left alone.
+    node = {"kind": "package"}
+    wrong = [(v, render_value(node, v), want) for v, want in PACKAGE_CASES
+             if render_value(node, v) != want]
+    print(f"  {'OK  ' if not wrong else 'FAIL'} package attributes are qualified")
+    for v, got, want in wrong:
+        print(f"       {v} -> {got}")
+        print(f"       {' ' * len(v)}    wanted {want}")
+    return failed + (1 if wrong else 0)
 
 
 def main():

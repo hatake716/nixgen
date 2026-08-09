@@ -191,6 +191,36 @@ def nix_ident(k):
     return k if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_'-]*", k) else nix_string(k)
 
 
+# A package value is either an attribute path out of the catalogue — `firefox`,
+# `python313Packages.requests`, `rubyPackages."http_parser.rb"` — or something
+# typed by hand, which can be any expression at all. The first needs `pkgs.` in
+# front of it; the second has to reach the file untouched.
+#
+# A dot does not tell the two apart. 83% of the catalogue has one, and treating
+# a dot as "already qualified" is how `CuboCore.coreaction` used to arrive as an
+# undefined variable — valid Nix that fails at nixos-rebuild. What does tell
+# them apart is whether the whole value is an attribute path, and whether it
+# starts from a name the generated module already has in scope.
+#
+# Catalogue paths arrive quoted wherever a segment needs it, so they are used as
+# they came rather than split on dots and rebuilt — `"http_parser.rb"` is one
+# segment, and splitting would cut it in half.
+_ATTR_SEG = r"""(?:[A-Za-z_][A-Za-z0-9_'-]*|"[^"\\]*")"""
+_ATTR_PATH = re.compile(_ATTR_SEG + r"(?:\." + _ATTR_SEG + r")*")
+
+# `pkgs`, `config`, `lib` and `options` are the module's own arguments; `inputs`
+# and `self` are what a flake-based configuration passes alongside them. No
+# package in the catalogue starts with any of these, so nothing is shadowed.
+_IN_SCOPE = ("pkgs.", "config.", "lib.", "options.", "inputs.", "self.")
+
+
+def render_package(value):
+    v = str(value).strip()
+    if v.startswith(_IN_SCOPE) or not _ATTR_PATH.fullmatch(v):
+        return v
+    return "pkgs." + v
+
+
 def render_value(node, value, indent=2):
     """value comes from the UI as JSON. Returns a Nix expression string."""
     k = node["kind"]
@@ -222,8 +252,7 @@ def render_value(node, value, indent=2):
         v = str(value).strip()
         return v if v.startswith("/") or v.startswith("./") else nix_string(v)
     if k == "package":
-        v = str(value).strip()
-        return v if v.startswith("pkgs.") or "." in v else "pkgs." + v
+        return render_package(value)
 
     if k == "list":
         items = value or []
