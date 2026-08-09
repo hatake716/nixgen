@@ -9,6 +9,16 @@ option counts.
 
 ## English
 
+### build 2026-08-10j
+
+- **`ollama` is in the Development category**, next to `lmstudio` — the same
+  job from the command line, and this one is not unfree. 186 packages across 12
+  categories.
+- **`ollama`, not `ollama-cuda` or `ollama-rocm`.** Which accelerator a machine
+  has is the kind of thing this list stays out of, and the plain build runs
+  everywhere. There is also a `services.ollama.enable` under **Options** for
+  running it as a system service.
+
 ### build 2026-08-10i
 
 - **`lmstudio` is in the Development category** — a desktop app for running
@@ -539,6 +549,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10j
+
+- **開発カテゴリに `ollama` を追加しました。** `lmstudio` の隣です。同じことをコマンドラインから行うもので、**こちらは unfree ではありません。** 12分野186パッケージになりました。
+- **`ollama-cuda` や `ollama-rocm` ではなく `ollama`** です。**どのアクセラレータを積んでいるかはマシン固有の話**で、この一覧が扱わないことにしている領域です。素の build はどの環境でも動きます。なお **Options** タブには `services.ollama.enable` もあり、**システムのサービスとして動かす**こともできます。
 
 ### build 2026-08-10i
 
