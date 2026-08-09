@@ -298,6 +298,24 @@ Intel.
 **The NVIDIA driver is unfree.** Picking it says so and keeps saying so — set
 `nixpkgs.config.allowUnfree = true;` or the build refuses.
 
+### Picking a kernel
+
+**Options** has a **Kernel** dropdown: standard, latest, LTS or Zen. It writes
+`boot.kernelPackages`, which is a raw option — its value is a Nix expression
+rather than anything a form can hold — so what lands in the module is the
+expression, in a box you can edit.
+
+Each name is looked up in the package index before it is written, and the
+status line names the version it found, so `LTS` says `linux 6.12.102` rather
+than leaving you to guess which series that was. There is no
+`linuxPackages_lts` in nixpkgs; LTS is a list of series, newest first, and the
+first one this channel still ships is what comes out.
+
+Standard is what you get without the setting. **Latest and Zen move**, and an
+out-of-tree module has to be built against whatever kernel is running — the
+NVIDIA driver is regularly a few weeks behind a brand-new release. Run
+`nixos-rebuild dry-build` before you switch.
+
 ### Picking a language
 
 Next to the desktop dropdown under **Options** is a **Language** one: English,

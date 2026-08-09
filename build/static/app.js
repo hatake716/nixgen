@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-09u';
+const BUILD = '2026-08-09v';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -131,8 +131,9 @@ function setStateVersion(release, channel) {
   // prevent. `translate="no"` says so and this makes it stick, because not
   // every browser honours the attribute. #s-release is filled in later and
   // guards its own options as it builds them.
-  $$('#s-desktop option, #s-lang option, #s-gpu option, #s-apps option, ' +
-     '#s-system option, #s-pin option, #s-bootloader option').forEach(keep);
+  $$('#s-desktop option, #s-lang option, #s-gpu option, #s-kernel option, ' +
+     '#s-apps option, #s-system option, #s-pin option, ' +
+     '#s-bootloader option').forEach(keep);
   renderEditor();
   await loadReleases();
   await loadStarter();
@@ -817,6 +818,71 @@ async function addGpu(key) {
 $('#btn-gpu').addEventListener('click', () => {
   const key = $('#s-gpu').value;
   if (key) addGpu(key);
+});
+
+/* The kernel. `boot.kernelPackages` is a raw option — its value is Nix source
+   rather than anything the form can hold — so this writes the expression and
+   leaves it in a text box you can edit.
+
+   Each name is looked up in the package index before it is written, the way
+   the app categories are, because a kernel this channel does not have would
+   otherwise be a line that fails at `nixos-rebuild` rather than here.
+
+   LTS is a list of series, newest first, and takes the first the channel has:
+   there is no `linuxPackages_lts` in nixpkgs — that was checked, not assumed —
+   and the LTS series are kernel.org's designation, which nothing in the index
+   records. `pkgs.linuxKernel.packages.linux_6_12` is the form the option's own
+   example uses. When kernel.org names a new LTS, it goes on the front of this
+   list; until then the newest one nixpkgs still ships is what comes out, and
+   the status line says which version that was so a stale list is visible. */
+const KERNELS = {
+  standard: { label: 'Standard', try: [
+    { probe: 'linux', expr: 'pkgs.linuxPackages' } ] },
+  latest: { label: 'Latest', try: [
+    { probe: 'linux_latest', expr: 'pkgs.linuxPackages_latest' } ] },
+  lts: { label: 'LTS', try: ['6_12', '6_6', '6_1', '5_15', '5_10'].map(s => (
+    { probe: `linuxKernel.kernels.linux_${s}`,
+      expr: `pkgs.linuxKernel.packages.linux_${s}` })) },
+  zen: { label: 'Zen', try: [
+    { probe: 'linux_zen', expr: 'pkgs.linuxPackages_zen' } ] },
+};
+
+async function addKernel(key) {
+  const k = KERNELS[key];
+  if (!k) return;
+  const url = '/api/packages?attrs=' +
+    encodeURIComponent(k.try.map(c => c.probe).join(','));
+  const { results } = await fetch(url).then(r => r.json());
+  const have = new Map((results || []).map(r => [r.attr, r.version]));
+  const pick = k.try.find(c => have.has(c.probe));
+  if (!pick) {
+    setStatus(`${k.label}: this channel has no ${k.try[0].probe}. ` +
+              `Nothing was added.`, 'bad');
+    return;
+  }
+  const used = await addWithValue(['boot.kernelPackages'], pick.expr);
+  if (!used) {
+    setStatus(`This release has no boot.kernelPackages. Nothing was added.`, 'bad');
+    return;
+  }
+  renderEditor();
+  pushRender();
+  // Said for the two that move: an out-of-tree module has to be built against
+  // whatever kernel is running, and the NVIDIA one is regularly a few weeks
+  // behind a brand-new release. Said as `ok` rather than `todo` — doRender
+  // clears a todo status when it has no notes of its own, and the render this
+  // function just asked for would wipe the message on its way out.
+  const tail = key === 'latest' || key === 'zen'
+    ? ' Out-of-tree modules — the NVIDIA driver most of all — can lag a new ' +
+      'kernel by weeks. Check with dry-build.'
+    : '';
+  setStatus(`${k.label}: boot.kernelPackages = ${pick.expr} — ` +
+            `linux ${have.get(pick.probe)}.${tail}`, 'ok');
+}
+
+$('#btn-kernel').addEventListener('click', () => {
+  const key = $('#s-kernel').value;
+  if (key) addKernel(key);
 });
 
 /* A few representative packages per area, for when you know the kind of thing

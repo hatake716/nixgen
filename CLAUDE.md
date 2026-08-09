@@ -236,6 +236,16 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   have is absent instead of broken: `kdenlive` is `kdePackages.kdenlive`, `0ad`
   is `zeroad`, and `superTuxKart` became `supertuxkart` between 25.11 and
   26.05 — both spellings are listed and only the real one comes back.
+- **There is no `linuxPackages_lts` in nixpkgs, and the kernel preset's LTS is
+  a list of series.** That was checked against the tree, not assumed: the
+  top-level attributes are `linuxPackages`, `_latest`, `_zen` and one per
+  series. Which series are LTS is kernel.org's designation and nothing in the
+  index records it, so `KERNELS.lts` lists them newest first and takes the
+  first the channel still ships, the way `DESKTOPS` does with paths. **When
+  kernel.org names a new LTS it goes on the front of that list**; until then
+  the status line naming the version it picked is what makes a stale list
+  visible. `boot.kernelPackages` is a `raw value`, so what is written is Nix
+  source and it arrives in a text box rather than a widget.
 - **Steam is in the list, with a note rather than a silence.** It runs from the
   package, but `programs.steam.enable` is what puts the 32-bit graphics drivers
   in place and can open the remote-play ports. It was left out at first, which

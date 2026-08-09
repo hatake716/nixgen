@@ -81,6 +81,21 @@
           </select>
           <button class="mini" id="btn-gpu">Add</button>
         </div>
+        <!-- boot.kernelPackages is a raw option: what goes in is Nix source,
+             not a value the form can hold. These four are the ones people ask
+             for by name, and each is looked up in the package index before it
+             is written, so a channel that does not have one says so. -->
+        <div class="presetline" id="kernelline">
+          <span>Kernel</span>
+          <select id="s-kernel" class="notranslate" translate="no">
+            <option value="">choose… — 選ぶ</option>
+            <option value="standard">standard — 標準</option>
+            <option value="latest">latest — 最新</option>
+            <option value="lts">LTS — 長期サポート</option>
+            <option value="zen">Zen</option>
+          </select>
+          <button class="mini" id="btn-kernel">Add</button>
+        </div>
         <!-- Picking a category fills the results list, so what happens next is
              the same click as any search hit. Nothing is added on your behalf. -->
         <div class="presetline" id="appsline">

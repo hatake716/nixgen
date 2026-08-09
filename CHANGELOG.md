@@ -9,6 +9,19 @@ option counts.
 
 ## English
 
+### build 2026-08-09v
+
+- **A Kernel dropdown under Options**: standard, latest, LTS or Zen. It writes
+  `boot.kernelPackages`, a raw option, so the expression lands in a box you can
+  edit rather than being hidden in a preset.
+- **The name is looked up before it is written**, and the status line says
+  which version it found — `LTS` reports `linux 6.12.102` rather than leaving
+  the series to guesswork. **nixpkgs has no `linuxPackages_lts`**; LTS is a
+  list of series, newest first, and the first one the channel still ships is
+  what comes out.
+- All four were evaluated as actual NixOS systems at the indexed revision, not
+  just parsed: four different kernels, four different system derivations.
+
 ### build 2026-08-09u
 
 - **"How this works" is in both languages**: the English five steps, then the
@@ -352,6 +365,12 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-09v
+
+- **Options タブに Kernel のプルダウンを追加しました。** 標準・最新・LTS・Zen から選べます。設定するのは `boot.kernelPackages` です。これは raw なオプションなので、**式は編集できる入力欄として module に入ります。** プリセットの中に隠れることはありません。
+- **書き込む前に名前を索引で確認します。** ステータス欄には見つかったバージョンが出るので、LTS を選べば `linux 6.12.102` と表示され、**どの系列かを推測せずに済みます。** なお **nixpkgs に `linuxPackages_lts` はありません**。LTS は新しい順の系列一覧で、そのチャンネルが今も持っている最初のものが採用されます。
+- 4種類すべて、構文解析だけでなく**索引と同じリビジョンで実際の NixOS システムとして評価**しました。4つの異なるカーネル、4つの異なるシステム派生になることを確認しています。
 
 ### build 2026-08-09u
 
