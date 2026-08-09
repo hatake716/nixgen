@@ -124,7 +124,44 @@
       <header>
         <div class="eyebrow">Your module — <span id="sel-count">0</span> set</div>
       </header>
-      <div class="pane-body"><div id="editor"></div><div id="notice"></div></div>
+      <div class="pane-body">
+        <!-- Shown while nothing is set, which is exactly the first thing
+             anyone sees. It needs no dismissing: adding a setting replaces it
+             with the setting. -->
+        <div id="howto">
+          <p class="eyebrow">How this works</p>
+          <p class="lede">nixgen writes new files. The ones you already have are
+             read at most, never changed.</p>
+          <!-- Named by their labels rather than by where they sit: the panes
+               stack and swap on a narrow screen, and "on the left" would then
+               be wrong in the one place a first-timer cannot afford it. -->
+          <ol>
+            <li><b>New machine, no flake yet?</b> The <b class="w">Setup</b> tab
+              writes the two files that go around everything else. Take them
+              from the file tabs — <code>configuration.nix</code> and
+              <code>flake.nix</code>.</li>
+            <li><b>Already have a <code>configuration.nix</code>?</b> Press
+              <b class="w">Import configuration.nix</b>. Your settings come back
+              as fields you can edit.</li>
+            <li><b>Add a setting.</b> Open <b class="w">Options</b> and type what you
+              are after — <code>ssh</code>, <code>firewall</code>,
+              <code>timeZone</code>. Click a result and it lands here.</li>
+            <li><b>Add software.</b> Open <b class="w">Packages</b> and click what you
+              want. It goes into <code>environment.systemPackages</code>.</li>
+            <li><b>Use the file.</b> Press <b class="w">Download generated.nix</b>, put
+              it beside your <code>configuration.nix</code>, add
+              <code>./generated.nix</code> to <code>imports</code>, then run
+              <code>sudo nixos-rebuild dry-build</code> before you switch.</li>
+          </ol>
+          <p class="after"><b class="w">Check syntax</b> finds broken Nix and nothing
+             else — whether a value is the right <i>type</i> is for
+             <code>dry-build</code> to say.
+             <a href="https://hatake716.github.io/nixgen/" target="_blank"
+                rel="noreferrer">The longer version</a>.</p>
+        </div>
+        <div id="editor"></div>
+        <div id="notice"></div>
+      </div>
     </section>
 
     <section class="pane out" id="pane-out">

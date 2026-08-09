@@ -9,6 +9,15 @@ option counts.
 
 ## English
 
+### build 2026-08-09h
+
+- **Five steps now sit in the middle of the screen when you open it**, which
+  had been an empty panel saying "nothing set yet". They cover the whole
+  shape of the thing: the starter files, reading in a configuration you
+  already have, adding a setting, adding software, and what to do with the
+  file afterwards. Adding anything replaces them with it, so there is nothing
+  to dismiss and nothing to remember.
+
 ### build 2026-08-09g
 
 - **The import summary is back above the settings.** After reading a file in,
@@ -185,6 +194,10 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-09h
+
+- **起動直後、画面中央に使い方の5ステップが出るようになりました。** これまでは「まだ何も設定されていません」と表示されていた場所です。全体の流れを一通り書いてあります。スターターファイル、既存の設定ファイルの読み込み、設定項目の追加、ソフトウェアの追加、そして出来たファイルの使い方です。**何か追加すればそれに置き換わります。** 閉じる操作も、覚えておくことも要りません。
 
 ### build 2026-08-09g
 

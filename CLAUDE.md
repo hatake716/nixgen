@@ -177,6 +177,12 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   `order: -1` when it has something to say. It was below the module for a while,
   which put "kept as written: not an option in this release" — the one thing
   `nixos-rebuild` refuses outright — a screen or two down, where it went unread.
+- **The five steps live where the module will be.** Nothing is stored between
+  visits, so anything with a dismiss button would ask to be dismissed on every
+  launch; putting the steps in the empty module pane means adding a setting is
+  what clears them. They name the tabs and buttons rather than where things sit
+  — the panes stack and swap on a narrow screen, and "on the left" would be
+  wrong exactly where a first-timer cannot afford it.
 - No browser storage. State lives in `state` in `app.js`.
 
 > 上記はいずれも「見た目は正しいのに後で壊れる」類の落とし穴です。触る前に一読してください。

@@ -136,6 +136,32 @@ main {
 .empty { padding: 40px 24px; color: var(--ink-faint); text-align: center; line-height: 1.6; }
 .empty code { font-family: var(--mono); color: var(--ink-soft); }
 
+/* The steps, shown while the module is empty. Measured rather than filling
+   the pane: at 1100px a line of prose is unreadable. */
+#howto { padding: 32px 26px 34px; max-width: 620px; margin: 0 auto; color: var(--ink-soft); }
+#howto .eyebrow { margin: 0 0 8px; }
+#howto .lede { margin: 0 0 20px; line-height: 1.65; }
+#howto ol { margin: 0; padding: 0; list-style: none; counter-reset: step; }
+#howto li {
+  position: relative; counter-increment: step;
+  padding: 0 0 15px 30px; line-height: 1.65;
+}
+#howto li::before {
+  content: counter(step); position: absolute; left: 0; top: 2px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--panel-2); color: var(--ink-soft);
+  font: 600 11px/20px var(--sans); text-align: center;
+}
+#howto b { color: var(--ink); font-weight: 600; }
+/* Words that are on the screen somewhere, so the eye can go and find them. */
+#howto b.w { color: var(--accent); }
+#howto code { font-family: var(--mono); font-size: .92em; color: var(--ink); }
+#howto .after {
+  margin: 6px 0 0; padding-top: 14px; border-top: 1px solid var(--rule);
+  font-size: 12.5px; line-height: 1.65;
+}
+#howto a { color: var(--accent); }
+
 .card { border-bottom: 1px solid var(--rule); padding: 12px 16px; border-left: 3px solid transparent; }
 .card.touched { border-left-color: var(--accent); background: #fff; }
 .card > .head { display: flex; align-items: baseline; gap: 8px; }

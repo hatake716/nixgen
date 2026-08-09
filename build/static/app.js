@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-09g';
+const BUILD = '2026-08-09h';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -123,6 +123,9 @@ function setStateVersion(release, channel) {
     `${(+meta.option_count).toLocaleString()} options · ` +
     `${(+meta.package_count).toLocaleString()} packages · build ${BUILD}`;
   setStateVersion(meta.release, meta.channel);
+  // The file names and option paths in the steps are Nix, not prose, so they
+  // are guarded like every other identifier on the page.
+  $$('#howto code').forEach(keep);
   renderEditor();
   await loadReleases();
   await loadStarter();
@@ -917,12 +920,12 @@ function renderEditor() {
   box.innerHTML = '';
   $('#sel-count').textContent = state.selected.size;
 
-  if (!state.selected.size) {
-    const e = el('div', 'empty');
-    e.innerHTML = 'Nothing set yet.<br>Search on the left and click an option to add it here.';
-    box.appendChild(e);
-    return;
-  }
+  // With nothing set, the pane is where the steps go instead — first thing
+  // anyone sees, and gone the moment there is something to show. Nothing is
+  // remembered between visits here, so anything needing a dismiss button
+  // would ask to be dismissed every time.
+  $('#howto').hidden = state.selected.size > 0;
+  if (!state.selected.size) return;
 
   // The package list is the one people come back to, so it stays on top.
   const entries = [...state.selected.values()].sort((a, b) =>
