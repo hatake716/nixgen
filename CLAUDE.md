@@ -204,6 +204,13 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   configuration is GPU tooling, microcode, panel plugins and hand-written
   `callPackage` expressions. Those belong to whoever wrote them. The test for
   a new entry is whether somebody else's machine would want it.
+- **The category names carry their own Japanese and are not translated.** Names
+  of kinds of software are what machine translation is worst at — "Audio and
+  video" came back as 音楽と動画 for a category holding audacity and
+  pavucontrol. `#s-apps` is `translate="no"` and its options get `data-keep`
+  like every option path, since not every browser honours the attribute.
+  Descriptions elsewhere are still meant to be translated; this is the
+  exception, not a change of policy.
 - **`APPS` is the one opinionated list in the tool, and stays small.** Picking a
   category fills the results with a handful of packages, which are then added
   by the same click as any search hit — nothing is installed on anyone's

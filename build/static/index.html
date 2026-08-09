@@ -85,20 +85,27 @@
              the same click as any search hit. Nothing is added on your behalf. -->
         <div class="presetline" id="appsline">
           <span>Common apps</span>
-          <select id="s-apps">
-            <option value="">choose a category…</option>
-            <option value="browser">Web browsers</option>
-            <option value="mail">Mail</option>
-            <option value="office">Office</option>
-            <option value="media">Audio and video</option>
-            <option value="graphics">Graphics</option>
-            <option value="games">Games</option>
-            <option value="comms">Chat and sync</option>
-            <option value="accessories">Accessories</option>
-            <option value="files">File managers</option>
-            <option value="terminal">Terminals</option>
-            <option value="system">System tools</option>
-            <option value="dev">Development</option>
+          <!-- Both languages, and translate="no" so a translator leaves them
+               alone. These are names of kinds of software, which is exactly
+               what machine translation is worst at: "Audio and video" came
+               back as 音楽と動画, and the category holds audacity and
+               pavucontrol rather than a music collection. app.js also gives
+               each option a data-keep, because not every browser honours the
+               attribute — the same guard the option paths get. -->
+          <select id="s-apps" class="notranslate" translate="no">
+            <option value="">choose a category — 分野を選ぶ</option>
+            <option value="browser">Web browsers — ブラウザ</option>
+            <option value="mail">Mail — メーラー</option>
+            <option value="office">Office — オフィスソフト</option>
+            <option value="media">Audio and video — マルチメディア</option>
+            <option value="graphics">Graphics — グラフィックス</option>
+            <option value="games">Games — ゲーム</option>
+            <option value="comms">Chat and sync — チャット・同期</option>
+            <option value="accessories">Accessories — アクセサリー</option>
+            <option value="files">File managers — ファイラー</option>
+            <option value="terminal">Terminals — ターミナル</option>
+            <option value="system">System tools — システムツール</option>
+            <option value="dev">Development — 開発</option>
           </select>
         </div>
         <p class="presethint" id="appshint" hidden>A short pick, not a catalogue.

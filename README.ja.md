@@ -215,22 +215,18 @@ rm -rf ~/.local/share/nixgen
 
 **Packages** タブに **Common apps** のプルダウンがあります。カテゴリを選ぶと結果一覧にアプリが並ぶので、**検索結果と同じようにクリックして追加します。** 勝手に入るものはありません。
 
-画面の表示は英語です。12分野の対応は次のとおりです。
+12分野あり、**プルダウンには英語と日本語の両方が出ます。**
 
-| プルダウンの表示 | 分野 |
-|---|---|
-| Web browsers | ブラウザ |
-| Mail | メーラー |
-| Office | オフィスソフト |
-| Audio and video | マルチメディア |
-| Graphics | グラフィックス |
-| Games | ゲーム |
-| Chat and sync | チャット・同期 |
-| Accessories | アクセサリー(小物・ユーティリティ) |
-| File managers | ファイラー |
-| Terminals | ターミナル |
-| System tools | システムツール |
-| Development | 開発 |
+```
+Web browsers — ブラウザ          Chat and sync — チャット・同期
+Mail — メーラー                  Accessories — アクセサリー
+Office — オフィスソフト          File managers — ファイラー
+Audio and video — マルチメディア  Terminals — ターミナル
+Graphics — グラフィックス        System tools — システムツール
+Games — ゲーム                   Development — 開発
+```
+
+ここだけ日本語を併記しているのは、**分野名は機械翻訳が最も苦手とするもの**だからです。「Audio and video」は 音楽と動画 と訳されますが、この分野に入っているのは audacity や pavucontrol で、音楽の話ではありません。ブラウザの翻訳機能に書き換えられないよう固定してあります。
 
 **絞った一覧であって、カタログではありません。** この道具の中で唯一、他人の好みで見えるものが決まる場所なので、小さく保っています。それ以外は検索欄で探してください。
 

@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-09q';
+const BUILD = '2026-08-09r';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -126,6 +126,9 @@ function setStateVersion(release, channel) {
   // The file names, option paths and the directory listing in the steps are
   // Nix, not prose, so they are guarded like every other identifier here.
   $$('#howto code, #howto .tree').forEach(keep);
+  // The category names are already in both languages; a translator rewriting
+  // them is what the second language is there to prevent.
+  $$('#s-apps option').forEach(keep);
   renderEditor();
   await loadReleases();
   await loadStarter();

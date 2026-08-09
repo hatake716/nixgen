@@ -9,6 +9,14 @@ option counts.
 
 ## English
 
+### build 2026-08-09r
+
+- **The category names carry their own Japanese**: `Audio and video —
+  マルチメディア`, and so on down the list. Names of kinds of software are what
+  machine translation is worst at — that one was coming back as "music and
+  video" for a category holding audacity and pavucontrol — so they are written
+  out in both languages and marked so a translator leaves them alone.
+
 ### build 2026-08-09q
 
 - **The apps GNOME, Plasma and Xfce ship are in the categories now** — 151
@@ -319,6 +327,10 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-09r
+
+- **分野名に日本語を併記しました。** `Audio and video — マルチメディア` のような形です。**分野名は機械翻訳が最も苦手とするもの**で、これは 音楽と動画 と訳されていました。この分野に入っているのは audacity や pavucontrol で、音楽の話ではありません。両方の言語で書いたうえで、**翻訳機能に書き換えられないよう固定**してあります。
 
 ### build 2026-08-09q
 

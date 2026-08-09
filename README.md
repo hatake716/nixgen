@@ -251,7 +251,13 @@ Anything you pick under Packages is added to the list of programs to install.
 
 ### Common apps
 
-Under **Packages** there is a **Common apps** dropdown: browsers, mail, office,
+Under **Packages** there is a **Common apps** dropdown. Its entries name each
+kind in English and in Japanese — `Audio and video — マルチメディア` — because
+kinds of software are what machine translation gets worst, and browsers were
+turning that one into "music and video" for a category holding audacity and
+pavucontrol. They are marked so a translator leaves them alone.
+
+The twelve are: browsers, mail, office,
 audio and video, graphics, games, chat and sync, accessories, file managers,
 terminals, system tools, development. Picking a category fills the result list with a handful of packages, which you then add by
 clicking, exactly like a search hit. Nothing is installed for you.
