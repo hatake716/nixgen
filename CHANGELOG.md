@@ -9,6 +9,18 @@ option counts.
 
 ## English
 
+### build 2026-08-09f
+
+- **A real message when port 8823 is taken**, instead of a Python traceback. It
+  also says the thing that is usually true: the port is held by an older nixgen,
+  and the build id in the header will tell you. It no longer prints "serving …"
+  and opens a browser before finding out it could not listen — which sent you
+  to the old copy and looked like the new one had started.
+- **The Setup tab offers to remove indexes for channels that are no longer on
+  the list.** They are about 37 MB each, nothing else would ever remove them,
+  and until now nothing said they were there. Only indexes nixgen made itself,
+  never the one in use, never a channel you could still pick.
+
 ### build 2026-08-09e
 
 - **`nixos-unstable` can be picked, alongside the numbered releases.** Choosing
@@ -158,6 +170,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-09f
+
+- **ポート8823が使われているときに、Pythonのトレースバックではなく普通のメッセージを出します。** たいていの場合に当てはまること — **「前に起動したnixgenがそのポートを掴んでいる」** も併せて表示し、ヘッダーのビルド番号で見分けられることを伝えます。また、待ち受けに失敗する前に「serving …」と表示してブラウザを開くのをやめました。**古い方に案内した上で、新しい方が起動したように見えていました。**
+- **一覧から外れたチャンネルのインデックスを、Setupタブから削除できるようにしました。** 1つあたり約37MBで、他に消すものが無く、そこにあること自体これまで表示されていませんでした。削除できるのは**nixgenが自分で作ったファイルだけ**で、使用中のものと、まだ選べるチャンネルのものは対象外です。
 
 ### build 2026-08-09e
 

@@ -41,6 +41,8 @@ in the header. Three separate times, hours were lost to "the fix does not work"
 that turned out to be a stale copy — browser cache, Nix's hour, an old server
 process still holding port 8823. The build id is how those get told apart in one
 glance. If a change seems not to take effect, check it before touching code.
+The port-in-use message now says this too, because the old copy answering on
+8823 is indistinguishable from the new one having started.
 
 > 開発時は `nix run .`(ドット)。新規ファイルは `git add -A` しないとflakesから見えません。`app.js` を変えたら `BUILD` を必ず上げてください。
 
@@ -292,7 +294,13 @@ once in ways nothing else caught.
   marker so the choice survives a restart. Rebuilding one in place needs
   `refresh` on `/api/reindex`: without it the server sees a database and
   switches to it, which on a channel that moves is the one thing that does not
-  help.
+  help. A rebuild *replaces* that channel's file, so the count grows by one per
+  channel ever picked, not by one per rebuild.
+- **Removing an index is the only thing nixgen deletes**, so it is fenced in
+  three ways at once: `releases.DB_NAME` matches only names nixgen wrote
+  itself, the database in use is excluded, and so is any channel still on the
+  list. The request names channels, never paths, and nothing it says can widen
+  that set. Keep all three — each one alone looks sufficient.
 - **Setup is the first tab and the one the app opens on.** On a fresh install
   those files are needed before anything else.
 
@@ -333,9 +341,6 @@ once in ways nothing else caught.
 
 ## Open items
 
-- A friendlier message when port 8823 is taken; right now it is a raw Python
-  traceback. Hit again while testing unstable, so it is not hypothetical.
-- Nothing prunes old databases. Each channel keeps its own ~37 MB file and
-  `nixos-unstable` will be rebuilt often, so `~/.local/share/nixgen` grows and
-  never shrinks.
-- `docs/screenshot*.png` need retaking whenever the UI changes shape.
+- `docs/screenshot*.png` need retaking whenever the UI changes shape. They now
+  predate the channel selector, the pin choice and the index-age line, so the
+  Setup tab in them is three features out of date.

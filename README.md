@@ -184,8 +184,13 @@ You are running inside a folder managed by git — `/etc/nixos` is the usual one
 Flakes only look at files git already knows about, so anything untracked might
 as well not exist. Using the `github:` form above avoids this entirely.
 
-**`Address already in use`**
-Something else is on port 8823. Pick another:
+**`port 8823 is already in use`**
+Most often it is nixgen itself, still running from earlier. Open
+<http://127.0.0.1:8823/> and look at the build id in the header — if it is not
+the version you expected, that is the old one answering, and stopping it with
+**Ctrl-C** in the terminal it started from is all that is needed.
+
+If something else has the port, pick another:
 
 ```bash
 nixgen --port 9000
@@ -200,6 +205,12 @@ Delete the database and run it again; it will be rebuilt.
 ```bash
 rm -rf ~/.local/share/nixgen
 ```
+
+**It is using more disk than you expected**
+Each channel keeps its own index, about 37 MB. Rebuilding one replaces its
+file rather than adding another, so this grows by one file per channel you have
+ever picked. When a channel drops off the list, the Setup tab says how much its
+leftover index is taking and offers to remove it.
 
 ---
 
