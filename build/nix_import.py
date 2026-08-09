@@ -268,30 +268,43 @@ def _unparen(v):
     return v
 
 
-_PKG_SEL = re.compile(r"\(pkgs\)\.")
-
 # Nix's normalised output parenthesises every atom and every selection base.
 # None of that is needed in the file we write back out.
 _PAREN_SEL = re.compile(r"\(([A-Za-z_][\w'-]*)\)\.")
 _PAREN_ATOM = re.compile(
-    r"\((-?\d+(?:\.\d+)?"                       # numbers
+    r"\((\d+(?:\.\d+)?"                          # numbers, but see below
     r"|true|false|null"                          # keywords
     r"|[A-Za-z_][\w.'-]*"                        # identifiers and selections
     r"|\.{0,2}/[\w./+~-]*|~/[\w./+~-]*"          # path literals
     r'|"(?:[^"\\]|\\.)*")\)'                    # simple strings
 )
+# The sign is deliberately not in that pattern. `[ (-1) ]` parses and `[ -1 ]`
+# does not, so a negative number keeps its parentheses. Nix's own output never
+# reaches here as `(-1)` — it comes back as `(__sub 0 1)` — but the fallback
+# reader works on the raw source, where the literal form is what is there.
 
 
-def tidy(expr):
-    """Undo the redundant parentheses Nix adds, leaving valid Nix behind."""
-    out = " ".join(expr.split())
+def _undo_parens(expr):
+    """Collapse the parentheses Nix's normalised output adds.
+
+    `python313Packages.requests` comes back as `((python313Packages).requests)`.
+    Only the head of a selection is wrapped, however long the chain, so one
+    pass would do for a single value; the loop is for shapes nested inside one
+    another.
+    """
+    out = expr
     for _ in range(6):
         prev = out
         out = _PAREN_SEL.sub(r"\1.", out)
         out = _PAREN_ATOM.sub(r"\1", out)
         if out == prev:
             break
-    return _wrap_list(_unparen(out))
+    return out
+
+
+def tidy(expr):
+    """Undo the redundant parentheses Nix adds, leaving valid Nix behind."""
+    return _wrap_list(_unparen(_undo_parens(" ".join(expr.split()))))
 
 
 _LIST_EXPR = re.compile(r"^(with\s+[\w.]+\s*;\s*)?\[(.*)\]$", re.S)
@@ -318,9 +331,19 @@ def _wrap_list(expr, indent="  "):
     return f"{head}{body}\n{indent}]"
 
 
+# A package name in the shapes it arrives in: `firefox`,
+# `python313Packages.requests`, `rubyPackages."http_parser.rb"`. The quoted
+# alternative earns its place — a segment that had to be quoted can hold a dot
+# of its own, so this must not be a plain `[\w.'-]+`. What goes back out is
+# `nixgen_core.render_package`, which is stricter; this only has to recognise.
+_PKG_SEG = r"""(?:[\w'-]+|"[^"\\]*")"""
+_PKG_NAME = re.compile(_PKG_SEG + r"(?:\." + _PKG_SEG + r")*")
+_PKG_QUALIFIED = re.compile(r"pkgs\.(" + _PKG_SEG + r"(?:\." + _PKG_SEG + r")*)")
+
+
 def classify(value):
     """Turn a value expression into ('kind', python_value) or ('raw', text)."""
-    v = _PKG_SEL.sub("pkgs.", _unparen(value))
+    v = _undo_parens(_unparen(value))
 
     m = PRIORITY_CALLS.match(v)
     if m:
@@ -353,21 +376,21 @@ def classify(value):
         scope, v = "pkgs", _unparen(wm.group(1))
 
     if v.startswith("[") and v.endswith("]"):
-        items = [_PKG_SEL.sub("pkgs.", _unparen(x)) for x in _split_list(v[1:-1])]
+        items = [_undo_parens(_unparen(x)) for x in _split_list(v[1:-1])]
         kinds = [classify(x) for x in items]
         if scope == "pkgs":
-            names = [x for x in items if re.fullmatch(r"[\w.'-]+", x)]
+            names = [x for x in items if _PKG_NAME.fullmatch(x)]
             if len(names) == len(items):
                 return "packages", names
         if all(k in ("str", "int", "bool", "float") for k, _ in kinds):
             return "list", [val for _, val in kinds]
-        names = [re.sub(r"^pkgs\.", "", x) for x in items]
-        if all(re.fullmatch(r"pkgs\.[\w.'-]+", x) for x in items):
-            return "packages", names
+        if all(_PKG_QUALIFIED.fullmatch(x) for x in items):
+            return "packages", [_PKG_QUALIFIED.fullmatch(x).group(1) for x in items]
         return "raw", value.strip()
 
-    if re.fullmatch(r"pkgs\.[\w.'-]+", v):
-        return "package", v[len("pkgs."):]
+    m = _PKG_QUALIFIED.fullmatch(v)
+    if m:
+        return "package", m.group(1)
 
     if v.startswith("{") and v.endswith("}"):
         return "attrs", v
