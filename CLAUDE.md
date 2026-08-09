@@ -367,6 +367,7 @@ once in ways nothing else caught.
 | an empty `environment.systemPackages = [ ]` cannot be added to | `[ ]` was read as "not a list of packages" rather than as any list |
 | the whole page scrolls sideways on a phone | four header buttons in a flex row with no `flex-wrap` |
 | half a dropdown label is missing | a closed select drops what does not fit, and what did not fit was the Japanese |
+| a preset row appears on every tab | the tab switch hid rows by id, and a new row was not on the list |
 
 ---
 

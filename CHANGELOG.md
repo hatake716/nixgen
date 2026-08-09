@@ -9,6 +9,14 @@ option counts.
 
 ## English
 
+### build 2026-08-09x
+
+- **The Kernel dropdown is gone from the Packages tab**, where it had no
+  business being and read as a second copy of the one under Options. The row
+  was added last build but never added to the list of rows the tab switch
+  hides, so it stayed on screen on every tab. That list is one rule over
+  `.presetline` now, so the next row cannot be left off it.
+
 ### build 2026-08-09w
 
 - **The four dropdowns under Options are in build order now**: kernel, desktop,
@@ -372,6 +380,10 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-09x
+
+- **Packages タブから Kernel のプルダウンを消しました。** ここにあるべきものではなく、Options にあるものの**2つめの複製に見えていました。** 前のビルドで行を追加した際、**タブ切り替えで隠す対象の一覧に入れ忘れていた**ため、すべてのタブに出たままになっていました。この一覧は `.presetline` に対する1つのルールにまとめたので、**次に行を足したときに入れ忘れることはありません。**
 
 ### build 2026-08-09w
 

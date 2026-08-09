@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-09w';
+const BUILD = '2026-08-09x';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -166,11 +166,16 @@ function selectKind(kind) {
   showFile(setup ? 'configuration.nix' : 'generated.nix');
   if (setup) return;
 
+  /* Every preset line belongs to Options except the app categories, which add
+     packages. Written as one rule over `.presetline` rather than one line per
+     id: the id list was missed when the kernel row was added, and a row nobody
+     hid showed up on the Packages tab as well, where it had no business being
+     and read as a second copy of the one under Options. */
   $('#filterline').style.display = kind === 'options' ? '' : 'none';
-  $('#presetline').style.display = kind === 'options' ? '' : 'none';
-  $('#langline').style.display = kind === 'options' ? '' : 'none';
-  $('#gpuline').style.display = kind === 'options' ? '' : 'none';
-  $('#appsline').style.display = kind === 'packages' ? '' : 'none';
+  $$('.presetline').forEach(line => {
+    const wanted = line.id === 'appsline' ? 'packages' : 'options';
+    line.style.display = kind === wanted ? '' : 'none';
+  });
   // Leaving the tab drops the category, so the dropdown never claims to be
   // describing a list that has since been replaced by a search.
   $('#s-apps').value = '';
