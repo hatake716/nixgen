@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-09b';
+const BUILD = '2026-08-09c';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -891,11 +891,13 @@ function pushRender() {
   renderTimer = setTimeout(doRender, 120);
 }
 
-/* Split on dots but keep <placeholders> atomic — a few upstream option keys
-   contain dots inside their angle brackets. */
+/* Split on dots but keep <placeholders> and "quoted names" atomic — a few
+   upstream option keys contain dots inside their angle brackets, and 76 hold
+   a quoted name with dots of its own, `boot.kernel.sysctl."net.core.rmem_max"`
+   among them. Must stay in step with _SEGMENT in nixgen_core.py. */
 function segmentsFor(entry) {
   let i = 0;
-  return (entry.path.match(/<[^>]*>|[^.]+/g) || []).map(seg =>
+  return (entry.path.match(/<[^>]*>|"[^"]*"|[^.]+/g) || []).map(seg =>
     isSlot(seg) ? ((entry.slots[i++] || '').trim() || 'CHANGE_ME') : seg
   );
 }

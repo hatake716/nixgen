@@ -17,7 +17,8 @@ from urllib.parse import urlparse, parse_qs
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from nixgen_core import parse_type, render_module, sort_key  # noqa: E402
+from nixgen_core import (parse_type, path_names, render_module,  # noqa: E402
+                         render_path, sort_key, split_path)
 from nix_import import (read_config, strip_self_import, sort_list_expr,  # noqa: E402
                         NixSyntaxError)
 from starter import starter_files  # noqa: E402
@@ -224,9 +225,14 @@ def match_option(segments):
     Catalogue paths carry placeholders (`services.nginx.virtualHosts.<name>.root`)
     where a real config has a name, so an exact lookup is tried first and then
     a segment-by-segment comparison that lets placeholders absorb one segment
-    each. Returns (row, slot_values)."""
+    each. Returns (row, slot_values).
+
+    Segments arrive as plain names, catalogue paths quote the ones that need
+    it, so the lookup goes through render_path rather than a bare join —
+    `boot.kernel.sysctl."net.core.rmem_max"` is never found otherwise, and
+    that is an option people actually set."""
     con = db()
-    joined = ".".join(segments)
+    joined = render_path(segments)
     row = con.execute("SELECT * FROM options WHERE path = ?", (joined,)).fetchone()
     if row:
         con.close()
@@ -238,14 +244,14 @@ def match_option(segments):
     con.close()
 
     for c in cands:
-        parts = c["path"].split(".")
+        parts = split_path(c["path"])
         if len(parts) != len(segments):
             continue
         slots, ok = [], True
-        for want, got in zip(parts, segments):
+        for want, name, got in zip(parts, path_names(c["path"]), segments):
             if want.startswith("<") or want == "*":
                 slots.append(got)
-            elif want != got:
+            elif name != got:
                 ok = False
                 break
         if ok:
