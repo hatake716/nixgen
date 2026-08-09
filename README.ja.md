@@ -293,6 +293,14 @@ NixOSを入れたばかりで、まだ `flake.nix` が無い場合に使いま�
 
 **Setup** タブには、必要な2つのファイルが用意されています。生成した設定を読み込む `configuration.nix` と、システム全体を組み立てる `flake.nix` です。画面右上のファイルタブで切り替えて、それぞれダウンロードします。
 
+**3つまとめて受け取ることもできます。** ファイルタブの最後が **all three** です。このタブで Download を押すと、`configuration.nix`・`flake.nix`・`generated.nix` を**ホスト名のディレクトリに入れた `.tar.gz`** が出てきます。
+
+```bash
+tar -xzf desktop.tar.gz
+```
+
+`.zip` ではなく `.tar.gz` なのは、**NixOS には `tar` と `gzip` が最初から入っていて、`unzip` は入っていない**ためです。`hardware-configuration.nix` は含まれません。これはそのマシンのディスク構成を書いたもので、あなたのものだからです。このタブで **Check syntax** を押すと、**3つとも**構文検査します。
+
 4つのファイルが揃うと、こうなります。
 
 ```

@@ -380,6 +380,19 @@ The **Setup** tab produces the two files you need: a `configuration.nix` that
 reads in your generated settings, and a `flake.nix` that assembles the system.
 Switch between them with the tabs at the top right and download each one.
 
+**Or take all three at once.** The last of those tabs is **all three**, and the
+Download button on it hands you a `.tar.gz` holding `configuration.nix`,
+`flake.nix` and `generated.nix` in a directory named after the host:
+
+```bash
+tar -xzf desktop.tar.gz
+```
+
+It is a `.tar.gz` rather than a `.zip` because NixOS ships `tar` and `gzip` and
+does not ship `unzip`. `hardware-configuration.nix` is not in it — that one
+describes this machine's disks and is yours. **Check syntax** on that tab
+parses all three.
+
 With all four in place it looks like this:
 
 ```

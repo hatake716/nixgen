@@ -9,6 +9,20 @@ option counts.
 
 ## English
 
+### build 2026-08-09y
+
+- **A fourth file tab, `all three`**, whose Download button hands you
+  `configuration.nix`, `flake.nix` and `generated.nix` as one `.tar.gz`, in a
+  directory named after the host so extracting it cannot land on top of a
+  `configuration.nix` already sitting where you unpacked it.
+- **`.tar.gz` and not `.zip`** because of who is on the other end: a NixOS
+  install has `tar` and `gzip` and does not have `unzip`.
+- **Check syntax on that tab parses all three** and names the one that failed.
+- The archive is byte-for-byte the same for the same three files — fixed
+  mtimes and modes — so two downloads differ only where the contents do.
+- `hardware-configuration.nix` is not in it, and the tab says so. That file
+  describes the machine's disks and nixgen has never written it.
+
 ### build 2026-08-09x
 
 - **The Kernel dropdown is gone from the Packages tab**, where it had no
@@ -380,6 +394,14 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-09y
+
+- **4つめのファイルタブ `all three` を追加しました。** このタブで Download を押すと、`configuration.nix`・`flake.nix`・`generated.nix` が**1つの `.tar.gz`** で出てきます。中身は**ホスト名のディレクトリ**に入れてあるので、展開した場所に既にある `configuration.nix` を**上書きしてしまうことがありません。**
+- **`.zip` ではなく `.tar.gz`** にしたのは、受け取る側の事情です。NixOS には `tar` と `gzip` が最初から入っていますが、**`unzip` は入っていません。**
+- **このタブの Check syntax は3つとも検査**し、**失敗したファイル名を挙げます。**
+- 同じ3ファイルからは**常に同一のバイト列**が出ます(更新時刻とモードを固定しているため)。2回落として差分を取れば、**中身が違う箇所だけ**が出ます。
+- `hardware-configuration.nix` は含みません。タブにもそう書いてあります。**そのマシンのディスク構成**を書いたファイルで、nixgen が書いたことは一度もありません。
 
 ### build 2026-08-09x
 

@@ -374,7 +374,10 @@ pre.nix .verbatim .v { color: #d7a6f0; }
   color: var(--code-fg); font-family: var(--mono); font-size: 11px;
   border-radius: var(--r); overflow-x: auto; }
 
-/* File tabs in the output pane */
+/* File tabs in the output pane. Four of them is more than a narrow phone can
+   hold in one line, and a flex row that cannot wrap takes the page sideways
+   with it — the same thing the header buttons did. */
+.filetabs { flex-wrap: wrap; }
 .filetabs .tab { color: var(--code-dim); font-size: 9.5px; letter-spacing: .08em;
                  text-transform: none; font-family: var(--mono); }
 .filetabs .tab[aria-selected="true"] { background: #2c3542; color: var(--code-fg); }

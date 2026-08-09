@@ -226,8 +226,9 @@
             <li><b>New machine, no flake yet?</b> The <b class="w">Setup</b> tab
               fills in the two a fresh install still needs:
               <code>configuration.nix</code>, the half you write by hand, and
-              <code>flake.nix</code>, the way in to the whole system. Take each
-              from the file tabs and keep all four in one directory.
+              <code>flake.nix</code>, the way in to the whole system. Take them
+              from the file tabs one at a time, or all at once from
+              <b class="w">all three</b>, and keep all four in one directory.
               <!-- ASCII rather than box drawing: the mono stack falls back to
                    a proportional face for those glyphs on some machines, and a
                    tree that does not line up is worse than no tree. -->
@@ -277,7 +278,7 @@
             <p class="eyebrow">使い方</p>
             <p class="lede">nixgen は新しいファイルを作ります。今あるファイルは読むだけで、書き換えることはありません。</p>
             <ol>
-              <li><b>flake がまだ無い、新しいマシンですか。</b> <b class="w">Setup</b> タブが、インストール直後に足りない2つを用意します。手で書く側の <code>configuration.nix</code> と、システム全体の入口になる <code>flake.nix</code> です。ファイルタブからそれぞれ受け取り、4つを同じディレクトリに置いてください。
+              <li><b>flake がまだ無い、新しいマシンですか。</b> <b class="w">Setup</b> タブが、インストール直後に足りない2つを用意します。手で書く側の <code>configuration.nix</code> と、システム全体の入口になる <code>flake.nix</code> です。ファイルタブから1つずつ、あるいは <b class="w">all three</b> タブでまとめて受け取り、4つを同じディレクトリに置いてください。
                 <pre class="tree">/etc/nixos/
 |-- flake.nix                   Setup から
 |-- configuration.nix           Setup から
@@ -306,6 +307,10 @@
           <button class="tab" role="tab" data-file="generated.nix" aria-selected="true">generated.nix</button>
           <button class="tab" role="tab" data-file="configuration.nix" aria-selected="false">configuration.nix</button>
           <button class="tab" role="tab" data-file="flake.nix" aria-selected="false">flake.nix</button>
+          <!-- A fourth tab rather than a fifth button in the header: the
+               Download button already follows whichever tab is selected, so
+               taking all three is the same gesture as taking one of them. -->
+          <button class="tab" role="tab" data-file="all three" aria-selected="false">all three</button>
         </div>
       </header>
       <div class="pane-body"><pre class="nix notranslate" id="out" translate="no"></pre></div>

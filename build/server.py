@@ -4,6 +4,8 @@
 import argparse
 import datetime
 import errno
+import gzip
+import io
 import json
 import os
 import re
@@ -11,6 +13,7 @@ import shutil
 import sqlite3
 import subprocess
 import sys
+import tarfile
 import tempfile
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -555,6 +558,55 @@ def validate(text):
         os.unlink(tmp)
 
 
+BUNDLE_FILES = ("configuration.nix", "flake.nix", "generated.nix")
+
+
+def bundle_name(host):
+    """A directory name for the archive, from the host name the form holds.
+
+    Anything that is not a plain name is dropped rather than escaped: this ends
+    up as a path in an archive somebody will extract, and `nixos` is a better
+    answer than a clever one.
+    """
+    clean = re.sub(r"[^A-Za-z0-9._-]", "", (host or "").strip())
+    return clean.strip(".-") or "nixos"
+
+
+def bundle(payload):
+    """The three files as one .tar.gz, for the Download all three button.
+
+    tar.gz rather than zip because of who is on the other end: NixOS ships
+    gnutar and gzip in the default system path and does not ship unzip, so
+    `tar -xzf` is a command that works on a fresh install and `unzip` is one
+    that sends you to look for a package first.
+
+    Everything is inside a directory named after the host, so extracting it
+    cannot land a configuration.nix on top of one already sitting in the
+    directory somebody happened to be in. The names are this side's, not the
+    request's, for the same reason.
+
+    Deterministic: fixed mtimes and modes, so the same three files produce the
+    same bytes and a diff of two downloads is about their contents.
+    """
+    files = payload.get("files") or {}
+    root = bundle_name(payload.get("host"))
+    buf = io.BytesIO()
+    # mtime=0 in the gzip header too — the default writes the current time,
+    # which would make every download differ from the last one.
+    with gzip.GzipFile(filename="", mode="wb", fileobj=buf, mtime=0) as gz:
+        with tarfile.open(fileobj=gz, mode="w") as tar:
+            for name in BUNDLE_FILES:
+                raw = (files.get(name) or "").encode("utf-8")
+                info = tarfile.TarInfo(f"{root}/{name}")
+                info.size = len(raw)
+                info.mtime = 0
+                info.mode = 0o644
+                info.uid = info.gid = 0
+                info.uname = info.gname = "root"
+                tar.addfile(info, io.BytesIO(raw))
+    return root, buf.getvalue()
+
+
 # ---------------------------------------------------------------- http plumbing
 
 class Handler(BaseHTTPRequestHandler):
@@ -705,6 +757,16 @@ class Handler(BaseHTTPRequestHandler):
             return self._json({"removed": removed, "bytes": freed})
         if u.path == "/api/validate":
             return self._json(validate(payload.get("text", "")))
+        if u.path == "/api/bundle":
+            root, raw = bundle(payload)
+            self.send_response(200)
+            self.send_header("Content-Type", "application/gzip")
+            self.send_header("Content-Length", str(len(raw)))
+            self.send_header("Content-Disposition",
+                             f'attachment; filename="{root}.tar.gz"')
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            return self.wfile.write(raw)
         return self._send(404, b"not found", "text/plain")
 
     def _file(self, name, ctype):

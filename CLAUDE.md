@@ -201,6 +201,14 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   what clears them. They name the tabs and buttons rather than where things sit
   — the panes stack and swap on a narrow screen, and "on the left" would be
   wrong exactly where a first-timer cannot afford it.
+- **The archive is a `.tar.gz` inside a directory, and both halves matter.**
+  `tar` and `gzip` are in the NixOS default system path and `unzip` is not, so
+  a zip would send someone looking for a package before they could read what
+  they downloaded. The directory is because people extract into whatever
+  directory they are in, and a flat archive would drop a `configuration.nix`
+  on top of one already there. `bundle_name` in `server.py` and `bundleName`
+  in `app.js` are the same rule twice — the client prints the command, the
+  server names the file, and a mismatch means the printed command is wrong.
 - **Every grid track and flex item that can hold wide content needs
   `minmax(0, …)` or `min-width: 0`.** Both refuse to go narrower than their
   contents by default, so one long line widens the page instead of scrolling

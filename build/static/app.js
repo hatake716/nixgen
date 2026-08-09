@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-09x';
+const BUILD = '2026-08-09y';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -529,6 +529,7 @@ function showFile(name) {
   $$('.filetabs .tab').forEach(x =>
     x.setAttribute('aria-selected', String(x.dataset.file === name)));
   $('#btn-dl').textContent = 'Download ' + name;
+  $('#btn-copy').hidden = name === ALL;   // there is nothing here to paste
   paintCode(currentText());
 }
 
@@ -1367,7 +1368,48 @@ function flashCard(path) {
 
 let renderTimer, generatedText = '';
 
+const ALL = 'all three';
+
+/* The name the archive and its directory get, kept in step with bundle_name()
+   in server.py — the client shows it before the download and the server is
+   what decides it, so the two have to agree or the command printed here names
+   a file that did not arrive. */
+function bundleName() {
+  const clean = ($('#s-host').value || '').trim()
+    .replace(/[^A-Za-z0-9._-]/g, '').replace(/^[.-]+|[.-]+$/g, '');
+  return clean || 'nixos';
+}
+
+/* What the `all three` tab shows. Every line is a comment, so the pane
+   highlights it like the files either side of it and Check syntax has nothing
+   to trip over. What it does not hold is said outright: the fourth file in
+   that directory is the machine's own and nixgen never touches it. */
+function bundleSummary() {
+  const n = bundleName();
+  return `# Download all three — one file holding the three nixgen wrote.
+#
+#   ${n}.tar.gz
+#   \`-- ${n}/
+#       |-- configuration.nix   the half you write by hand
+#       |-- flake.nix           the way in to the whole system
+#       \`-- generated.nix       what you built here
+#
+# Unpack it where you want the three to end up:
+#
+#   tar -xzf ${n}.tar.gz
+#
+# tar and gzip are on a NixOS install already; unzip is not, which is why
+# this is not a .zip.
+#
+# hardware-configuration.nix is not in here. It was written when you
+# installed and describes this machine's disks — keep the one you have.
+#
+# Check syntax on this tab parses all three.
+`;
+}
+
 function currentText() {
+  if (state.file === ALL) return bundleSummary();
   return state.file === 'generated.nix'
     ? generatedText
     : (state.starter[state.file] || '');
@@ -1589,23 +1631,67 @@ $('#btn-copy').addEventListener('click', async () => {
   }
 });
 
-$('#btn-dl').addEventListener('click', () => {
-  const blob = new Blob([currentText()], { type: 'text/plain' });
+function saveBlob(blob, name) {
   const a = el('a');
   a.href = URL.createObjectURL(blob);
-  a.download = state.file;
+  a.download = name;
   a.click();
   URL.revokeObjectURL(a.href);
+}
+
+/* The three files are already here; the server builds the archive because
+   Python has tarfile and the browser has nothing that writes a tar. */
+async function downloadBundle() {
+  const n = bundleName();
+  setStatus('Packing…');
+  const res = await fetch('/api/bundle', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      host: $('#s-host').value,
+      files: {
+        'configuration.nix': state.starter['configuration.nix'] || '',
+        'flake.nix': state.starter['flake.nix'] || '',
+        'generated.nix': generatedText,
+      },
+    }),
+  });
+  if (!res.ok) return setStatus('Could not build the archive.', 'bad');
+  saveBlob(await res.blob(), n + '.tar.gz');
+  setStatus(`${n}.tar.gz — three files under ${n}/. Unpack it with ` +
+            `tar -xzf ${n}.tar.gz. hardware-configuration.nix is not in it: ` +
+            `keep the one this machine already has.`, 'ok');
+}
+
+$('#btn-dl').addEventListener('click', () => {
+  if (state.file === ALL) return downloadBundle();
+  saveBlob(new Blob([currentText()], { type: 'text/plain' }), state.file);
 });
+
+const checkText = text => fetch('/api/validate', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ text }),
+}).then(r => r.json());
 
 $('#btn-check').addEventListener('click', async () => {
   setStatus('Checking…');
-  const r = await fetch('/api/validate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text: currentText() }),
-  }).then(r => r.json());
-  setStatus(r.message, r.ok === true ? 'ok' : r.ok === false ? 'bad' : '');
+  if (state.file !== ALL) {
+    const r = await checkText(currentText());
+    return setStatus(r.message, r.ok === true ? 'ok' : r.ok === false ? 'bad' : '');
+  }
+  /* On the archive tab there is no one file to check, so it checks the three
+     that are about to be downloaded and names which of them failed — a report
+     that says only "parses cleanly" would not say what did. */
+  const names = ['generated.nix', 'configuration.nix', 'flake.nix'];
+  const texts = [generatedText, state.starter['configuration.nix'] || '',
+                 state.starter['flake.nix'] || ''];
+  const rs = await Promise.all(texts.map(checkText));
+  if (rs.some(r => r.ok === null)) return setStatus(rs[0].message, '');
+  const bad = names.filter((_, i) => rs[i].ok === false);
+  if (!bad.length) return setStatus('All three parse cleanly.', 'ok');
+  setStatus(bad.map((n, i) => `${n}: ${rs[names.indexOf(n)].message}`)
+              .join('\n'), 'bad');
 });
 
 function setStatus(msg, cls = '') {
