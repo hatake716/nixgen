@@ -372,10 +372,10 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   has no catalogue to check against, and a preset nobody can see or edit is the
   wrong shape for this tool.
 - **A window manager is not a desktop, and a compositor is not either.**
-  `DESKTOPS` holds nine, in three shapes: X plus a greeter plus the desktop
+  `DESKTOPS` holds ten, in three shapes: X plus a greeter plus the desktop
   (GNOME, Plasma, Xfce, Cinnamon, LXQt), the same three with a window manager
-  in the third place (i3), and one option on its own (Hyprland, Sway, and
-  COSMIC's pair). **Hyprland and Sway deliberately get no greeter** — neither
+  in the third place (i3), and one option on its own (Hyprland, Sway, niri, and
+  COSMIC's pair). **Hyprland, Sway and niri deliberately get no greeter** — neither
   ships one, and picking sddm or greetd is a decision about how the machine
   starts rather than something the compositor needs. Where a preset stops
   short, `note`/`note_ja` says why in the status bar; that is the shape to use

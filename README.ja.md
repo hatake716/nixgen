@@ -309,7 +309,7 @@ error: The option `networking.hostName' has conflicting definition values
 
 ### Options — デスクトップ環境を選ぶ
 
-**Options** タブに **Desktop** のプルダウンがあります。GNOME、KDE Plasma、Xfce、Cinnamon、COSMIC、LXQt、Hyprland、Sway、i3 から選ぶと、NixOSマニュアルが挙げている項目が追加されます。追加されるのは**通常のオプションと同じ**なので、あとから変更も削除もできます。
+**Options** タブに **Desktop** のプルダウンがあります。GNOME、KDE Plasma、Xfce、Cinnamon、COSMIC、LXQt、Hyprland、Sway、niri、i3 から選ぶと、NixOSマニュアルが挙げている項目が追加されます。追加されるのは**通常のオプションと同じ**なので、あとから変更も削除もできます。
 
 **すべてが同じ形ではありません。違いは意図的なものです。**
 
@@ -318,9 +318,9 @@ error: The option `networking.hostName' has conflicting definition values
 | GNOME・Plasma・Xfce・Cinnamon・LXQt | Xサーバー、ログイン画面、デスクトップ本体 |
 | i3 | Xサーバー、ログイン画面、ウィンドウマネージャ |
 | COSMIC | 自前のログイン画面とデスクトップ本体。Wayland なので `services.xserver.enable` に相当するものがありません |
-| Hyprland・Sway | 1項目ずつ |
+| Hyprland・Sway・niri | 1項目ずつ |
 
-Hyprland と Sway は**ログイン画面を持ちません。** nixgen も勝手には選びません。**マシンの起動の仕方に関わる判断**であって、コンポジタが必要としている設定ではないからです。テキストコンソールでログインして起動するか、`sddm`(Wayland を有効に)や `greetd` を自分で足してください。追加したときにステータス欄でも案内します。
+Hyprland・Sway・niri は**ログイン画面を持ちません。** nixgen も勝手には選びません。**マシンの起動の仕方に関わる判断**であって、コンポジタが必要としている設定ではないからです。テキストコンソールでログインして起動するか、`sddm`(Wayland を有効に)や `greetd` を自分で足してください。追加したときにステータス欄でも案内します。
 
 i3 は**何も無い画面で起動**し、初回に設定ファイルを作るか尋ねてきます。タイル型の使い勝手をどうするかは、ここでは一切決めていません。
 

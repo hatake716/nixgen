@@ -9,6 +9,17 @@ option counts.
 
 ## English
 
+### build 2026-08-10s
+
+- **niri too** — a scrollable-tiling Wayland compositor. Ten desktops now, and
+  like Hyprland and Sway it is one option and no greeter.
+- Its module brings its own portals, so Flatpak and screen sharing work without
+  the Flatpak row's GTK one. **X11 applications need `xwayland-satellite`**,
+  which is a package rather than a setting — the status bar says so, since no
+  option in the form covers it.
+- Evaluated as an actual NixOS system at the indexed revision: the session comes
+  out as `niri-26.04`.
+
 ### build 2026-08-10r
 
 - **Four more in the Desktop dropdown**: LXQt, Hyprland, Sway and i3. Nine now.
@@ -651,6 +662,12 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10s
+
+- **niri も追加しました。** スクロール式タイリングの Wayland コンポジタです。デスクトップは10種類になりました。Hyprland や Sway と同じく**1項目のみで、ログイン画面は付けません。**
+- niri のモジュールは**自前で portal を用意します**。Flatpak の行で入る GTK 版が無くても、Flatpak や画面共有が動きます。**X11 のアプリを動かすには `xwayland-satellite` が必要**で、これは設定ではなく**パッケージ**です。フォームのどのオプションにも当たらないので、ステータス欄で案内します。
+- 索引と同じリビジョンで**実際の NixOS システムとして評価**しました。セッションは `niri-26.04` として登録されます。
 
 ### build 2026-08-10r
 

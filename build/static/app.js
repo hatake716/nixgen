@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-10r';
+const BUILD = '2026-08-10s';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -829,6 +829,18 @@ const DESKTOPS = {
              'ログインして Hyprland を実行するか、Options タブで' +
              'services.displayManager.sddm.enable(wayland を有効に)や greetd を' +
              '足してください。' },
+  niri: { label: 'niri', roles: [
+    ['programs.niri.enable'],
+  ],
+    note: 'niri brings no greeter: log in on a text console and run niri, or ' +
+          'add one — services.displayManager.sddm.enable with its wayland ' +
+          'option, or greetd — under Options. X11 applications need ' +
+          'xwayland-satellite, which is a package rather than a setting.',
+    note_ja: 'niri はログイン画面を持ちません。テキストコンソールでログインして ' +
+             'niri を実行するか、Options タブで ' +
+             'services.displayManager.sddm.enable(wayland を有効に)や greetd を' +
+             '足してください。X11 のアプリを動かすには xwayland-satellite が' +
+             '必要です。これは設定ではなくパッケージです。' },
   sway: { label: 'Sway', roles: [
     ['programs.sway.enable'],
   ],

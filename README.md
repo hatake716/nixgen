@@ -384,7 +384,7 @@ NVIDIA driver is regularly a few weeks behind a brand-new release. Run
 ### Options — picking a desktop
 
 Under **Options** there is a **Desktop** dropdown: GNOME, KDE Plasma, Xfce,
-Cinnamon, COSMIC, LXQt, Hyprland, Sway or i3. Each adds the settings the NixOS
+Cinnamon, COSMIC, LXQt, Hyprland, Sway, niri or i3. Each adds the settings the NixOS
 manual lists for it, as ordinary options you can then change or remove like any
 other.
 
@@ -395,9 +395,9 @@ other.
 | GNOME, Plasma, Xfce, Cinnamon, LXQt | the X server, a greeter, the desktop |
 | i3 | the X server, a greeter, the window manager |
 | COSMIC | its own greeter and the desktop — it is Wayland, so there is no `services.xserver.enable` to set |
-| Hyprland, Sway | one option each |
+| Hyprland, Sway, niri | one option each |
 
-Hyprland and Sway **bring no greeter**, and nixgen does not pick one for you:
+Hyprland, Sway and niri **bring no greeter**, and nixgen does not pick one for you:
 that is a decision about how your machine starts, not something the compositor
 needs. Log in on a text console and run it, or add `sddm` (with its Wayland
 option) or `greetd` yourself. The status bar says so when you add one.
