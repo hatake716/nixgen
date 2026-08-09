@@ -337,6 +337,12 @@ def to_widget_value(node, kind, value, source):
         if kind == "packages":
             return (True, value) if inner == "package" else (False, None)
         if kind == "list":
+            # An empty list fits any list type. `[ ]` carries no evidence of
+            # what it would have held, and reading it as "not a list of
+            # packages" left an empty environment.systemPackages sitting in
+            # the file as an expression, with no way to add anything to it.
+            if not value:
+                return True, []
             if inner in _SCALARS or inner in ("bool", "int", "float"):
                 return True, value
         return False, None
