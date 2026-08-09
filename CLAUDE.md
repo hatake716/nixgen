@@ -193,6 +193,12 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
 - **The directory listing in the steps is ASCII, not box drawing.** `--mono`
   falls back to a proportional face for `├─└` on some machines, and a tree
   whose columns do not line up is worse than no tree.
+- **The desktops' own apps are in `APPS` so they can be taken apart from the
+  desktop**, not so they get installed twice — enabling GNOME, Plasma or Xfce
+  already brings them. Which ones they are came from diffing three evaluated
+  systems against a bare one and dropping the session and theme plumbing;
+  that is the only way to get the list right, and it is how `kwrite` turned
+  out to have no attribute of its own (nixpkgs ships it inside `kate`).
 - **What `APPS` will not carry: anything tied to one machine.** It grew from a
   real configuration, which is the right source — but half of any real
   configuration is GPU tooling, microcode, panel plugins and hand-written

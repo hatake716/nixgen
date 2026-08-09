@@ -9,6 +9,18 @@ option counts.
 
 ## English
 
+### build 2026-08-09q
+
+- **The apps GNOME, Plasma and Xfce ship are in the categories now** — 151
+  packages across 12. Not so they get installed twice: enabling a desktop
+  already brings its own. So that you can take one without the desktop it
+  belongs to, which is the usual reason to want `gwenview` on Xfce or
+  `gnome-calculator` on Plasma.
+- Which apps those are was read out of three evaluated systems rather than
+  recalled: what each desktop adds over a bare one, minus the session and
+  theme plumbing. That is also how `kwrite` got left out — nixpkgs ships it
+  inside `kate`, so there is no attribute to offer.
+
 ### build 2026-08-09p
 
 - **A graphics dropdown next to the desktop and language ones**: AMD, Intel or
@@ -307,6 +319,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-09q
+
+- **GNOME・Plasma・Xfce の標準アプリを各カテゴリに入れました。** 12カテゴリ151パッケージになりました。**二重にインストールするためではありません** — デスクトップを有効にすれば標準アプリは既に入ります。**そのデスクトップを使わずに、アプリだけ取れるようにするため**です。Xfce で `gwenview` を使いたい、Plasma で `gnome-calculator` を使いたい、といった場合です。
+- どれが標準アプリなのかは、**評価済みの3システムから読み出しました。** 記憶ではありません。各デスクトップが素のシステムに追加するものから、セッションとテーマの土台を除いた差分です。`kwrite` を外したのもこの過程で分かったことで、**nixpkgs では kate に同梱**されており、提示できる属性名が存在しません。
 
 ### build 2026-08-09p
 
