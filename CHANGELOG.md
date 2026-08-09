@@ -9,6 +9,15 @@ option counts.
 
 ## English
 
+### build 2026-08-10h
+
+- **`vscode` is in the Development category**, next to `vscodium`. 184 packages
+  across 12 categories, 143 of them with an icon here.
+- They are the same editor: `vscodium` is built from the same source without
+  Microsoft's branding and telemetry, `vscode` is Microsoft's own build and is
+  **unfree** — its row says so and the status bar says it again, because
+  without `nixpkgs.config.allowUnfree = true;` the build refuses it.
+
 ### build 2026-08-10g
 
 - **Packages have their icons in the list now**, in the categories and in
@@ -521,6 +530,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10h
+
+- **開発カテゴリに `vscode` を追加しました。** `vscodium` の隣です。12分野184パッケージになり、うち143個にアイコンが出ます(この環境の場合)。
+- 中身は同じエディタです。`vscodium` は**同じソースから、Microsoftのブランドとテレメトリを外して**ビルドしたもの、`vscode` は**Microsoft自身のビルドで unfree** です。行にもその表示が出ますし、ステータス欄にも改めて出ます。`nixpkgs.config.allowUnfree = true;` が無いと**ビルドが拒否される**ためです。
 
 ### build 2026-08-10g
 

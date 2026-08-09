@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-10g';
+const BUILD = '2026-08-10h';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -612,6 +612,10 @@ function packageIcon(attr) {
   for (const ch of attr) hash = (hash * 31 + ch.codePointAt(0)) % 360;
   const tile = el('span', 'pkgicon');
   const letter = el('span', 'letter', name[0] ? name[0].toUpperCase() : '?');
+  // Decorative: it stands in for a picture, and a screen reader announcing
+  // "C cosmic-term" — or a copied row carrying a stray letter — is not what
+  // the tile is for.
+  letter.setAttribute('aria-hidden', 'true');
   tile.style.background = `hsl(${hash}, 42%, 88%)`;
   tile.style.color = `hsl(${hash}, 38%, 32%)`;
   tile.appendChild(letter);
@@ -1030,7 +1034,11 @@ const APPS = {
             'kdePackages.kinfocenter', 'gnome-logs', 'solaar', 'piper',
             'remmina', 'gnome-connections', 'virt-viewer',
             'kdePackages.discover'],
-  dev:     ['git', 'neovim', 'helix', 'kdePackages.kate', 'vscodium', 'gh',
+  // vscode is Microsoft's build and unfree; vscodium is the same editor built
+  // from the same source without their telemetry and branding. Both are here
+  // because people ask for them by different names, and the unfree one says so
+  // on its row and again in the status bar.
+  dev:     ['git', 'neovim', 'helix', 'kdePackages.kate', 'vscode', 'vscodium', 'gh',
             'direnv', 'tmux', 'gcc', 'clang', 'rustc', 'cargo', 'claude-code',
             'opencode', 'bash-language-server'],
 };
