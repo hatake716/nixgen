@@ -9,6 +9,20 @@ option counts.
 
 ## English
 
+### Documentation, 2026-08-10
+
+- **The README walks through the app in the order you use it.** The sections
+  were grouped by subject, so the starter files came after the dropdowns and
+  the app opens on the tab the README described eighth. They are named for the
+  tab they belong to now — Setup, Options, Packages, Check syntax, Download all
+  three — and they run in that order.
+- **The homepage leads with the same five steps**, right after the first
+  screenshot, in both languages.
+- **35 visible gaps in the homepage's Japanese are gone.** A line break between
+  two Japanese characters is whitespace and the browser draws it as a space, and
+  the page had been wrapped like English prose since it was written. Only
+  rendering the page shows this; the source looks fine.
+
 ### build 2026-08-10c
 
 - **The five steps are the order to work in now**: Setup, then Options, then
@@ -447,6 +461,12 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### ドキュメント 2026-08-10
+
+- **READMEを、実際に使う順序どおりに並べ替えました。** 内容ごとの分類だったため、**スターターファイルの説明がプルダウンの後**に来ており、アプリが最初に開くタブの説明が**8番目**にありました。各節は所属するタブの名前になり(Setup・Options・Packages・Check syntax・Download all three)、その順に並んでいます。
+- **ホームページも、最初のスクリーンショットの直後に同じ5手順を置きました。** 英語・日本語の両方です。
+- **ホームページの日本語に出ていた空白35箇所を消しました。** 日本語と日本語の間の改行は空白文字で、ブラウザはそれを**スペースとして描画します**。このページは英文と同じ感覚で折り返されたまま書かれていました。**実際に描画しないと分からない**種類の問題で、ソースを読んでも気づけません。
 
 ### build 2026-08-10c
 

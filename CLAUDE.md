@@ -195,6 +195,10 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   `index.html` rather than being wrapped like the English. And a space before a
   Japanese character is only right when what precedes it is Latin: `</b> 何も`
   showed a gap mid-sentence, `</b> <b class="w">Setup</b>` does not.
+  **`docs/index.html` is held to the same two rules.** Its Japanese had been
+  wrapped like prose since it was written — 35 visible gaps' worth. The check is
+  to render the page and look for a space between two Japanese characters;
+  reading the source will not show it to you.
 - **The five steps live where the module will be.** Nothing is stored between
   visits, so anything with a dismiss button would ask to be dismissed on every
   launch; putting the steps in the empty module pane means adding a setting is

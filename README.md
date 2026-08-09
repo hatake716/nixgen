@@ -248,150 +248,7 @@ You can go back to any tab at any time; the order is where to start, not a door
 that shuts behind you. Add anything and that panel becomes the thing you added.
 What follows is the longer version.
 
-### Finding things
-
-Nobody can scroll through 24,557 entries, so **search is the way in.**
-
-Type a service name and the setting you want is normally at the top. `firewall`
-puts `networking.firewall.enable` first; `ssh` puts `services.openssh.enable`
-first.
-
-The tabs run **Setup**, **Options** (settings), **Packages** (software) — in the order you would use them on a new machine. Setup is where the app opens; click **Options** to start searching.
-Anything you pick under Packages is added to the list of programs to install.
-
-### Common apps
-
-Under **Packages** there is a **Common apps** dropdown. Its entries name each
-kind in English and in Japanese — `Audio and video — マルチメディア` — because
-kinds of software are what machine translation gets worst, and browsers were
-turning that one into "music and video" for a category holding audacity and
-pavucontrol. They are marked so a translator leaves them alone.
-
-The twelve are: browsers, mail, office,
-audio and video, graphics, games, chat and sync, accessories, file managers,
-terminals, system tools, development. Picking a category fills the result list with a handful of packages, which you then add by
-clicking, exactly like a search hit. Nothing is installed for you.
-
-It is a short pick, not a catalogue — the one place in the tool where somebody
-else's taste decides what you see, so it stays small. Search for anything else.
-
-The apps all five desktops ship are in there too — GNOME, Plasma, Xfce,
-Cinnamon and COSMIC. Not so they get installed twice — enabling a desktop
-already brings its own — but so you can take one without the desktop it came
-from, which is the usual reason to want `gwenview` on Xfce, `cosmic-term` on
-GNOME or `gnome-calculator` on Plasma.
-
-What is left out is the other side of the same line: `cosmic-settings` and the
-mint themes are nothing without the desktop they belong to, so they are not
-offered.
-
-Every name is looked up in the catalogue for your channel, which is not a
-formality: `kdenlive` is really `kdePackages.kdenlive`, `0ad` is `zeroad`, and
-`superTuxKart` became `supertuxkart` between 25.11 and 26.05. Anything your
-channel does not have simply is not listed.
-
-Steam is in the games list, and picking it says so in the status bar: it runs
-from the package, but `programs.steam.enable` under **Options** is the fuller
-way — that is what puts the 32-bit graphics drivers in place, and it can open
-the remote-play ports for you.
-
-### Picking a kernel
-
-**Options** has a **Kernel** dropdown: standard, latest, LTS or Zen. It writes
-`boot.kernelPackages`, which is a raw option — its value is a Nix expression
-rather than anything a form can hold — so what lands in the module is the
-expression, in a box you can edit.
-
-Each name is looked up in the package index before it is written, and the
-status line names the version it found, so `LTS` says `linux 6.12.102` rather
-than leaving you to guess which series that was. There is no
-`linuxPackages_lts` in nixpkgs; LTS is a list of series, newest first, and the
-first one this channel still ships is what comes out.
-
-Standard is what you get without the setting. **Latest and Zen move**, and an
-out-of-tree module has to be built against whatever kernel is running — the
-NVIDIA driver is regularly a few weeks behind a brand-new release. Run
-`nixos-rebuild dry-build` before you switch.
-
-### Picking a desktop
-
-Under **Options** there is a **Desktop** dropdown: GNOME, KDE Plasma, Xfce,
-Cinnamon or COSMIC. Each adds the settings the NixOS manual lists for it, as
-ordinary options you can then change or remove like any other.
-
-Four of them are three settings: the X server, a greeter and the desktop.
-**COSMIC is two**, and the difference is not an oversight — it is Wayland, so
-there is no `services.xserver.enable` to set, and it brings its own greeter.
-
-The names are the reason it is there. `gdm` and `sddm` have moved out of
-`services.xserver` and **`lightdm` has not**; `gnome` and `plasma6` have moved
-out and **`xfce` has not** — nor has `cinnamon`; `plasma5` is gone. nixgen looks
-each part up in the catalogue for the channel you are on, so you get the name
-that exists rather than the one that used to.
-
-Ticking *Hide options that need hand-written Nix* narrows the list to **the
-settings that have a proper input field** — 88.3% of them. The rest need you to
-write a piece of Nix yourself, and hiding them keeps things simpler while you
-are learning.
-
-Package lists come out in alphabetical order — on import, and as you add to
-them. Nix does not care about the order, but a sorted list is far easier to
-read and produces a much smaller diff when you change one entry.
-
-### Picking a graphics driver
-
-**Options** has a **Graphics** dropdown too: AMD, Intel or NVIDIA. Each turns on
-`hardware.graphics` and its 32-bit half — that second one is what Steam and wine
-need — and then does only what the card actually requires.
-
-Intel also gets a VAAPI driver, because hardware video decoding does not work
-without one. AMD gets nothing further: mesa already carries it. NVIDIA names its
-X driver, turns on modesetting, and sets `hardware.nvidia.open = false`, the
-proprietary kernel module, which works on every card the driver supports.
-
-`services.xserver.videoDrivers` is set for NVIDIA only. The default is
-`modesetting`, and on any current kernel that is the right answer for AMD and
-Intel.
-
-**The NVIDIA driver is unfree.** Picking it says so and keeps saying so — set
-`nixpkgs.config.allowUnfree = true;` or the build refuses.
-
-### Picking a language
-
-The last of the four dropdowns under **Options** is **Language**: English,
-Japanese, French, German, Spanish, Korean or Chinese. Picking one sets the
-language up in full — the locale, the keymap the console uses, and the layout X
-uses. For Japanese, Korean and Chinese it also sets up fcitx5 with the right
-input engine, because none of those can be typed without one.
-
-Two things it does not do, both deliberately. Fonts: GNOME, Plasma and Xfce all
-ship the CJK and emoji fonts already, so there is nothing to add. And the time
-zone: a language is not a place, so nothing here guesses `Asia/Tokyo` from
-Japanese — search for `timeZone` under **Options** and set it yourself.
-
-### Loading your existing configuration.nix
-
-Press **Import configuration.nix** and pick your file. Your current settings
-appear in the form. **The file you choose is only ever read, never written to.**
-
-Each setting lands in one of four groups. All four end up in the output, so
-nothing is lost:
-
-| Group | What it means |
-|---|---|
-| **Filled into the form** | Turned into an editable field. Most settings land here |
-| **Verbatim — module structure** | Lines like `imports`. Not settings as such, but removing them would stop your other files from being read, so they are copied across |
-| **Verbatim — an expression** | Things like `lib.mkIf ...`, where the value depends on a condition. A form cannot express that, so it is copied exactly as written |
-| **Verbatim — not in this release** | Settings that were removed or renamed when NixOS moved on |
-
-**Copied lines are shown in a different colour** and carry a `# verbatim` note
-at the end, so you can still spot them after downloading.
-
-Watch the fourth group especially. **A setting that no longer exists will be
-rejected by `nixos-rebuild`.** Keeping it and highlighting it is the point —
-so you notice.
-
-### Starter files for a new machine
+### Setup — starter files for a new machine
 
 For when you have just installed NixOS and do not have a `flake.nix` yet.
 
@@ -448,6 +305,28 @@ Everything in them is editable from the screen:
 **Unticking something removes its lines entirely** rather than commenting them
 out, so the file stays as short as what you actually asked for.
 
+### Setup — reading in the configuration.nix you already have
+
+Press **Import configuration.nix** and pick your file. Your current settings
+appear in the form. **The file you choose is only ever read, never written to.**
+
+Each setting lands in one of four groups. All four end up in the output, so
+nothing is lost:
+
+| Group | What it means |
+|---|---|
+| **Filled into the form** | Turned into an editable field. Most settings land here |
+| **Verbatim — module structure** | Lines like `imports`. Not settings as such, but removing them would stop your other files from being read, so they are copied across |
+| **Verbatim — an expression** | Things like `lib.mkIf ...`, where the value depends on a condition. A form cannot express that, so it is copied exactly as written |
+| **Verbatim — not in this release** | Settings that were removed or renamed when NixOS moved on |
+
+**Copied lines are shown in a different colour** and carry a `# verbatim` note
+at the end, so you can still spot them after downloading.
+
+Watch the fourth group especially. **A setting that no longer exists will be
+rejected by `nixos-rebuild`.** Keeping it and highlighting it is the point —
+so you notice.
+
 ### When the same setting appears in both files
 
 The starter `configuration.nix` and `generated.nix` can end up setting the same
@@ -466,7 +345,128 @@ error: The option `networking.hostName' has conflicting definition values
 
 Delete the line from whichever file you do not want it in.
 
-### What "Check syntax" can and cannot tell you
+### Options — finding things
+
+Nobody can scroll through 24,557 entries, so **search is the way in.**
+
+Type a service name and the setting you want is normally at the top. `firewall`
+puts `networking.firewall.enable` first; `ssh` puts `services.openssh.enable`
+first.
+
+The tabs run **Setup**, **Options** (settings), **Packages** (software) — in the order you would use them on a new machine. Setup is where the app opens; click **Options** to start searching.
+Anything you pick under Packages is added to the list of programs to install.
+
+### Options — picking a kernel
+
+**Options** has a **Kernel** dropdown: standard, latest, LTS or Zen. It writes
+`boot.kernelPackages`, which is a raw option — its value is a Nix expression
+rather than anything a form can hold — so what lands in the module is the
+expression, in a box you can edit.
+
+Each name is looked up in the package index before it is written, and the
+status line names the version it found, so `LTS` says `linux 6.12.102` rather
+than leaving you to guess which series that was. There is no
+`linuxPackages_lts` in nixpkgs; LTS is a list of series, newest first, and the
+first one this channel still ships is what comes out.
+
+Standard is what you get without the setting. **Latest and Zen move**, and an
+out-of-tree module has to be built against whatever kernel is running — the
+NVIDIA driver is regularly a few weeks behind a brand-new release. Run
+`nixos-rebuild dry-build` before you switch.
+
+### Options — picking a desktop
+
+Under **Options** there is a **Desktop** dropdown: GNOME, KDE Plasma, Xfce,
+Cinnamon or COSMIC. Each adds the settings the NixOS manual lists for it, as
+ordinary options you can then change or remove like any other.
+
+Four of them are three settings: the X server, a greeter and the desktop.
+**COSMIC is two**, and the difference is not an oversight — it is Wayland, so
+there is no `services.xserver.enable` to set, and it brings its own greeter.
+
+The names are the reason it is there. `gdm` and `sddm` have moved out of
+`services.xserver` and **`lightdm` has not**; `gnome` and `plasma6` have moved
+out and **`xfce` has not** — nor has `cinnamon`; `plasma5` is gone. nixgen looks
+each part up in the catalogue for the channel you are on, so you get the name
+that exists rather than the one that used to.
+
+Ticking *Hide options that need hand-written Nix* narrows the list to **the
+settings that have a proper input field** — 88.3% of them. The rest need you to
+write a piece of Nix yourself, and hiding them keeps things simpler while you
+are learning.
+
+Package lists come out in alphabetical order — on import, and as you add to
+them. Nix does not care about the order, but a sorted list is far easier to
+read and produces a much smaller diff when you change one entry.
+
+### Options — picking a graphics driver
+
+**Options** has a **Graphics** dropdown too: AMD, Intel or NVIDIA. Each turns on
+`hardware.graphics` and its 32-bit half — that second one is what Steam and wine
+need — and then does only what the card actually requires.
+
+Intel also gets a VAAPI driver, because hardware video decoding does not work
+without one. AMD gets nothing further: mesa already carries it. NVIDIA names its
+X driver, turns on modesetting, and sets `hardware.nvidia.open = false`, the
+proprietary kernel module, which works on every card the driver supports.
+
+`services.xserver.videoDrivers` is set for NVIDIA only. The default is
+`modesetting`, and on any current kernel that is the right answer for AMD and
+Intel.
+
+**The NVIDIA driver is unfree.** Picking it says so and keeps saying so — set
+`nixpkgs.config.allowUnfree = true;` or the build refuses.
+
+### Options — picking a language
+
+The last of the four dropdowns under **Options** is **Language**: English,
+Japanese, French, German, Spanish, Korean or Chinese. Picking one sets the
+language up in full — the locale, the keymap the console uses, and the layout X
+uses. For Japanese, Korean and Chinese it also sets up fcitx5 with the right
+input engine, because none of those can be typed without one.
+
+Two things it does not do, both deliberately. Fonts: GNOME, Plasma and Xfce all
+ship the CJK and emoji fonts already, so there is nothing to add. And the time
+zone: a language is not a place, so nothing here guesses `Asia/Tokyo` from
+Japanese — search for `timeZone` under **Options** and set it yourself.
+
+### Packages — common apps
+
+Under **Packages** there is a **Common apps** dropdown. Its entries name each
+kind in English and in Japanese — `Audio and video — マルチメディア` — because
+kinds of software are what machine translation gets worst, and browsers were
+turning that one into "music and video" for a category holding audacity and
+pavucontrol. They are marked so a translator leaves them alone.
+
+The twelve are: browsers, mail, office,
+audio and video, graphics, games, chat and sync, accessories, file managers,
+terminals, system tools, development. Picking a category fills the result list with a handful of packages, which you then add by
+clicking, exactly like a search hit. Nothing is installed for you.
+
+It is a short pick, not a catalogue — the one place in the tool where somebody
+else's taste decides what you see, so it stays small. Search for anything else.
+
+The apps all five desktops ship are in there too — GNOME, Plasma, Xfce,
+Cinnamon and COSMIC. Not so they get installed twice — enabling a desktop
+already brings its own — but so you can take one without the desktop it came
+from, which is the usual reason to want `gwenview` on Xfce, `cosmic-term` on
+GNOME or `gnome-calculator` on Plasma.
+
+What is left out is the other side of the same line: `cosmic-settings` and the
+mint themes are nothing without the desktop they belong to, so they are not
+offered.
+
+Every name is looked up in the catalogue for your channel, which is not a
+formality: `kdenlive` is really `kdePackages.kdenlive`, `0ad` is `zeroad`, and
+`superTuxKart` became `supertuxkart` between 25.11 and 26.05. Anything your
+channel does not have simply is not listed.
+
+Steam is in the games list, and picking it says so in the status bar: it runs
+from the package, but `programs.steam.enable` under **Options** is the fuller
+way — that is what puts the 32-bit graphics drivers in place, and it can open
+the remote-play ports for you.
+
+### Check syntax — what it can and cannot tell you
 
 The **Check syntax** button finds places where the file is **broken as Nix** —
 an unclosed bracket, a missing semicolon.
@@ -477,6 +477,22 @@ belongs and this check will still pass.
 Only `sudo nixos-rebuild dry-build` can tell you that. **Always run it before
 applying.**
 
+### Download all three — the last step
+
+When **Check syntax** comes back clean, press **Download all three** and unpack
+the archive into `/etc/nixos` beside the `hardware-configuration.nix` that is
+already there. The archive and what is in it are described under
+[Setup](#setup--starter-files-for-a-new-machine) above.
+
+```bash
+sudo nixos-rebuild dry-build
+```
+
+**Switch only if that is clean.** If you only want `generated.nix` — because
+your `configuration.nix` and `flake.nix` are your own — take it from its file
+tab instead, and add `./generated.nix` to `imports` as in
+[Step 4](#step-4--use-the-file-it-made) above.
+
 ### Reading it in another language
 
 The screen is an ordinary web page, so your browser's translation works on it.
@@ -486,7 +502,7 @@ In Chrome, right-click and choose *Translate to…*.
 contents of the generated file stay in English — a translated
 `services.openssh.enable` would no longer be a valid setting.
 
-### Options when starting it
+### Command-line options
 
 ```bash
 nixgen                       # same as nix run github:hatake716/nixgen
