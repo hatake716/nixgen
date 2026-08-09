@@ -9,6 +9,23 @@ option counts.
 
 ## English
 
+### build 2026-08-09p
+
+- **A graphics dropdown next to the desktop and language ones**: AMD, Intel or
+  NVIDIA. Each turns on `hardware.graphics` and its 32-bit half, which is what
+  Steam and wine need, and then does only what that card actually requires.
+- **Intel** also gets a VAAPI driver, because hardware video decoding does not
+  work without one. **AMD** gets nothing further — mesa already carries what it
+  needs. **NVIDIA** names its X driver, turns on modesetting, and sets
+  `hardware.nvidia.open = false`, the proprietary kernel module, which works on
+  every card the driver supports.
+- **`services.xserver.videoDrivers` is set for NVIDIA only.** That is not an
+  oversight: the default is `modesetting`, which is right for AMD and Intel on
+  any current kernel, and forcing the amdgpu X driver instead has no upside.
+- **Choosing NVIDIA now says the driver is unfree**, and keeps saying it. The
+  existing reminder only watches `environment.systemPackages`, and this arrives
+  through a module — without `allowUnfree` the build refuses outright.
+
 ### build 2026-08-09o
 
 - **The app categories grew, from a real configuration rather than a guess.**
@@ -290,6 +307,13 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-09p
+
+- **デスクトップ・言語の隣に、グラフィックスのプルダウンを追加しました。** AMD・Intel・NVIDIA から選べます。どれを選んでも `hardware.graphics` と32bit側を有効にします(Steam や wine に必要です)。そのうえで、**そのカードに実際に必要なことだけ**を行います。
+- **Intel** には VAAPI ドライバも入れます。これが無いと動画のハードウェアデコードが働かないためです。**AMD** はこれ以上何も足しません。mesa が必要なものを持っているからです。**NVIDIA** はXのドライバ名を指定し、modesetting を有効にし、`hardware.nvidia.open = false`(プロプライエタリのカーネルモジュール)を設定します。**このドライバが対応する全カードで動く選択**です。
+- **`services.xserver.videoDrivers` を設定するのは NVIDIA だけです。** 手抜きではありません。既定の `modesetting` が、現行カーネルの AMD と Intel では正解です。**amdgpu のXドライバを強制しても得るものがありません。**
+- **NVIDIA を選ぶと、ドライバが unfree である旨を表示し続けます。** 既存の unfree 警告は `environment.systemPackages` しか見ておらず、こちらはモジュール経由で入るためです。`allowUnfree` が無いと**ビルドは拒否されます。**
 
 ### build 2026-08-09o
 

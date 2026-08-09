@@ -218,6 +218,18 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   fails at evaluation. It does not matter, because all three desktops already
   ship the CJK and emoji fonts; that was read out of an evaluated system, not
   assumed. **Not the time zone** either: a language is not a place.
+- **The graphics preset sets `videoDrivers` for NVIDIA and nothing else.** The
+  default is `modesetting`, which is correct for AMD and Intel on any current
+  kernel; naming the amdgpu X driver instead is a change with no upside. Intel
+  gets a VAAPI driver because decoding does not work without one, AMD needs
+  nothing beyond mesa, and `hardware.nvidia.open = false` is set rather than
+  left computed — `true` is wrong on anything before Turing.
+- **A warning that must survive belongs in `doRender`, not in the preset that
+  raised it.** The NVIDIA driver is unfree and the existing reminder cannot see
+  it, since that one reads `environment.systemPackages` and this arrives
+  through a module. Said once from the preset, it was wiped by the next render
+  — `doRender` clears a `todo` status when it has no notes of its own. Notes
+  regenerated on every render cannot be lost that way.
 - **The desktop presets name candidates, not paths.** `DESKTOPS` lists a few
   possible names per role and takes the first the catalogue has, because these
   have already moved once and asymmetrically: `gdm` and `sddm` left

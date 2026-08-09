@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-09o';
+const BUILD = '2026-08-09p';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -161,6 +161,7 @@ function selectKind(kind) {
   $('#filterline').style.display = kind === 'options' ? '' : 'none';
   $('#presetline').style.display = kind === 'options' ? '' : 'none';
   $('#langline').style.display = kind === 'options' ? '' : 'none';
+  $('#gpuline').style.display = kind === 'options' ? '' : 'none';
   $('#appsline').style.display = kind === 'packages' ? '' : 'none';
   // Leaving the tab drops the category, so the dropdown never claims to be
   // describing a list that has since been replaced by a search.
@@ -741,6 +742,73 @@ $('#btn-lang').addEventListener('click', () => {
   if (key) addLanguage(key);
 });
 
+/* Graphics. `hardware.graphics.enable` is the part every card needs, and
+   enable32Bit is what makes Steam and wine work, so both go in whatever you
+   pick.
+
+   `services.xserver.videoDrivers` is set for NVIDIA only, and that is not an
+   oversight. The default is `modesetting`, which is the right answer for AMD
+   and Intel on any current kernel; forcing the amdgpu DDX instead is a change
+   with no upside and a history of regressions. NVIDIA is the one card whose
+   X driver genuinely has to be named.
+
+   Intel gets a VAAPI driver because hardware video decoding does not work
+   without one. AMD does not need it — mesa carries radeonsi — and NVIDIA's
+   is left out, since it only pays off with a browser configured to use it.
+
+   `hardware.nvidia.open` is set explicitly rather than left to its computed
+   default: `false` is the proprietary kernel module, which works on every
+   card the driver supports. `true` is faster to say and wrong on anything
+   before Turing. */
+const GPUS = {
+  amd: { label: 'AMD', extras: [] },
+  intel: { label: 'Intel', extras: ['intel-media-driver'] },
+  nvidia: { label: 'NVIDIA', extras: [], drivers: ['nvidia'],
+            nvidia: true },
+};
+
+async function addGpu(key) {
+  const g = GPUS[key];
+  if (!g) return;
+  const steps = [
+    { paths: ['hardware.graphics.enable', 'hardware.opengl.enable'], value: true },
+    { paths: ['hardware.graphics.enable32Bit', 'hardware.opengl.driSupport32Bit'],
+      value: true },
+  ];
+  if (g.extras.length) {
+    steps.push({ paths: ['hardware.graphics.extraPackages'], value: g.extras });
+  }
+  if (g.drivers) {
+    steps.push({ paths: ['services.xserver.videoDrivers'], value: g.drivers });
+  }
+  if (g.nvidia) {
+    steps.push(
+      { paths: ['hardware.nvidia.modesetting.enable'], value: true },
+      { paths: ['hardware.nvidia.open'], value: false });
+  }
+
+  const added = [], missing = [];
+  for (const step of steps) {
+    const used = await addWithValue(step.paths, step.value);
+    used ? added.push(used) : missing.push(step.paths[0]);
+  }
+  renderEditor();
+  pushRender();
+  // No unfree warning here on purpose — doRender raises it, and keeps
+  // raising it, which a message written once from this side would not.
+  if (missing.length) {
+    setStatus(`${g.label}: added ${added.length}, but this release has no ` +
+              `${missing.join(', ')}. Check the result before applying it.`, 'bad');
+  } else {
+    setStatus(`${g.label}: ${added.length} settings added.`, 'ok');
+  }
+}
+
+$('#btn-gpu').addEventListener('click', () => {
+  const key = $('#s-gpu').value;
+  if (key) addGpu(key);
+});
+
 /* A few representative packages per area, for when you know the kind of thing
    you want but not what it is called here. Every name was checked against the
    catalogue; ones nixpkgs has renamed are simply absent from the result rather
@@ -1269,6 +1337,15 @@ async function doRender() {
   if (unfree.length) {
     notes.push(`${unfree.join(', ')} ${unfree.length > 1 ? 'are' : 'is'} unfree. ` +
                `Set nixpkgs.config.allowUnfree = true; in your configuration.nix.`);
+  }
+  /* The NVIDIA driver is unfree, and the reminder above cannot see it: that
+     one watches environment.systemPackages, and this arrives through a
+     module. It belongs here rather than in a one-off message from the preset,
+     because a note that is regenerated on every render is one that cannot be
+     wiped by the next one — which is exactly what happened when it was. */
+  if (/^\s*hardware\.nvidia\./m.test(res.text)) {
+    notes.push(`The NVIDIA driver is unfree. Set nixpkgs.config.allowUnfree = ` +
+               `true; in your configuration.nix, or the build refuses it.`);
   }
   /* Steam runs from the package, but the module is what puts the 32-bit
      graphics drivers in place and can open the remote-play ports. Saying so

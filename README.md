@@ -269,6 +269,24 @@ from the package, but `programs.steam.enable` under **Options** is the fuller
 way — that is what puts the 32-bit graphics drivers in place, and it can open
 the remote-play ports for you.
 
+### Picking a graphics driver
+
+**Options** has a **Graphics** dropdown too: AMD, Intel or NVIDIA. Each turns on
+`hardware.graphics` and its 32-bit half — that second one is what Steam and wine
+need — and then does only what the card actually requires.
+
+Intel also gets a VAAPI driver, because hardware video decoding does not work
+without one. AMD gets nothing further: mesa already carries it. NVIDIA names its
+X driver, turns on modesetting, and sets `hardware.nvidia.open = false`, the
+proprietary kernel module, which works on every card the driver supports.
+
+`services.xserver.videoDrivers` is set for NVIDIA only. The default is
+`modesetting`, and on any current kernel that is the right answer for AMD and
+Intel.
+
+**The NVIDIA driver is unfree.** Picking it says so and keeps saying so — set
+`nixpkgs.config.allowUnfree = true;` or the build refuses.
+
 ### Picking a language
 
 Next to the desktop dropdown under **Options** is a **Language** one: English,
