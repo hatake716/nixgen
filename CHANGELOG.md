@@ -9,6 +9,14 @@ option counts.
 
 ## English
 
+### build 2026-08-09g
+
+- **The import summary is back above the settings.** After reading a file in,
+  the part that says an option no longer exists in this release — the one thing
+  `nixos-rebuild` refuses outright — had ended up under a screen or two of
+  cards. `environment.systemPackages` still sits at the top of the column the
+  rest of the time; both fit now.
+
 ### Documentation
 
 - **The screenshots are current again.** They had gone three features out of
@@ -177,6 +185,10 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-09g
+
+- **取り込み結果のサマリを、設定項目の上に戻しました。** 設定ファイルを読み込んだあと、**「この版に存在しないオプション」** — `nixos-rebuild` が唯一はっきり拒否する項目 — の表示が、カード1〜2画面分の下に回っていました。`environment.systemPackages` が列の先頭に来る挙動はそのままです。両立させました。
 
 ### ドキュメント
 

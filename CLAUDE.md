@@ -171,6 +171,12 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
 - **Adding a package must not replace the value.** When the list came in
   verbatim, the value is a string; overwriting it with `[]` used to wipe every
   package. `appendToNixList` edits the text.
+- **The import summary is first in the column, and `environment.systemPackages`
+  is first the rest of the time.** Both were wanted and only one can be first in
+  the markup, so `#notice` sits after `#editor` in the DOM and is pulled up with
+  `order: -1` when it has something to say. It was below the module for a while,
+  which put "kept as written: not an option in this release" — the one thing
+  `nixos-rebuild` refuses outright — a screen or two down, where it went unread.
 - No browser storage. State lives in `state` in `app.js`.
 
 > 上記はいずれも「見た目は正しいのに後で壊れる」類の落とし穴です。触る前に一読してください。
@@ -347,10 +353,8 @@ once in ways nothing else caught.
 
 ## Open items
 
-- **The import summary sits below the module, not above it.** `4c8545a` swapped
-  `#notice` and `#editor` to get the package box to the top of the column, which
-  it does — but after reading in a real file the "kept as written: not an option
-  in this release" line is now under a screen or two of cards, and that is the
-  one thing `nixos-rebuild` will refuse to accept. It was a deliberate trade, so
-  it is written down rather than quietly reversed. `#notice:not(:empty) { order:
-  -1 }` on a flex `.pane-body` would give both.
+None outstanding. The list this file carried for a while — unstable support,
+index age, the port message, leftover databases, stale screenshots, the buried
+import summary — is done. When something new goes on it, write down what makes
+it hard, not just what is missing: every one of those was solved by the note
+explaining the obstacle rather than by rediscovering it.

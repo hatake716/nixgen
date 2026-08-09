@@ -253,9 +253,21 @@ pre.nix > span { display: block; padding-left: 3.2em; text-indent: -3.2em; }
    rewrites them); these were block-level divs before. */
 .row .t, .card .path, .card .type, .card .hint { display: block; }
 
-/* Import summary */
+/* Import summary.
+
+   It sits after #editor in the markup so environment.systemPackages is the
+   first thing in the column, and is pulled back above it here when it has
+   something to say. Both were wanted and only one of them can be first in the
+   DOM: after reading a file in, the line reporting an option that is not in
+   this release is the one thing nixos-rebuild will refuse outright, and under
+   a screen of cards is where it went unread. */
+#pane-editor .pane-body { display: flex; flex-direction: column; }
+#pane-editor .pane-body > * { flex: 0 0 auto; }
 #notice { padding: 0 14px; }
-#notice:not(:empty) { padding: 12px 14px; border-top: 1px solid var(--rule); background: var(--panel-2); }
+#notice:not(:empty) {
+  order: -1; padding: 12px 14px;
+  border-bottom: 1px solid var(--rule); background: var(--panel-2);
+}
 .notice { border-left: 3px solid var(--rule); padding: 6px 0 6px 10px; margin-bottom: 8px; }
 .notice.ok   { border-left-color: var(--accent); }
 .notice.warn { border-left-color: var(--signal); }
