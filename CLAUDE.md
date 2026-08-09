@@ -65,6 +65,7 @@ tools/
   import_check.py   the same for the importer, through both of its readers.
   shots.py          retakes docs/screenshot*.png by driving the real app.
 docs/               the GitHub Pages homepage
+.github/workflows/  the checks below, on every push
 ```
 
 Data flow: `channels.nixos.org` → `fetch-data.sh` → `build_index.py` →
@@ -240,6 +241,15 @@ keeping: the random half renders our own options and reads them back, so it can
 only ever produce shapes our renderer emits. `with pkgs; [ python313Packages.requests ]`
 is what a person writes and what broke, and no amount of sampling would have
 reached it. New shapes belong in `CASES`.
+
+**All of the above runs on every push**, from `.github/workflows/checks.yml`,
+through `nix develop` so that CI and this checklist are the same commands in
+the same shell. The index is built once a week and cached; there is no
+restore-key on purpose, because a fallback would mean it never refreshed, and
+a stale catalogue is the one thing these harnesses cannot notice.
+
+The one documented check CI does not run is the starter evaluation below — it
+needs four hand-made files, and turning that into a tool has not been done.
 
 In the browser, after any UI change: import a `configuration.nix`, add a package
 from search, switch tabs, and press Check syntax. That path has broken more than

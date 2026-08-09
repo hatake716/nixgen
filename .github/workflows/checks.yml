@@ -1,0 +1,71 @@
+# The checks CLAUDE.md asks for before shipping, run on every push.
+#
+# They existed as two good harnesses that only ran when somebody remembered,
+# which is how the screenshots went three features out of date. Same fix as
+# there: make it happen without being remembered.
+#
+# Everything runs through `nix develop`, so what CI uses and what the checklist
+# tells a person to type are the same commands in the same environment.
+
+name: checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+# The harnesses need a real option index. Which channel hardly matters — they
+# read whatever catalogue they are given — so this is the current stable one.
+env:
+  CHANNEL: nixos-26.05
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Sources parse
+        run: |
+          nix develop --command python3 -c 'import ast, glob; [ast.parse(open(f).read()) for f in glob.glob("build/*.py") + glob.glob("tools/*.py")]'
+          nix develop --command node --check build/static/app.js
+          bash -n build/fetch-data.sh
+
+      - name: The flake builds
+        run: nix build . --no-link --print-out-paths
+
+      # Building an index takes a few minutes, so it is kept for a week rather
+      # than rebuilt on every push. No restore-key on purpose: a fallback would
+      # mean the index never refreshed, and a stale catalogue is the one thing
+      # these harnesses cannot notice.
+      - name: Week
+        id: week
+        run: echo "stamp=$(date -u +%G-W%V)" >> "$GITHUB_OUTPUT"
+
+      - name: Cached index
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: data
+          key: index-${{ env.CHANNEL }}-${{ steps.week.outputs.stamp }}
+
+      - name: Build the index
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          nix develop --command bash build/fetch-data.sh "$CHANNEL"
+          nix develop --command python3 build/build_index.py --channel "$CHANNEL"
+          # The raw dumps are ~390 MB and the index does not need them again.
+          rm -f data/options.json data/packages.json
+
+      - name: Renderer — fixed regressions, then random sampling
+        run: nix develop --command python3 tools/fuzz.py
+
+      - name: Importer — fixed configurations, through both readers
+        run: nix develop --command python3 tools/import_check.py

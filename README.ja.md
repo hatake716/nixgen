@@ -441,6 +441,8 @@ data/
 docs/
   index.html        ホームページ。GitHub Pagesが /docs から配信します
   screenshot*.png
+.github/workflows/
+  checks.yml        push のたびに両方のハーネスを走らせます
 CHANGELOG.md        各バージョンの変更点。前半が英語、後半が日本語
 CLAUDE.md           開発時の前提と、壊してはいけない不変条件
 flake.nix

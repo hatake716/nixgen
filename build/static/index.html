@@ -165,11 +165,18 @@
               <code>./generated.nix</code> to <code>imports</code>, then run
               <code>sudo nixos-rebuild dry-build</code> before you switch.</li>
           </ol>
-          <p class="after"><b class="w">Check syntax</b> finds broken Nix and nothing
-             else — whether a value is the right <i>type</i> is for
-             <code>dry-build</code> to say.
-             <a href="https://hatake716.github.io/nixgen/" target="_blank"
-                rel="noreferrer">The longer version</a>.</p>
+          <div class="after">
+            <p><b>Closing the tab loses the form.</b> Nothing is kept between
+              visits, so the file is the save: download
+              <code>generated.nix</code>, and <b class="w">Import
+              configuration.nix</b> brings those settings back as they were.
+              The <b class="w">Setup</b> fields are not part of it.</p>
+            <p><b class="w">Check syntax</b> finds broken Nix and nothing else —
+              whether a value is the right <i>type</i> is for
+              <code>dry-build</code> to say.
+              <a href="https://hatake716.github.io/nixgen/" target="_blank"
+                 rel="noreferrer">The longer version</a>.</p>
+          </div>
         </div>
         <div id="editor"></div>
         <div id="notice"></div>

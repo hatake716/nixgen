@@ -9,6 +9,19 @@ option counts.
 
 ## English
 
+### build 2026-08-09j
+
+- **The panel now says what to do about losing your work.** Nothing is kept
+  between visits, so `generated.nix` is the save file: download it and
+  **Import configuration.nix** brings those settings back as they were. That
+  was always true and was written down nowhere.
+- **The checks run on every push now.** `tools/fuzz.py` and
+  `tools/import_check.py` were two good harnesses that only ran when somebody
+  remembered — the same way the screenshots went three features out of date.
+  Everything goes through `nix develop`, so CI and the checklist are the same
+  commands. `nodejs` joins the dev shell, since the checklist has always said
+  `node --check` and the shell did not have it.
+
 ### build 2026-08-09i
 
 - **The first step now draws where the files go.** "Starter files for a new
@@ -205,6 +218,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-09j
+
+- **作業内容を失ったときの復旧方法を、画面に書きました。** タブを閉じると入力は消えます(保存先を持たない設計のため)。**`generated.nix` が保存ファイルの役割を果たします。** ダウンロードしておいて **Import configuration.nix** で読み込めば、同じ設定が同じ値で戻ります。以前からできたことですが、どこにも書いていませんでした。
+- **push のたびにチェックが走るようにしました。** `tools/fuzz.py` と `tools/import_check.py` は良いハーネスですが、**誰かが思い出したときにしか走りませんでした。** スクリーンショットが3世代古くなったのとまったく同じ形です。すべて `nix develop` 経由なので、CIが実行するコマンドと、手元で叩くコマンドが同一になります。あわせて `nodejs` を開発シェルに入れました。チェックリストには以前から `node --check` と書いてあるのに、シェルに入っていませんでした。
 
 ### build 2026-08-09i
 

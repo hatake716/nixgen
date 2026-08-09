@@ -544,6 +544,8 @@ data/
 docs/
   index.html        the homepage, served by GitHub Pages from /docs
   screenshot*.png
+.github/workflows/
+  checks.yml        runs both harnesses on every push
 CHANGELOG.md        every release; English half, then Japanese half
 CLAUDE.md           context for working on this, and what not to break
 flake.nix

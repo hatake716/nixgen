@@ -12,12 +12,17 @@
     {
       devShells = forAll (pkgs: {
         default = pkgs.mkShell {
-          packages = with pkgs; [ python3 brotli curl sqlite ];
+          # nodejs is here for `node --check build/static/app.js` alone. It is
+          # in the checklist and in CI, and until now the shell that is meant
+          # to make the checklist runnable did not have it.
+          packages = with pkgs; [ python3 brotli curl sqlite nodejs ];
           shellHook = ''
             echo "nixgen dev shell"
             echo "  ./build/fetch-data.sh          download channel metadata"
             echo "  python3 build/build_index.py   build the search index"
             echo "  python3 build/server.py        start the app"
+            echo "  python3 tools/fuzz.py          renderer checks"
+            echo "  python3 tools/import_check.py  importer checks"
           '';
         };
       });
