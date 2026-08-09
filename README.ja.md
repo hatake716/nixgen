@@ -389,12 +389,15 @@ build/
   server.py         標準ライブラリだけのHTTPサーバ
   fetch-data.sh     公開データのダウンロード
   static/           画面(素のJavaScript、ビルド工程なし)
+tools/
+  fuzz.py           レンダラの回帰テスト + ファジング
 data/
   nixgen.sqlite     作られるデータベース。gitには入れません
 docs/
   index.html        ホームページ。GitHub Pagesが /docs から配信します
   screenshot*.png
 CHANGELOG.md        各バージョンの変更点。前半が英語、後半が日本語
+CLAUDE.md           開発時の前提と、壊してはいけない不変条件
 flake.nix
 flake.lock          nixpkgsのバージョンを固定します
 ```

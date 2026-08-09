@@ -475,12 +475,15 @@ build/
   server.py         HTTP server, standard library only
   fetch-data.sh     downloads the published data
   static/           the screen (plain JavaScript, no build step)
+tools/
+  fuzz.py           regression + fuzz harness for the renderer
 data/
   nixgen.sqlite     the database it builds, not in git
 docs/
   index.html        the homepage, served by GitHub Pages from /docs
   screenshot*.png
 CHANGELOG.md        every release; English half, then Japanese half
+CLAUDE.md           context for working on this, and what not to break
 flake.nix
 flake.lock          pins the nixpkgs version
 ```
