@@ -138,7 +138,13 @@ main {
 
 /* The steps, shown while the module is empty. Measured rather than filling
    the pane: at 1100px a line of prose is unreadable. */
-#howto { padding: 32px 26px 34px; max-width: 620px; margin: 0 auto; color: var(--ink-soft); }
+/* `width: 100%` alongside the auto margins: without it the auto margins turn
+   off the stretch, the block sizes to its widest line instead of the pane,
+   and the listing inside never gets a reason to scroll. */
+#howto {
+  width: 100%; max-width: 620px; margin: 0 auto;
+  padding: 32px 26px 34px; color: var(--ink-soft);
+}
 #howto .eyebrow { margin: 0 0 8px; }
 #howto .lede { margin: 0 0 20px; line-height: 1.65; }
 #howto ol { margin: 0; padding: 0; list-style: none; counter-reset: step; }
@@ -156,6 +162,14 @@ main {
 /* Words that are on the screen somewhere, so the eye can go and find them. */
 #howto b.w { color: var(--accent); }
 #howto code { font-family: var(--mono); font-size: .92em; color: var(--ink); }
+/* Where the files end up, which is the part prose kept failing to convey.
+   Scrolls inside itself rather than widening the column. */
+#howto .tree {
+  margin: 11px 0; padding: 10px 12px;
+  background: var(--panel-2); border-radius: var(--r);
+  font: 11.5px/1.7 var(--mono); color: var(--ink-soft);
+  white-space: pre; overflow-x: auto;
+}
 #howto .after {
   margin: 6px 0 0; padding-top: 14px; border-top: 1px solid var(--rule);
   font-size: 12.5px; line-height: 1.65;
@@ -252,7 +266,11 @@ pre.nix mark { background: rgba(75,111,181,.30); color: inherit;
 .mobilebar { display: none; }
 
 @media (max-width: 1080px) {
-  main { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+  /* minmax(0, …) rather than 1fr, for the same reason the desktop middle
+     column uses it: a grid track will not go narrower than its content
+     otherwise, so one wide line pushes the whole page off the screen
+     sideways instead of scrolling where it belongs. */
+  main { grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr; }
   .pane { display: none; }
   .pane.active { display: flex; }
   .mobilebar { display: flex; gap: 2px; padding: 8px 12px; background: var(--panel);
@@ -288,7 +306,11 @@ pre.nix > span { display: block; padding-left: 3.2em; text-indent: -3.2em; }
    this release is the one thing nixos-rebuild will refuse outright, and under
    a screen of cards is where it went unread. */
 #pane-editor .pane-body { display: flex; flex-direction: column; }
-#pane-editor .pane-body > * { flex: 0 0 auto; }
+/* `min-width: 0` is load-bearing: a flex item refuses to go narrower than its
+   content by default, so one wide line inside — the directory listing in the
+   steps — widened the whole pane past the window on a narrow screen instead
+   of scrolling inside itself. */
+#pane-editor .pane-body > * { flex: 0 0 auto; min-width: 0; }
 #notice { padding: 0 14px; }
 #notice:not(:empty) {
   order: -1; padding: 12px 14px;

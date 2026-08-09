@@ -9,6 +9,17 @@ option counts.
 
 ## English
 
+### build 2026-08-09i
+
+- **The first step now draws where the files go.** "Starter files for a new
+  machine" was one sentence; it is now the two files Setup fills in, what each
+  one is for, and a listing of the four that end up side by side in
+  `/etc/nixos`. Which reads them in what order is said too, since that is the
+  part prose kept failing to convey.
+- **Fixed: a wide line pushed the whole page sideways on a narrow screen.** The
+  single-column layout let a track grow to fit its content rather than scroll
+  inside it. Latent until something wide turned up, which the listing did.
+
 ### build 2026-08-09h
 
 - **Five steps now sit in the middle of the screen when you open it**, which
@@ -194,6 +205,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-09i
+
+- **手順1に、ファイルの置き場所を図で示しました。** 「新規マシン用のスターターファイル」はこれまで1文だけでしたが、Setupタブが用意する2つのファイルがそれぞれ何なのか、そして `/etc/nixos` に最終的に並ぶ4つのファイルを一覧で示すようにしました。**どれがどれを読み込むのか**も書いてあります。文章だけでは伝わりにくかった部分です。
+- **修正：横幅の広い行があると、狭い画面でページ全体が横にはみ出す不具合。** 1カラム表示のとき、レイアウトが中身の幅に合わせて広がってしまい、枠の中でスクロールしませんでした。**広い行が無かったため、これまで表面化していませんでした。** 今回のファイル一覧で初めて出ました。
 
 ### build 2026-08-09h
 

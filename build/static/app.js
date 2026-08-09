@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-09h';
+const BUILD = '2026-08-09i';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -123,9 +123,9 @@ function setStateVersion(release, channel) {
     `${(+meta.option_count).toLocaleString()} options · ` +
     `${(+meta.package_count).toLocaleString()} packages · build ${BUILD}`;
   setStateVersion(meta.release, meta.channel);
-  // The file names and option paths in the steps are Nix, not prose, so they
-  // are guarded like every other identifier on the page.
-  $$('#howto code').forEach(keep);
+  // The file names, option paths and the directory listing in the steps are
+  // Nix, not prose, so they are guarded like every other identifier here.
+  $$('#howto code, #howto .tree').forEach(keep);
   renderEditor();
   await loadReleases();
   await loadStarter();

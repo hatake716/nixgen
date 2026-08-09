@@ -183,6 +183,15 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   what clears them. They name the tabs and buttons rather than where things sit
   — the panes stack and swap on a narrow screen, and "on the left" would be
   wrong exactly where a first-timer cannot afford it.
+- **Every grid track and flex item that can hold wide content needs
+  `minmax(0, …)` or `min-width: 0`.** Both refuse to go narrower than their
+  contents by default, so one long line widens the page instead of scrolling
+  inside its own box. The desktop middle column always had it; the
+  single-column rule did not, and a four-line directory listing was enough to
+  push the whole page off a phone screen sideways.
+- **The directory listing in the steps is ASCII, not box drawing.** `--mono`
+  falls back to a proportional face for `├─└` on some machines, and a tree
+  whose columns do not line up is worse than no tree.
 - No browser storage. State lives in `state` in `app.js`.
 
 > 上記はいずれも「見た目は正しいのに後で壊れる」類の落とし穴です。触る前に一読してください。

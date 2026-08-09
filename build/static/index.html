@@ -137,9 +137,21 @@
                be wrong in the one place a first-timer cannot afford it. -->
           <ol>
             <li><b>New machine, no flake yet?</b> The <b class="w">Setup</b> tab
-              writes the two files that go around everything else. Take them
-              from the file tabs — <code>configuration.nix</code> and
-              <code>flake.nix</code>.</li>
+              fills in the two a fresh install still needs:
+              <code>configuration.nix</code>, the half you write by hand, and
+              <code>flake.nix</code>, the way in to the whole system. Take each
+              from the file tabs and keep all four in one directory.
+              <!-- ASCII rather than box drawing: the mono stack falls back to
+                   a proportional face for those glyphs on some machines, and a
+                   tree that does not line up is worse than no tree. -->
+              <pre class="tree">/etc/nixos/
+|-- flake.nix                   from Setup
+|-- configuration.nix           from Setup
+|-- hardware-configuration.nix  written when you installed; left alone
+`-- generated.nix               what you build here</pre>
+              <code>flake.nix</code> reads <code>configuration.nix</code>, which
+              reads the other two. Setup prints the command that applies
+              them.</li>
             <li><b>Already have a <code>configuration.nix</code>?</b> Press
               <b class="w">Import configuration.nix</b>. Your settings come back
               as fields you can edit.</li>
