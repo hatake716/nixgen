@@ -173,7 +173,13 @@ def _split_attrs(body):
 
 
 def _split_list(body):
-    """Split a list body into element texts."""
+    """Split a list body into element texts.
+
+    `[ foo(bar) ]` is two elements and `[ a."b" ]` is one — Nix's own parser
+    says so. The difference matters because these elements get sorted: cutting
+    `rubyPackages."http_parser.rb"` in two left `rubyPackages.` behind, which
+    reads like a name and is not valid Nix.
+    """
     out = []
     i = 0
     while True:
@@ -187,7 +193,14 @@ def _split_list(body):
         elif c == '"' or body.startswith("''", i):
             i = _skip_string(body, i)
         else:
-            while i < len(body) and body[i] not in " \t\r\n([{\"":
+            while i < len(body) and body[i] not in " \t\r\n([{":
+                # A quote ends the element unless it is an attribute hanging
+                # off the selection so far, as in `rubyPackages."…"`.
+                if body[i] == '"':
+                    if body[i - 1] != ".":
+                        break
+                    i = _skip_string(body, i)
+                    continue
                 i += 1
         out.append(body[start:i].strip())
 
@@ -284,6 +297,13 @@ _PAREN_ATOM = re.compile(
 # reader works on the raw source, where the literal form is what is there.
 
 
+# Nix has no negative literal. `-5` goes in and `(__sub 0 5)` comes back out,
+# which parses and means the same thing but is not what anyone wrote. Carried
+# text is meant to be recognisable as your own line, so it is turned back.
+_NEG_CALL = re.compile(r"\(__sub\s+0\s+(\d+(?:\.\d+)?)\)")
+_DOUBLED_NEG = re.compile(r"\(\((-\d+(?:\.\d+)?)\)\)")
+
+
 def _undo_parens(expr):
     """Collapse the parentheses Nix's normalised output adds.
 
@@ -299,7 +319,11 @@ def _undo_parens(expr):
         out = _PAREN_ATOM.sub(r"\1", out)
         if out == prev:
             break
-    return out
+    # After the loop: the brackets a negative number needs are put on here,
+    # and `_PAREN_ATOM` above is the reason they survive — it deliberately
+    # does not match a signed number.
+    out = _NEG_CALL.sub(r"(-\1)", out)
+    return _DOUBLED_NEG.sub(r"(\1)", out)
 
 
 def tidy(expr):
@@ -341,9 +365,36 @@ _PKG_NAME = re.compile(_PKG_SEG + r"(?:\." + _PKG_SEG + r")*")
 _PKG_QUALIFIED = re.compile(r"pkgs\.(" + _PKG_SEG + r"(?:\." + _PKG_SEG + r")*)")
 
 
+_ESCAPES = {"n": "\n", "r": "\r", "t": "\t"}
+
+
+def unescape(s):
+    """Undo the escapes inside a Nix `"…"` string.
+
+    Nix's rules, not Python's. `codecs`' unicode_escape was doing this before
+    and got two things wrong: it decodes UTF-8 bytes as latin-1, so `日本語`
+    came back as mojibake and any accented word with it; and it invents
+    escapes Nix does not have — `\\u0041` is the five characters `u0041` in a
+    Nix string, not `A`. Nix turns `\\n`, `\\r` and `\\t` into control
+    characters and everything else after a backslash into itself.
+    """
+    out, i = [], 0
+    while i < len(s):
+        if s[i] == "\\" and i + 1 < len(s):
+            out.append(_ESCAPES.get(s[i + 1], s[i + 1]))
+            i += 2
+        else:
+            out.append(s[i])
+            i += 1
+    return "".join(out)
+
+
 def classify(value):
     """Turn a value expression into ('kind', python_value) or ('raw', text)."""
-    v = _undo_parens(_unparen(value))
+    # _undo_parens before _unparen: the brackets Nix puts round a
+    # negative number are what tells `(-5)` from a subtraction, and
+    # stripping the outer pair first would throw that away.
+    v = _unparen(_undo_parens(value))
 
     m = PRIORITY_CALLS.match(v)
     if m:
@@ -361,9 +412,9 @@ def classify(value):
     if v.startswith('"') and v.endswith('"') and "${" not in v:
         try:
             if _skip_string(v, 0) == len(v):
-                out = v[1:-1].encode().decode("unicode_escape")
+                out = unescape(v[1:-1])
                 return ("lines" if "\n" in out else "str"), out
-        except (NixSyntaxError, UnicodeDecodeError):
+        except NixSyntaxError:
             pass
 
     if v.startswith("''") and v.endswith("''") and "${" not in v:
@@ -376,7 +427,7 @@ def classify(value):
         scope, v = "pkgs", _unparen(wm.group(1))
 
     if v.startswith("[") and v.endswith("]"):
-        items = [_undo_parens(_unparen(x)) for x in _split_list(v[1:-1])]
+        items = [_unparen(_undo_parens(x)) for x in _split_list(v[1:-1])]
         kinds = [classify(x) for x in items]
         if scope == "pkgs":
             names = [x for x in items if _PKG_NAME.fullmatch(x)]
