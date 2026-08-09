@@ -261,13 +261,16 @@ once in ways nothing else caught.
   channel can be refreshed knowingly. Mixing channels stays out of scope:
   packages could come from unstable via an overlay, options could not, and a
   catalogue where half is selectable would be worse than no support.
-- **The generated `flake.nix` names a commit, not a branch, unless asked
-  otherwise.** `fetch-data.sh` saves the channel's `git-revision`,
-  `build_index.py` puts it in `meta`, and `starter.py` writes it into the flake.
-  The commit is the default because it is the only setting under which the
-  option list and the built system are the same tree; the branch stays
-  available because someone who wants updates to arrive should not have to
-  hand-edit a generated file to get them.
+- **The generated `flake.nix` can name a commit rather than a branch, and the
+  Setup tab chooses which.** `fetch-data.sh` saves the channel's
+  `git-revision`, `build_index.py` puts it in `meta`, and `starter.py` writes
+  it into the flake. **The branch is the default.** Naming the commit is the
+  only setting under which the option list and the built system are the same
+  tree, so it is the more correct of the two and the copy says so — but a
+  default that never moves is a system that never gets a security update
+  without hand-editing a generated file, and that is the worse failure for
+  someone who does not know to look. Do not quietly flip this back; it was set
+  deliberately.
 - **`_pin` has four outcomes and they stay four.** A commit from the index, a
   commit from the channel server, a branch that was chosen, a branch fallen back
   to because no commit was available. The middle two both produce a pinned build

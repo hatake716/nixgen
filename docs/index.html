@@ -272,16 +272,18 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
 
     <p class="en">The <b>nixpkgs release</b> is a choice too — the current numbered release or
       one of the two before it, discovered by asking the channel server rather than from a list
-      that goes stale. <code>flake.nix</code> is pinned to whichever you pick, and by default to
-      the exact commit it was indexed at rather than the branch, so the system you build has the
-      options the form offered you — the branch is there as the other choice if you would rather
-      it move. The list on the left follows the release: if the two drift apart the tab offers to
-      build the index for that release. A few minutes the first time, instant afterwards.</p>
+      that goes stale. <code>flake.nix</code> follows whichever release you pick, and what it
+      names is a second choice: the branch by default, so updates arrive; or the exact commit
+      the option list was read at, so the system you build has the options the form offered you
+      and nothing else. The list on the left follows the release: if the two drift apart the tab
+      offers to build the index for that release. A few minutes the first time, instant
+      afterwards.</p>
     <p class="ja"><b>nixpkgsのリリース</b>も選べます。最新の安定版とその前2つで、固定の一覧ではなく
-      チャンネルサーバーに問い合わせて作るため古くなりません。<code>flake.nix</code> の既定は、ブランチではなく
-      選んだリリースを取り込んだ時点の正確なコミットです。フォームが提示したオプションと、実際にビルドされるものが一致します。
-      更新に追従させたい場合は、ブランチも選べます。左側のオプション一覧はリリースに追従し、
-      ずれている場合はそのリリースのインデックス構築を提案します。初回のみ数分、以降は瞬時です。</p>
+      チャンネルサーバーに問い合わせて作るため古くなりません。<code>flake.nix</code> が選んだリリースの
+      「どこ」を指すかも選べます。既定はブランチで、更新が届きます。もう一方は、オプション一覧を取り込んだ時点の
+      正確なコミットです。フォームが提示したオプションと、実際にビルドされるものが一致します。
+      左側のオプション一覧はリリースに追従し、ずれている場合はそのリリースのインデックス構築を提案します。
+      初回のみ数分、以降は瞬時です。</p>
 
     <p class="en">The boot loader is a choice, not a fixed block: systemd-boot for UEFI, GRUB
       for BIOS (which then asks for the disk), or none if another module already sets one. Both

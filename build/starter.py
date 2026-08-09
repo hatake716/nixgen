@@ -174,9 +174,9 @@ PINNED_HEAD = '''  # nixpkgs, at the commit {channel} points at right now. nixge
   # instead, put "{channel}" back in place of the commit.
 '''
 
-BRANCH = '''  # nixpkgs, following the {channel} branch, as asked for in nixgen. The first
-  # build takes whatever the branch holds at the time and flake.lock records
-  # where it landed; `nix flake update` moves it on from there.
+BRANCH = '''  # nixpkgs, following the {channel} branch, which is what nixgen was set to.
+  # The first build takes whatever the branch holds at the time and flake.lock
+  # records where it landed; `nix flake update` moves it on from there.
   #
   # The catch is that the option list you filled this in from was read at one
   # moment and the branch keeps moving, so a setting that exists in nixgen may
@@ -232,7 +232,7 @@ def starter_files(host, user, system, channel, **kw):
     channel = channel or "nixos-26.05"
     pin, ref = _pin(channel, kw.get("revision"),
                     _flag(kw.get("from_index"), False),
-                    kw.get("pin") == "branch")
+                    kw.get("pin", "branch") == "branch")
 
     return {
         "configuration.nix": configuration,

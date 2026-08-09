@@ -9,6 +9,16 @@ option counts.
 
 ## English
 
+### build 2026-08-09d
+
+- **What `flake.nix` points at now defaults to the release branch.** It shipped
+  defaulting to the commit, which is the more correct of the two — it is the
+  only setting under which the options you were offered and the system you
+  build are the same tree — but a default that never moves is a system that
+  never picks up a security update unless you know to go and change it. The
+  commit is still one click away, and the note beside the dropdown still says
+  which is which.
+
 ### build 2026-08-09c
 
 A harness for the importer, and the six things it found on its first run. It
@@ -131,6 +141,10 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-09d
+
+- **What flake.nix points at の既定をリリースブランチにしました。** 公開時の既定はコミットでした。**正しさではコミットが上です** — 提示されたオプションとビルドされるシステムが同じ木になるのは、この設定だけです。ただし、動かない既定値は「気づいて設定を変えない限りセキュリティ更新が届かないシステム」でもあります。コミット指定はプルダウンで1操作、どちらを選んでいるかは隣の説明に出ます。
 
 ### build 2026-08-09c
 

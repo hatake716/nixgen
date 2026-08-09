@@ -262,7 +262,7 @@ Everything in them is editable from the screen:
 | Host name | The name of the machine |
 | Main user | Your everyday account. Untick to leave user setup out entirely |
 | nixpkgs release | The current numbered release or one of the two before it |
-| What `flake.nix` points at | The exact commit that release was indexed at, so what you build has the options you were offered — or the branch, if you would rather it move |
+| What `flake.nix` points at | The release branch by default, so updates arrive. Or the exact commit the option list was read at, so what you build has the options you were offered and nothing else |
 | Architecture | `x86_64-linux` for an ordinary PC |
 | Boot loader | systemd-boot for a UEFI machine, GRUB for an older BIOS one (it will ask which disk) |
 | NetworkManager | Manages network connections. Unticking removes the line |

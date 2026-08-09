@@ -548,8 +548,9 @@ class Handler(BaseHTTPRequestHandler):
             channel = (one("channel") if releases.is_release(one("channel"))
                        else get_meta().get("channel", "nixos-26.05"))
             # Asking for the branch means no commit is needed, so do not go
-            # looking for one — that lookup can reach the network.
-            pin = one("pin", "commit")
+            # looking for one — that lookup can reach the network. It is also
+            # the default, so the common request never touches the network.
+            pin = one("pin", "branch")
             rev, from_index = ((None, False) if pin == "branch"
                                else revision_for(channel))
             return self._json(starter_files(
