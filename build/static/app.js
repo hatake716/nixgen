@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-10q';
+const BUILD = '2026-08-10r';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -792,6 +792,53 @@ const DESKTOPS = {
     ['services.displayManager.cosmic-greeter.enable'],
     ['services.desktopManager.cosmic.enable'],
   ] },
+  // LXQt is X11 and, like xfce and cinnamon, never left services.xserver.
+  // sddm is the greeter its own documentation pairs it with.
+  lxqt: { label: 'LXQt', roles: [
+    ['services.xserver.enable'],
+    ['services.displayManager.sddm.enable',
+     'services.xserver.displayManager.sddm.enable'],
+    ['services.desktopManager.lxqt.enable',
+     'services.xserver.desktopManager.lxqt.enable'],
+  ] },
+  /* i3 is a window manager rather than a desktop: X, a greeter, and i3 on top
+     — and nothing else, because what a tiling setup looks like is the user's
+     to write. It comes up with an empty screen and its own first-run wizard. */
+  i3: { label: 'i3', roles: [
+    ['services.xserver.enable'],
+    ['services.displayManager.lightdm.enable',
+     'services.xserver.displayManager.lightdm.enable'],
+    ['services.xserver.windowManager.i3.enable'],
+  ],
+    note: 'i3 starts with an empty screen and asks to write a config on first ' +
+          'run. There is no X to turn off here — it needs one — but nothing ' +
+          'else was assumed.',
+    note_ja: 'i3 は何も無い画面で起動し、初回に設定ファイルを作るか尋ねてきます。' +
+             'X は必要なのでそのまま入れていますが、それ以外は何も決めていません。' },
+  /* Hyprland and Sway are Wayland compositors, and both are one option: no X,
+     and no greeter either — neither ships one, and picking sddm or greetd on
+     somebody's behalf is a choice about how their machine starts, not a
+     setting the compositor needs. Said in the status bar instead. */
+  hyprland: { label: 'Hyprland', roles: [
+    ['programs.hyprland.enable'],
+  ],
+    note: 'Hyprland brings no greeter: log in on a text console and run ' +
+          'Hyprland, or add one — services.displayManager.sddm.enable with ' +
+          'its wayland option, or greetd — under Options.',
+    note_ja: 'Hyprland はログイン画面を持ちません。テキストコンソールで' +
+             'ログインして Hyprland を実行するか、Options タブで' +
+             'services.displayManager.sddm.enable(wayland を有効に)や greetd を' +
+             '足してください。' },
+  sway: { label: 'Sway', roles: [
+    ['programs.sway.enable'],
+  ],
+    note: 'Sway brings no greeter: log in on a text console and run sway, or ' +
+          'add one — services.displayManager.sddm.enable with its wayland ' +
+          'option, or greetd — under Options.',
+    note_ja: 'Sway はログイン画面を持ちません。テキストコンソールでログインして ' +
+             'sway を実行するか、Options タブで ' +
+             'services.displayManager.sddm.enable(wayland を有効に)や greetd を' +
+             '足してください。' },
 };
 
 /* Add the first of `paths` that this channel actually has, and put `value` in
@@ -837,9 +884,9 @@ async function addDesktop(key) {
   } else {
     setStatus(say(
       `${d.label}: ${added.length} settings added. Change or remove any of ` +
-      `them like the rest.`,
+      `them like the rest.` + (d.note ? ' ' + d.note : ''),
       `${d.label}: ${added.length}件の設定を追加しました。他の項目と同じように、` +
-      `変更も削除もできます。`), 'ok');
+      `変更も削除もできます。` + (d.note_ja ? d.note_ja : '')), 'ok');
   }
 }
 

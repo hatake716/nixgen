@@ -9,6 +9,21 @@ option counts.
 
 ## English
 
+### build 2026-08-10r
+
+- **Four more in the Desktop dropdown**: LXQt, Hyprland, Sway and i3. Nine now.
+- **LXQt** is the familiar three — X, sddm, the desktop — and like `xfce` and
+  `cinnamon` it never left `services.xserver`. **i3** is the same three with a
+  window manager in the third place, and nothing about what a tiling setup
+  should look like: it comes up empty and offers to write you a config.
+- **Hyprland and Sway are one option each, and get no greeter.** Neither ships
+  one, and choosing sddm or greetd for somebody is a decision about how their
+  machine starts rather than a setting the compositor needs — so the status bar
+  says what to do instead of the form deciding.
+- All four evaluated as actual NixOS systems at the indexed revision, and each
+  registers the session it should: `lxqt-xsession`, `hyprland-0.55.4`,
+  `sway-1.12`, `none+i3-xsession`.
+
 ### build 2026-08-10q
 
 - **A Flatpak row under Options.** No dropdown — Flatpak is on or it is not —
@@ -636,6 +651,13 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10r
+
+- **Desktop のプルダウンに4つ追加しました。** LXQt・Hyprland・Sway・i3 です。全部で9つになりました。
+- **LXQt** はこれまでと同じ3項目(X・sddm・デスクトップ本体)です。`xfce` や `cinnamon` と同じく、**`services.xserver` の外には移っていません。** **i3** も3項目で、3つめがウィンドウマネージャになります。**タイル型の見た目や操作は一切決めていません。** 何も無い画面で起動し、初回に設定ファイルを作るか尋ねてきます。
+- **Hyprland と Sway は1項目ずつで、ログイン画面は付けません。** どちらも自前では持っておらず、sddm や greetd を代わりに選ぶのは**マシンの起動の仕方を決めてしまう**ことになります。コンポジタが必要としている設定ではないので、**フォームが決めるのではなくステータス欄で案内**します。
+- 4つとも索引と同じリビジョンで**実際の NixOS システムとして評価**しました。セッションもそれぞれ正しく登録されます(`lxqt-xsession`、`hyprland-0.55.4`、`sway-1.12`、`none+i3-xsession`)。
 
 ### build 2026-08-10q
 

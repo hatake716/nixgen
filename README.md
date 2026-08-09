@@ -384,12 +384,26 @@ NVIDIA driver is regularly a few weeks behind a brand-new release. Run
 ### Options — picking a desktop
 
 Under **Options** there is a **Desktop** dropdown: GNOME, KDE Plasma, Xfce,
-Cinnamon or COSMIC. Each adds the settings the NixOS manual lists for it, as
-ordinary options you can then change or remove like any other.
+Cinnamon, COSMIC, LXQt, Hyprland, Sway or i3. Each adds the settings the NixOS
+manual lists for it, as ordinary options you can then change or remove like any
+other.
 
-Four of them are three settings: the X server, a greeter and the desktop.
-**COSMIC is two**, and the difference is not an oversight — it is Wayland, so
-there is no `services.xserver.enable` to set, and it brings its own greeter.
+**They are not all the same shape, and the differences are deliberate.**
+
+| | What goes in |
+|---|---|
+| GNOME, Plasma, Xfce, Cinnamon, LXQt | the X server, a greeter, the desktop |
+| i3 | the X server, a greeter, the window manager |
+| COSMIC | its own greeter and the desktop — it is Wayland, so there is no `services.xserver.enable` to set |
+| Hyprland, Sway | one option each |
+
+Hyprland and Sway **bring no greeter**, and nixgen does not pick one for you:
+that is a decision about how your machine starts, not something the compositor
+needs. Log in on a text console and run it, or add `sddm` (with its Wayland
+option) or `greetd` yourself. The status bar says so when you add one.
+
+i3 comes up with an empty screen and offers to write you a config on first run.
+Nothing about what a tiling setup should look like is assumed here.
 
 The names are the reason it is there. `gdm` and `sddm` have moved out of
 `services.xserver` and **`lightdm` has not**; `gnome` and `plasma6` have moved

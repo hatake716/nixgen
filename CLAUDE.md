@@ -371,6 +371,15 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   ordinary option cards rather than writing into the starter file — the starter
   has no catalogue to check against, and a preset nobody can see or edit is the
   wrong shape for this tool.
+- **A window manager is not a desktop, and a compositor is not either.**
+  `DESKTOPS` holds nine, in three shapes: X plus a greeter plus the desktop
+  (GNOME, Plasma, Xfce, Cinnamon, LXQt), the same three with a window manager
+  in the third place (i3), and one option on its own (Hyprland, Sway, and
+  COSMIC's pair). **Hyprland and Sway deliberately get no greeter** — neither
+  ships one, and picking sddm or greetd is a decision about how the machine
+  starts rather than something the compositor needs. Where a preset stops
+  short, `note`/`note_ja` says why in the status bar; that is the shape to use
+  for the next one rather than filling the gap with a guess.
 - **A role a desktop does not have is left out, not filled in.** COSMIC is two
   settings where the others are three: it is Wayland, so there is no
   `services.xserver.enable` to set, and it ships its own greeter, so neither
