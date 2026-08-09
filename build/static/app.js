@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-10o';
+const BUILD = '2026-08-10p';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -1088,7 +1088,8 @@ const APPS = {
   mail:    ['thunderbird', 'evolution', 'geary', 'claws-mail'],
   office:  ['libreoffice', 'onlyoffice-desktopeditors', 'obsidian', 'gnumeric',
             'abiword', 'xournalpp', 'papers', 'kdePackages.okular', 'xreader',
-            'cosmic-reader', 'gnome-calendar', 'gnome-contacts'],
+            'cosmic-reader', 'gnome-calendar', 'gnome-contacts',
+            'tradingview'],
   media:   ['vlc', 'mpv', 'parole', 'xfce.parole', 'showtime', 'celluloid',
             'cosmic-player', 'obs-studio', 'audacity', 'kdePackages.kdenlive',
             'davinci-resolve', 'handbrake', 'gpu-screen-recorder-gtk',
@@ -1102,7 +1103,8 @@ const APPS = {
             'goverlay', 'mangohud', 'moonlight-qt', 'supertuxkart',
             'superTuxKart', 'zeroad', 'retroarch'],
   comms:   ['discord', 'signal-desktop', 'element-desktop', 'telegram-desktop',
-            'dropbox', 'nextcloud-client', 'syncthing', 'warpinator'],
+            'dropbox', 'nextcloud-client', 'syncthing', 'warpinator',
+            'localsend'],
   accessories: ['flameshot', 'kdePackages.spectacle', 'xfce4-screenshooter',
                 'xfce.xfce4-screenshooter', 'gnome-screenshot',
                 'cosmic-screenshot', 'copyq', 'gnome-calculator',
@@ -1127,7 +1129,7 @@ const APPS = {
             'kdePackages.kwalletmanager', 'baobab', 'timeshift', 'fastfetch',
             'inxi', 'lm_sensors', 'lshw', 'pciutils', 'blueman',
             'kdePackages.kinfocenter', 'gnome-logs', 'solaar', 'piper',
-            'remmina', 'gnome-connections', 'virt-viewer',
+            'remmina', 'gnome-connections', 'virt-viewer', 'virtualbox',
             'kdePackages.discover'],
   // vscode is Microsoft's build and unfree; vscodium is the same editor built
   // from the same source without their telemetry and branding. Both are here
@@ -1753,8 +1755,7 @@ async function doRender() {
   /* Steam runs from the package, but the module is what puts the 32-bit
      graphics drivers in place and can open the remote-play ports. Saying so
      beats leaving Steam out of the list, which only sent people looking. */
-  const listed = findEntry(TOP_OPTION);
-  if (listed && Array.isArray(listed.value) && listed.value.includes('steam')) {
+  if (alreadyListed('steam')) {
     notes.push(say(
       `steam is listed as a package. programs.steam.enable under Options is ` +
       `the fuller way — it sets up the 32-bit graphics drivers, and can open ` +
@@ -1762,6 +1763,19 @@ async function doRender() {
       `steam をパッケージとして入れています。Options タブの ` +
       `programs.steam.enable のほうが本筋です。32bit のグラフィックドライバを` +
       `揃え、リモートプレイのポートも開けられます。`));
+  }
+  /* VirtualBox is the stronger version of the same case: the package on its
+     own gives you a VirtualBox that cannot start a virtual machine, because
+     the kernel modules and the group come from the module. Said here rather
+     than from the row that added it, so it survives the next render. */
+  if (alreadyListed('virtualbox')) {
+    notes.push(say(
+      'virtualbox is listed as a package, which on its own cannot start a ' +
+      'virtual machine. virtualisation.virtualbox.host.enable under Options ' +
+      'is what builds the kernel modules and puts you in the vboxusers group.',
+      'virtualbox をパッケージとして入れていますが、それだけでは仮想マシンを' +
+      '起動できません。カーネルモジュールと vboxusers グループを用意するのは、' +
+      'Options タブの virtualisation.virtualbox.host.enable です。'));
   }
   if (notes.length) setStatus(notes.join('\n'), 'todo');
   else if ($('#status').classList.contains('todo')) setStatus('');

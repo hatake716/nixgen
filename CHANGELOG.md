@@ -9,6 +9,20 @@ option counts.
 
 ## English
 
+### build 2026-08-10p
+
+- **Three more packages**, 189 across 12 categories: `localsend` under Chat and
+  sync (the same job as `warpinator`, across more kinds of machine),
+  `virtualbox` under System tools, and `tradingview` under Office, which is
+  **unfree** and says so.
+- **`virtualbox` as a package cannot start a virtual machine**, so adding it
+  says where the rest is: `virtualisation.virtualbox.host.enable` under
+  **Options** is what builds the kernel modules and puts you in the
+  `vboxusers` group. Like the note about Steam, it is regenerated on every
+  render rather than said once and wiped.
+- That note, and Steam's, now read the package list the same way the greyed
+  rows do — so they appear for a list that came in verbatim as well.
+
 ### build 2026-08-10o
 
 - **Every message the app writes says it in both languages** — the notices
@@ -606,6 +620,12 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10p
+
+- **3つ追加しました。** 12分野189パッケージになりました。`localsend` は**チャット・同期**へ(`warpinator` と同じ用途で、対応する機器の幅が広いものです)。`virtualbox` は**システムツール**へ。`tradingview` は**オフィスソフト**へ入れました。これは **unfree** で、その表示も出ます。
+- **`virtualbox` はパッケージだけでは仮想マシンを起動できません。** そのため、追加すると**残りがどこにあるか**を表示します。カーネルモジュールを用意し `vboxusers` グループに入れるのは、**Options** タブの `virtualisation.virtualbox.host.enable` です。Steam の案内と同じく、**レンダリングのたびに作り直す**ので、一度出して消えることはありません。
+- この案内と Steam の案内は、**グレーアウトの判定と同じ方法**でパッケージ一覧を読むようにしました。そのまま転記されたリストでも表示されます。
 
 ### build 2026-08-10o
 
