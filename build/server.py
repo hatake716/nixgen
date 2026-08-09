@@ -15,6 +15,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import threading
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
@@ -180,6 +181,19 @@ def search_packages(q, limit=60):
     rows = con.execute(sql, params).fetchall()
     con.close()
     return [dict(r) for r in rows]
+
+
+def with_icons(rows):
+    """Mark each row with whether this machine has an icon for it.
+
+    The alternative was an <img> per row and a 404 for every package without
+    one: harmless, but it fills the browser console with failures that are not
+    failures, and asks for a hundred files that were never there. One boolean
+    in the row it is already sending costs a dictionary lookup.
+    """
+    for r in rows:
+        r["icon"] = icon_for(r.get("attr")) is not None
+    return rows
 
 
 def packages_by_attr(attrs):
@@ -566,6 +580,10 @@ def validate(text):
 _ICON_SIZES = ["scalable", "256x256", "128x128", "96x96", "84x84", "72x72",
                "64x64", "48x48", "42x42", "32x32", "24x24", "22x22", "16x16"]
 _ICONS = None
+# The first list of packages asks for a row of icons at once, and the
+# server is threaded: without this, half a dozen threads walk the icon
+# directories at the same time to build the same map.
+_ICON_LOCK = threading.Lock()
 
 
 def icon_roots():
@@ -605,6 +623,13 @@ def icon_index():
     global _ICONS
     if _ICONS is not None:
         return _ICONS
+    with _ICON_LOCK:
+        if _ICONS is None:
+            _ICONS = _build_icon_index()
+    return _ICONS
+
+
+def _build_icon_index():
     index = {}
     # Themes disagree about the order of the two directories: Papirus and
     # hicolor are <theme>/64x64/apps, kora is <theme>/apps/scalable. Both are
@@ -630,7 +655,6 @@ def icon_index():
                     stem, ext = os.path.splitext(fname)
                     if ext.lower() in (".svg", ".png"):
                         index[stem.lower()] = os.path.join(apps, fname)
-    _ICONS = index
     return index
 
 
@@ -785,7 +809,7 @@ class Handler(BaseHTTPRequestHandler):
             q = one("q", "")
             limit = min(int(one("limit", "60")), 200)
             if kind == "packages":
-                return self._json({"results": search_packages(q, limit)})
+                return self._json({"results": with_icons(search_packages(q, limit))})
             return self._json({"results": search_options(q, limit, one("supported") == "1")})
         if u.path == "/api/releases":
             built = built_channels()
@@ -840,7 +864,7 @@ class Handler(BaseHTTPRequestHandler):
             # Bounded because it names every row it wants: the curated lists
             # are a handful each, and nothing else should be asking.
             attrs = [a for a in one("attrs", "").split(",") if a][:40]
-            return self._json({"results": packages_by_attr(attrs)})
+            return self._json({"results": with_icons(packages_by_attr(attrs))})
         if u.path == "/api/option":
             opt = get_option(one("path", ""))
             return self._json(opt or {"error": "not found"}, 200 if opt else 404)

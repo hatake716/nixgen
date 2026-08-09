@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-10k';
+const BUILD = '2026-08-10m';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -557,6 +557,13 @@ async function runSearch() {
      package from one used to put the default listing back in its place —
      `addOption` repaints, and this function only knew about the search box —
      so picking Games and clicking Steam took the games away. */
+  /* The Setup tab has no result list. Everything that changes the module
+     repaints one — an import, an option a preset added — and on that tab the
+     search asked for `kind=setup`, which the server answers with options,
+     which then went through the package painter. It painted nothing anybody
+     could see, until the painter started reading `attr` for the icon and threw
+     instead, taking the rest of the import handler with it. */
+  if (state.kind !== 'options' && state.kind !== 'packages') return;
   const category = state.kind === 'packages' && $('#s-apps').value;
   if (category) return showApps(category);
   const q = $('#q').value.trim();
@@ -612,7 +619,7 @@ function paintOptions(rows, q) {
    the same grey square would be worse than a letter that at least differs
    between neighbours. The colour comes from the name, so a package sits in
    the same colour every time you look for it. */
-function packageIcon(attr) {
+function packageIcon(attr, hasIcon) {
   const name = attr.split('.').pop();
   let hash = 0;
   for (const ch of attr) hash = (hash * 31 + ch.codePointAt(0)) % 360;
@@ -625,6 +632,11 @@ function packageIcon(attr) {
   tile.style.background = `hsl(${hash}, 42%, 88%)`;
   tile.style.color = `hsl(${hash}, 38%, 32%)`;
   tile.appendChild(letter);
+  // The row already says whether this machine has one. Asking anyway would
+  // mean a 404 for every package that has none — a console full of failures
+  // that are not failures, and a request per row that was never going to
+  // arrive.
+  if (!hasIcon) return tile;
   const img = el('img');
   img.loading = 'lazy';
   img.alt = '';
@@ -674,7 +686,7 @@ function paintPackages(rows) {
   rows.forEach(r => {
     const b = el('button', 'row pkg' + (alreadyListed(r.attr) ? ' added' : ''));
     b.dataset.attr = r.attr;
-    b.appendChild(packageIcon(r.attr));
+    b.appendChild(packageIcon(r.attr, r.icon));
     const text = el('div', 'rowtext');
     const p = el('div', 'p');
     p.appendChild(ident(r.attr));

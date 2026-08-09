@@ -9,6 +9,27 @@ option counts.
 
 ## English
 
+### build 2026-08-10m
+
+Another pass over the whole app, driving it rather than reading it.
+
+- **Fixed: reading a file in while the Setup tab was open threw.** Everything
+  that changes the module repaints the result list, and on that tab the search
+  asked for `kind=setup`, which the server answers with options — which then
+  went through the package painter. It used to paint nothing anybody could see;
+  once the painter started reading `attr` for the icon it threw instead, and
+  took the rest of the import with it.
+- **Fixed: a list of packages asked for an icon it knew nothing about.** Every
+  package without one produced a 404 — 128 of them for a single search, a
+  console full of failures that are not failures. Each row now says whether an
+  icon exists and the page only asks for the ones that do.
+- **Fixed: several threads built the icon index at once.** The first list asks
+  for a row of icons together and the server is threaded, so half a dozen of
+  them walked the icon directories to build the same map.
+- Everything else was re-run: the presets on both channels, importing on top of
+  a filled form, the archive against what is on screen, a failed render, a
+  failed boot, 16 malformed requests, and the layout from 320 to 1800 pixels.
+
 ### build 2026-08-10k
 
 - **A package already in `environment.systemPackages` is greyed in the list**,
@@ -563,6 +584,15 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10m
+
+全体をもう一度、読むのではなく**動かして**点検しました。
+
+- **修正：Setup タブを開いたままファイルを読み込むと例外が出ていました。** module を変える操作はすべて結果一覧を描き直しますが、このタブでは検索が `kind=setup` を要求し、サーバーはそれに**オプションを返します**。それが**パッケージ用の描画**に渡っていました。以前は誰にも見えない場所に何かを描くだけでしたが、**アイコンのために `attr` を読むようになってから例外**になり、取り込み処理の残りが実行されずに終わっていました。
+- **修正：一覧が、存在しないアイコンまで要求していました。** アイコンの無いパッケージごとに404が出ます。**検索1回で128件**、「失敗ではない失敗」でコンソールが埋まる状態でした。各行が**アイコンの有無を持つ**ようにして、**あるものだけ**要求します。
+- **修正：アイコンの索引を複数のスレッドが同時に作っていました。** 最初の一覧が行のぶんだけまとめて要求し、サーバーはスレッド式なので、**同じ地図を6本ほどのスレッドが並行して**作っていました。
+- それ以外も再実行しています。2チャンネルでのプリセット、設定が入った状態への取り込み、書庫と画面の一致、レンダリング失敗、起動失敗、壊れたリクエスト16種、320〜1800pxの表示です。
 
 ### build 2026-08-10k
 

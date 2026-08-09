@@ -194,6 +194,14 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   into the box by hand greys and un-greys the list without anything having to
   tell it. A flag set when a row is clicked would go stale the first time
   somebody edited the card instead.
+- **`runSearch` is what every repaint goes through, so it has to know which
+  list it is painting.** On the Setup tab there is no list at all, and asking
+  the server for `kind=setup` gets options back — which used to be handed to
+  the package painter. It has to leave early there, and it has to keep the
+  category (below); both were found by importing a file with the wrong tab open.
+- **A row says whether it has an icon; the page never asks blind.** An `<img>`
+  per package meant a 404 for every one without an icon — 128 in a single
+  search. `with_icons` puts the answer in the row that was already being sent.
 - **Repainting the package list must keep the category.** `runSearch` is what
   every repaint goes through, and it knew only about the search box, so adding
   the first package from a category replaced that category with the default
@@ -449,6 +457,8 @@ once in ways nothing else caught.
 | the whole page scrolls sideways on a phone | four header buttons in a flex row with no `flex-wrap` |
 | half a dropdown label is missing | a closed select drops what does not fit, and what did not fit was the Japanese |
 | a preset row appears on every tab | the tab switch hid rows by id, and a new row was not on the list |
+| importing while the Setup tab is open throws | the repaint painted `kind=setup` results — options — with the package painter |
+| the console fills with 404s on a package list | an `<img>` per row asked for icons the server had already said nothing about |
 | the downloaded file is one edit behind the screen | rendering is debounced, and nothing waited for it |
 | `attribute … already defined` after reading a file in | import joined the form instead of replacing what it landed on |
 | the first screen is blank and says nothing | one failed fetch ended the boot sequence before the Setup pane was shown |
