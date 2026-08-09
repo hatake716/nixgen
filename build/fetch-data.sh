@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Download option and package metadata for one NixOS release channel.
+# Download option and package metadata for one NixOS channel.
 #
-#   ./fetch-data.sh              # nixos-26.05 (current stable)
-#   ./fetch-data.sh nixos-25.11  # any other release
+#   ./fetch-data.sh                  # nixos-26.05 (current stable)
+#   ./fetch-data.sh nixos-25.11      # any other release
+#   ./fetch-data.sh nixos-unstable   # the daily channel
 #
 # Writes to ../data by default. Set NIXGEN_DATA to put it somewhere else --
 # needed when this script is run from the nix store, which is read-only.
@@ -14,11 +15,6 @@ set -euo pipefail
 CHANNEL="${1:-nixos-26.05}"
 DEST="${NIXGEN_DATA:-$(dirname "$0")/../data}"
 BASE="https://channels.nixos.org/${CHANNEL}"
-
-if [[ "$CHANNEL" == *unstable* ]]; then
-  echo "This build targets release channels only. Pass a nixos-YY.MM channel." >&2
-  exit 1
-fi
 
 command -v curl >/dev/null || { echo "missing: curl" >&2; exit 1; }
 
@@ -39,17 +35,27 @@ fi
 
 mkdir -p "$DEST"
 
+# The response headers are kept for `options`: their Last-Modified is when the
+# channel published this snapshot, which is the honest answer to "how old is
+# this index" — far better than when the download happened. `-D` writes them
+# during the transfer that was happening anyway, so it costs no extra request.
 fetch() {
   local name="$1"
   echo "  ${name}.json.br"
-  curl -fL --progress-bar "${BASE}/${name}.json.br" -o "${DEST}/${name}.json.br"
+  curl -fL --progress-bar -D "${DEST}/.headers" \
+       "${BASE}/${name}.json.br" -o "${DEST}/${name}.json.br"
   decompress "${DEST}/${name}.json.br" "${DEST}/${name}.json"
   rm -f "${DEST}/${name}.json.br"
 }
 
 echo "fetching ${CHANNEL}"
 fetch options
+# `-L` follows redirects, so there can be several Last-Modified lines; the one
+# that counts is the last, from the response that carried the body.
+grep -i '^last-modified:' "${DEST}/.headers" | tail -1 | cut -d' ' -f2- \
+  | tr -d '\r' > "${DEST}/snapshot" || true
 fetch packages
+rm -f "${DEST}/.headers"
 echo "$CHANNEL" > "${DEST}/CHANNEL"
 
 # The nixpkgs commit this snapshot was built from. The generated flake.nix

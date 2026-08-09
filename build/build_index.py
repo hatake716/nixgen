@@ -9,8 +9,11 @@ low even though the raw file is large.
 """
 
 import argparse
+import datetime
+import email.utils
 import json
 import os
+import re
 import sqlite3
 import sys
 
@@ -145,6 +148,44 @@ def load_packages(con, path):
     return len(rows)
 
 
+def load_snapshot(data_dir):
+    """When the channel published this data, as an ISO date.
+
+    fetch-data.sh saves the Last-Modified header from the download. It is the
+    channel's own timestamp, not ours, which is what makes it worth showing:
+    unstable is a different tree tomorrow, and "how old is this" is the
+    question a person needs answered before trusting the option list.
+    """
+    try:
+        with open(os.path.join(data_dir, "snapshot"), encoding="utf-8") as fh:
+            raw = fh.read().strip()
+    except OSError:
+        return None
+    if not raw:
+        return None
+    try:
+        when = email.utils.parsedate_to_datetime(raw)
+    except (TypeError, ValueError):
+        return None
+    if when.tzinfo is None:
+        when = when.replace(tzinfo=datetime.timezone.utc)
+    return when.astimezone(datetime.timezone.utc).isoformat(timespec="seconds")
+
+
+def load_release(options_path):
+    """The NixOS version this channel is, e.g. `26.11` for unstable today.
+
+    `nixos-26.05` says so in its name; `nixos-unstable` does not, and the
+    starter files need a `system.stateVersion`. The catalogue knows: the
+    default of `system.nixos.release` is the release string.
+    """
+    with open(options_path, encoding="utf-8") as fh:
+        data = json.load(fh)
+    text = literal((data.get("system.nixos.release") or {}).get("default"))
+    m = re.search(r"\d\d\.\d\d", text or "")
+    return m.group(0) if m else None
+
+
 def load_revision(data_dir):
     """The nixpkgs commit fetch-data.sh recorded for this snapshot, if any.
 
@@ -193,6 +234,17 @@ def main():
     else:
         print("  no git-revision recorded — flake.nix will name the branch",
               flush=True)
+
+    snapshot = load_snapshot(args.data)
+    if snapshot:
+        rows.append(("snapshot", snapshot))
+        print(f"  published {snapshot}", flush=True)
+
+    release = load_release(os.path.join(args.data, "options.json"))
+    if release:
+        rows.append(("release", release))
+        print(f"  NixOS {release}", flush=True)
+
     con.executemany("INSERT INTO meta VALUES (?,?)", rows)
     con.commit()
     con.execute("VACUUM")

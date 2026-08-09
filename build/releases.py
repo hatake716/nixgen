@@ -1,11 +1,18 @@
-"""Which NixOS releases exist, and building an index for one of them.
+"""Which NixOS channels exist, and building an index for one of them.
 
 NixOS ships two numbered releases a year, YY.05 and YY.11. Rather than hard-code
 a list that goes stale, the candidates around the present are probed once and
-the ones that actually publish option data are kept.
+the ones that actually publish option data are kept. `nixos-unstable` publishes
+the same data and is offered alongside them.
 
-Each release gets its own database file, so switching back to one you have
+Each channel gets its own database file, so switching back to one you have
 already built is instant.
+
+Unstable is a channel like any other here, with one difference that matters
+everywhere it is touched: it moves every day. A numbered release drifts within
+itself over months; unstable is a different tree by tomorrow. That is why the
+snapshot date is recorded and shown, and why a stale unstable index is worth
+saying out loud.
 """
 
 import concurrent.futures
@@ -22,7 +29,12 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 CHANNEL_RE = re.compile(r"^nixos-(\d\d)\.(05|11)$")
 REVISION_RE = re.compile(r"[0-9a-f]{40}")
+UNSTABLE = "nixos-unstable"
 KEEP = 3          # the current release and the two before it
+# How old an index may get before the tab offers to rebuild it. Unstable is a
+# different tree tomorrow; a numbered release only drifts.
+STALE_DAYS = {UNSTABLE: 1}
+DEFAULT_STALE_DAYS = 21
 PROBE_TIMEOUT = 12
 # Shorter than PROBE_TIMEOUT: a starter file is regenerated on every keystroke,
 # so the first miss must not hang the form for twelve seconds.
@@ -60,17 +72,22 @@ def _published(channel):
 
 
 def releases(refresh=False):
-    """The newest KEEP releases that publish option data, newest first."""
+    """The channels on offer: the newest KEEP numbered releases, then unstable.
+
+    Unstable goes last rather than first on purpose. The list is read top to
+    bottom and the first entry is the one the app calls current; unstable is
+    not a release and is not what most people want by default.
+    """
     with _lock:
         if _cache["channels"] and not refresh:
             return _cache["channels"]
     found = []
     with concurrent.futures.ThreadPoolExecutor(6) as pool:
-        for channel, ok in pool.map(_published, _candidates()):
+        for channel, ok in pool.map(_published, _candidates() + [UNSTABLE]):
             if ok:
                 found.append(channel)
-    found.sort(reverse=True)
-    keep = found[:KEEP]
+    numbered = sorted((c for c in found if is_release(c)), reverse=True)
+    keep = numbered[:KEEP] + ([UNSTABLE] if UNSTABLE in found else [])
     with _lock:
         _cache["channels"] = keep
         _cache["at"] = datetime.datetime.now().isoformat(timespec="seconds")
@@ -78,7 +95,18 @@ def releases(refresh=False):
 
 
 def is_release(channel):
+    """A numbered release. Says a version number can be read off the name."""
     return bool(CHANNEL_RE.match(channel or ""))
+
+
+def is_channel(channel):
+    """Anything nixgen will index. The guard on everything coming in."""
+    return is_release(channel) or channel == UNSTABLE
+
+
+def stale_after(channel):
+    """Days before an index for this channel is worth rebuilding."""
+    return STALE_DAYS.get(channel, DEFAULT_STALE_DAYS)
 
 
 # ------------------------------------------------------------------ revisions
@@ -99,7 +127,7 @@ def revision(channel):
     and that is the one matching the options the form offers, so callers should
     prefer it and come here only for a release that has no database yet.
     """
-    if not is_release(channel):
+    if not is_channel(channel):
         return None
     with _lock:
         if channel in _revisions:
