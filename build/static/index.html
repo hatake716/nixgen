@@ -29,9 +29,10 @@
     <section class="pane active" id="pane-catalog">
       <header>
         <div class="tabs" role="tablist">
-          <button class="tab" role="tab" data-kind="options" aria-selected="true">Options</button>
+          <!-- Setup comes first: on a new machine it is where you start. -->
+          <button class="tab" role="tab" data-kind="setup" aria-selected="true">Setup</button>
+          <button class="tab" role="tab" data-kind="options" aria-selected="false">Options</button>
           <button class="tab" role="tab" data-kind="packages" aria-selected="false">Packages</button>
-          <button class="tab" role="tab" data-kind="setup" aria-selected="false">Setup</button>
         </div>
       </header>
       <div class="searchwrap">

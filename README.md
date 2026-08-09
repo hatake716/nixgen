@@ -196,7 +196,7 @@ Type a service name and the setting you want is normally at the top. `firewall`
 puts `networking.firewall.enable` first; `ssh` puts `services.openssh.enable`
 first.
 
-The tabs switch between **Options** (settings) and **Packages** (software).
+The tabs run **Setup**, **Options** (settings), **Packages** (software) — in the order you would use them on a new machine. Setup is where the app opens; click **Options** to start searching.
 Anything you pick under Packages is added to the list of programs to install.
 
 Ticking *Hide options that need hand-written Nix* narrows the list to **the

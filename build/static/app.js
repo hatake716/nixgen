@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-05g';
+const BUILD = '2026-08-05i';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -78,7 +78,7 @@ function clip(d, n) {
 }
 
 const state = {
-  kind: 'options',
+  kind: 'setup',     // what a new machine needs first
   channel: 'nixos',
   selected: new Map(),   // key -> entry
   verbatim: new Set(),   // resolved paths copied straight from the user's file
@@ -101,10 +101,10 @@ const state = {
   $('#counts').textContent =
     `${(+meta.option_count).toLocaleString()} options · ` +
     `${(+meta.package_count).toLocaleString()} packages · build ${BUILD}`;
-  runSearch();
   renderEditor();
   await loadReleases();
-  loadStarter();
+  await loadStarter();
+  selectKind(state.kind);
   guardIdentifiers(document.body);
 })();
 
@@ -117,22 +117,28 @@ $('#q').addEventListener('input', () => {
 });
 $('#only-supported').addEventListener('change', runSearch);
 
-$$('#pane-catalog .tab').forEach(t => t.addEventListener('click', () => {
-  $$('#pane-catalog .tab').forEach(x => x.setAttribute('aria-selected', String(x === t)));
-  state.kind = t.dataset.kind;
-  const setup = state.kind === 'setup';
+function selectKind(kind) {
+  state.kind = kind;
+  $$('#pane-catalog .tab').forEach(x =>
+    x.setAttribute('aria-selected', String(x.dataset.kind === kind)));
+
+  const setup = kind === 'setup';
   $('.searchwrap').hidden = setup;
   $('#results').hidden = setup;
   $('#setup').hidden = !setup;
   // the output pane follows the tab you are on
   showFile(setup ? 'configuration.nix' : 'generated.nix');
   if (setup) return;
-  $('#filterline').style.display = state.kind === 'options' ? '' : 'none';
-  $('#q').placeholder = state.kind === 'options'
+
+  $('#filterline').style.display = kind === 'options' ? '' : 'none';
+  $('#q').placeholder = kind === 'options'
     ? 'openssh, firewall, timeZone…'
     : 'firefox, ripgrep, obsidian…';
   runSearch();
-}));
+}
+
+$$('#pane-catalog .tab').forEach(t =>
+  t.addEventListener('click', () => selectKind(t.dataset.kind)));
 
 /* ---------------------------------------------------------- starter files */
 

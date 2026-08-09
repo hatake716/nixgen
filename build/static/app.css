@@ -304,3 +304,4 @@ pre.nix .clash { border-left: 2px solid #a34545; margin-left: -2px; padding-left
   color: var(--ink); font-size: 12px; margin-bottom: 8px; }
 .setupform label.check input { width: auto; margin: 0; }
 .setupform label[hidden], .setupform p[hidden] { display: none; }
+#btn-reindex { margin: 0 0 12px; width: 100%; }

@@ -9,6 +9,12 @@ option counts.
 
 ## English
 
+### build 2026-08-05h
+
+- **Setup is the first tab and the one you land on**, before Options and
+  Packages. On a machine that has just been installed, those files are what you
+  need before anything else.
+
 ### build 2026-08-05g
 
 - **Pick the nixpkgs release in the Setup tab.** The current numbered release
@@ -57,6 +63,10 @@ option counts.
 ---
 
 ## 日本語
+
+### build 2026-08-05h
+
+- **Setupタブを一番左に移動し、起動時の初期表示にしました。** Options・Packagesより前です。インストール直後のマシンでは、まずこれらのファイルが必要になるためです。
 
 ### build 2026-08-05g
 

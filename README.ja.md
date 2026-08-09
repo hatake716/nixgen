@@ -171,7 +171,7 @@ rm -rf ~/.local/share/nixgen
 
 サービス名を打てば、たいてい目的の項目が先頭に出ます。`firewall` と入れれば `networking.firewall.enable` が、`ssh` と入れれば `services.openssh.enable` が上に来ます。
 
-上のタブで **Options**(設定項目)と **Packages**(ソフトウェア)を切り替えます。Packagesで選んだものは、インストールするソフトの一覧に追加されます。
+上のタブは左から **Setup**、**Options**(設定項目)、**Packages**(ソフトウェア)です。新しいマシンで使う順に並んでいます。**起動時はSetupが開きます。** 検索したいときは **Options** をクリックしてください。Packagesで選んだものは、インストールするソフトの一覧に追加されます。
 
 *Hide options that need hand-written Nix* にチェックを入れると、**入力欄が用意されている項目だけ**に絞れます。全体の88.3%がこれに当たります。残りは自分でNixの文を書く必要がある項目で、慣れないうちは隠しておくほうが混乱しません。
 

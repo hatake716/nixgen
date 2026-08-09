@@ -68,10 +68,10 @@ h1 { font-size: 40px; line-height: 1.15; letter-spacing: -.025em; margin: 0 0 14
 
 .stats { display: flex; flex-wrap: wrap; gap: 0; border: 1px solid var(--rule);
          border-radius: 3px; background: var(--panel); margin: 0 0 22px; }
-.stat { flex: 1 1 0; min-width: 120px; padding: 11px 14px; border-right: 1px solid var(--rule); }
+.stat { flex: 1 1 0; min-width: 84px; padding: 11px 12px; border-right: 1px solid var(--rule); }
 .stat:last-child { border-right: none; }
-.stat b { display: block; font-family: var(--mono); font-size: 19px; letter-spacing: -.02em; }
-.stat span { font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+.stat b { display: block; font-family: var(--mono); font-size: 18px; letter-spacing: -.03em; }
+.stat span { font-size: 9.5px; letter-spacing: .09em; text-transform: uppercase;
              color: var(--ink-faint); font-weight: 600; }
 
 pre.cmd { background: var(--code-bg); color: var(--code-fg); font-family: var(--mono);
@@ -151,15 +151,17 @@ footer a { margin-right: 14px; }
 
       <p class="lede en">Search every option and package in the stable channel, fill in
         values with real widgets, and get a <code>.nix</code> module you can import.
-        It reads your existing <b>configuration.nix</b> too.</p>
+        It reads your existing <b>configuration.nix</b> too, and follows whichever of the
+        last three releases you are on.</p>
       <p class="lede ja">安定版チャンネルの全オプションとパッケージを検索し、型に応じたウィジェットで値を入れると、
         そのまま <code>imports</code> できる <code>.nix</code> が出てきます。
-        既存の <b>configuration.nix</b> の読み込みにも対応しています。</p>
+        既存の <b>configuration.nix</b> の読み込みにも対応し、直近3リリースのどれにでも追従します。</p>
 
       <div class="stats">
         <div class="stat"><b>24,517</b><span class="en">options</span><span class="ja">オプション</span></div>
         <div class="stat"><b>144,200</b><span class="en">packages</span><span class="ja">パッケージ</span></div>
         <div class="stat"><b>88.3%</b><span class="en">get a widget</span><span class="ja">ウィジェット対応</span></div>
+        <div class="stat"><b>3</b><span class="en">releases</span><span class="ja">リリース</span></div>
         <div class="stat"><b>0</b><span class="en">dependencies</span><span class="ja">依存パッケージ</span></div>
       </div>
 
@@ -238,6 +240,58 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
 
 <section>
   <div class="wrap">
+    <p class="eyebrow en">Starting from scratch</p>
+    <p class="eyebrow ja">ゼロから始める</p>
+    <h2 class="en">Start here on a new machine.</h2>
+    <h2 class="ja">新しいマシンなら、ここから。</h2>
+
+    <p class="en"><b>Setup</b> is the first tab and the one the app opens on: for a machine that has
+      just been installed, these are the files you need before anything else. It produces the
+      <code>configuration.nix</code> that imports the
+      generated module and the <code>flake.nix</code> that builds the system — host name, user
+      account and groups, architecture, boot loader, NetworkManager, flakes and
+      <code>stateVersion</code>. Switching a block off removes its lines entirely rather than
+      commenting them out, so the file stays as short as what you actually asked for.</p>
+    <p class="ja"><b>Setup</b> は一番左にあり、起動時に開くタブでもあります。インストール直後のマシンで
+      最初に必要になるのがこれらのファイルだからです。生成モジュールをimportする <code>configuration.nix</code> と、
+      システムをビルドする <code>flake.nix</code> を出力します。ホスト名、ユーザーとグループ、アーキテクチャ、
+      ブートローダー、NetworkManager、flakes、<code>stateVersion</code> をすべて画面から編集できます。
+      <b>オフにした項目はコメントアウトではなく行ごと消える</b>ので、実際に指定したものだけが残ります。</p>
+
+    <p class="en">Every definition in that <code>configuration.nix</code> is wrapped in
+      <code>lib.mkDefault</code>, so what you set in nixgen wins instead of colliding. Where the
+      two files do define the same option, the line turns red and the card says so — because two
+      <code>mkDefault</code> definitions of equal priority make NixOS refuse to choose.</p>
+    <p class="ja">その <code>configuration.nix</code> は全ての定義を <code>lib.mkDefault</code> で包んでいるので、
+      nixgen側で設定した値が衝突せずに優先されます。それでも両方が同じオプションを定義した場合は、行が赤くなりカードにも表示が出ます。
+      同じ優先度の <code>mkDefault</code> が2つあると、NixOSはどちらを採るか決められないためです。</p>
+
+    <p class="en">The <b>nixpkgs release</b> is a choice too — the current numbered release or
+      one of the two before it, discovered by asking the channel server rather than from a list
+      that goes stale. <code>flake.nix</code> is pinned to whichever you pick, and the options on
+      the left follow: if the two drift apart the tab offers to build the index for that release.
+      A few minutes the first time, instant afterwards.</p>
+    <p class="ja"><b>nixpkgsのリリース</b>も選べます。最新の安定版とその前2つで、固定の一覧ではなく
+      チャンネルサーバーに問い合わせて作るため古くなりません。<code>flake.nix</code> は選んだリリースを指し、
+      左側のオプション一覧も追従します。ずれている場合は、そのリリースのインデックス構築を提案します。
+      初回のみ数分、以降は瞬時です。</p>
+
+    <p class="en">The boot loader is a choice, not a fixed block: systemd-boot for UEFI, GRUB
+      for BIOS (which then asks for the disk), or none if another module already sets one. Both
+      variants are checked by evaluating them as an actual NixOS system.</p>
+    <p class="ja">ブートローダーは固定ではなく選択式です。UEFIならsystemd-boot、BIOSならGRUB（ディスクの指定欄が出ます）、
+      他のモジュールに任せるなら「none」。どちらの構成も、実際のNixOSシステムとして評価して確認しています。</p>
+
+    <figure>
+      <img src="screenshot-setup.png" alt="The Setup tab, with host name and user name on the left and the generated configuration.nix on the right">
+      <figcaption class="en">Starter files, generated from three fields.</figcaption>
+      <figcaption class="ja">3つの入力欄からスターターファイルが生成されます。</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
     <p class="eyebrow en">Importing</p>
     <p class="eyebrow ja">読み込み</p>
     <h2 class="en">Point it at your configuration.nix.</h2>
@@ -291,55 +345,6 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
       <img src="screenshot-import.png" alt="Import summary listing what was filled in and what was carried over verbatim">
       <figcaption class="en">Every line is accounted for — the summary says exactly what happened to each.</figcaption>
       <figcaption class="ja">すべての行が計上されます。何がどう扱われたかが一覧で出ます。</figcaption>
-    </figure>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <p class="eyebrow en">Starting from scratch</p>
-    <p class="eyebrow ja">ゼロから始める</p>
-    <h2 class="en">It writes the files around the module too.</h2>
-    <h2 class="ja">モジュールの周りのファイルも書きます。</h2>
-
-    <p class="en">The Setup tab produces the <code>configuration.nix</code> that imports the
-      generated module and the <code>flake.nix</code> that builds the system — host name, user
-      account and groups, architecture, boot loader, NetworkManager, flakes and
-      <code>stateVersion</code>. Switching a block off removes its lines entirely rather than
-      commenting them out, so the file stays as short as what you actually asked for.</p>
-    <p class="ja">Setupタブは、生成モジュールをimportする <code>configuration.nix</code> と、
-      システムをビルドする <code>flake.nix</code> を出力します。ホスト名、ユーザーとグループ、アーキテクチャ、
-      ブートローダー、NetworkManager、flakes、<code>stateVersion</code> をすべて画面から編集できます。
-      <b>オフにした項目はコメントアウトではなく行ごと消える</b>ので、実際に指定したものだけが残ります。</p>
-
-    <p class="en">Every definition in that <code>configuration.nix</code> is wrapped in
-      <code>lib.mkDefault</code>, so what you set in nixgen wins instead of colliding. Where the
-      two files do define the same option, the line turns red and the card says so — because two
-      <code>mkDefault</code> definitions of equal priority make NixOS refuse to choose.</p>
-    <p class="ja">その <code>configuration.nix</code> は全ての定義を <code>lib.mkDefault</code> で包んでいるので、
-      nixgen側で設定した値が衝突せずに優先されます。それでも両方が同じオプションを定義した場合は、行が赤くなりカードにも表示が出ます。
-      同じ優先度の <code>mkDefault</code> が2つあると、NixOSはどちらを採るか決められないためです。</p>
-
-    <p class="en">The <b>nixpkgs release</b> is a choice too — the current numbered release or
-      one of the two before it, discovered by asking the channel server rather than from a list
-      that goes stale. <code>flake.nix</code> is pinned to whichever you pick, and the options on
-      the left follow: if the two drift apart the tab offers to build the index for that release.
-      A few minutes the first time, instant afterwards.</p>
-    <p class="ja"><b>nixpkgsのリリース</b>も選べます。最新の安定版とその前2つで、固定の一覧ではなく
-      チャンネルサーバーに問い合わせて作るため古くなりません。<code>flake.nix</code> は選んだリリースを指し、
-      左側のオプション一覧も追従します。ずれている場合は、そのリリースのインデックス構築を提案します。
-      初回のみ数分、以降は瞬時です。</p>
-
-    <p class="en">The boot loader is a choice, not a fixed block: systemd-boot for UEFI, GRUB
-      for BIOS (which then asks for the disk), or none if another module already sets one. Both
-      variants are checked by evaluating them as an actual NixOS system.</p>
-    <p class="ja">ブートローダーは固定ではなく選択式です。UEFIならsystemd-boot、BIOSならGRUB（ディスクの指定欄が出ます）、
-      他のモジュールに任せるなら「none」。どちらの構成も、実際のNixOSシステムとして評価して確認しています。</p>
-
-    <figure>
-      <img src="screenshot-setup.png" alt="The Setup tab, with host name and user name on the left and the generated configuration.nix on the right">
-      <figcaption class="en">Starter files, generated from three fields.</figcaption>
-      <figcaption class="ja">3つの入力欄からスターターファイルが生成されます。</figcaption>
     </figure>
   </div>
 </section>
