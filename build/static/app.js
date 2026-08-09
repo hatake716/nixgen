@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-10a';
+const BUILD = '2026-08-10b';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -917,47 +917,62 @@ $('#btn-kernel').addEventListener('click', () => {
    `zeroad`, `superTuxKart` is `supertuxkart`, and none of those are guessable.
    This is a short pick and says so on screen: it is the one place in the tool
    where somebody's taste decides what you see, so it stays small, and the
-   search box remains the way to find anything else. */
+   search box remains the way to find anything else.
+
+   The five desktops' own apps are here so they can be taken apart from the
+   desktop, which is also the line for what gets left out: `cosmic-settings`
+   and `cosmic-launcher` are nothing without COSMIC running, and the mint and
+   cinnamon-* packages are the desktop itself. Two more were dropped for a
+   duller reason — `nemo-with-extensions` and `evolutionWithPlugins` are
+   wrappers the catalogue holds no description or version for, so they would
+   arrive as blank rows, and plain `nemo` and `evolution` are already here. */
 const APPS = {
   browser: ['firefox', 'chromium', 'google-chrome', 'librewolf', 'brave',
             'ungoogled-chromium', 'epiphany'],
   mail:    ['thunderbird', 'evolution', 'geary', 'claws-mail'],
   office:  ['libreoffice', 'onlyoffice-desktopeditors', 'obsidian', 'gnumeric',
-            'abiword', 'xournalpp', 'papers', 'kdePackages.okular',
-            'gnome-calendar', 'gnome-contacts'],
-  media:   ['vlc', 'mpv', 'parole', 'xfce.parole', 'showtime', 'obs-studio',
-            'audacity', 'kdePackages.kdenlive', 'davinci-resolve', 'handbrake',
-            'gpu-screen-recorder-gtk', 'strawberry', 'kdePackages.elisa',
-            'gnome-music', 'decibels', 'snapshot', 'pavucontrol', 'ffmpeg-full'],
+            'abiword', 'xournalpp', 'papers', 'kdePackages.okular', 'xreader',
+            'cosmic-reader', 'gnome-calendar', 'gnome-contacts'],
+  media:   ['vlc', 'mpv', 'parole', 'xfce.parole', 'showtime', 'celluloid',
+            'cosmic-player', 'obs-studio', 'audacity', 'kdePackages.kdenlive',
+            'davinci-resolve', 'handbrake', 'gpu-screen-recorder-gtk',
+            'strawberry', 'kdePackages.elisa', 'gnome-music', 'decibels',
+            'snapshot', 'pavucontrol', 'ffmpeg-full'],
   graphics:['gimp', 'gimp-with-plugins', 'inkscape', 'krita', 'darktable',
             'blender', 'freecad', 'ristretto', 'xfce.ristretto', 'loupe',
-            'kdePackages.gwenview', 'simple-scan', 'rawtherapee'],
+            'kdePackages.gwenview', 'xviewer', 'pix', 'simple-scan',
+            'rawtherapee'],
   games:   ['steam', 'lutris', 'prismlauncher', 'protonup-qt', 'steam-run',
             'goverlay', 'mangohud', 'moonlight-qt', 'supertuxkart',
             'superTuxKart', 'zeroad', 'retroarch'],
   comms:   ['discord', 'signal-desktop', 'element-desktop', 'telegram-desktop',
-            'dropbox', 'nextcloud-client', 'syncthing'],
+            'dropbox', 'nextcloud-client', 'syncthing', 'warpinator'],
   accessories: ['flameshot', 'kdePackages.spectacle', 'xfce4-screenshooter',
-                'xfce.xfce4-screenshooter', 'copyq', 'gnome-calculator',
+                'xfce.xfce4-screenshooter', 'gnome-screenshot',
+                'cosmic-screenshot', 'copyq', 'gnome-calculator',
                 'kdePackages.kcalc', 'galculator', 'file-roller', 'xarchiver',
                 'kdePackages.ark', 'xfburn', 'xfce.xfburn', 'gnome-text-editor',
-                'mousepad', 'xfce.mousepad', 'catfish', 'xfce.catfish',
-                'xfce4-appfinder', 'xfce.xfce4-appfinder', 'gigolo',
-                'xfce.gigolo', 'orage', 'xfce.orage', 'plank', 'gnome-clocks',
-                'gnome-weather', 'gnome-maps', 'gnome-font-viewer',
-                'gnome-disk-utility', 'gnome-characters'],
+                'cosmic-edit', 'mousepad', 'xfce.mousepad', 'bulky', 'catfish',
+                'xfce.catfish', 'xfce4-appfinder', 'xfce.xfce4-appfinder',
+                'gigolo', 'xfce.gigolo', 'orage', 'xfce.orage', 'plank',
+                'gnome-clocks', 'gnome-weather', 'gnome-maps',
+                'gnome-font-viewer', 'gnome-disk-utility', 'gnome-characters',
+                'gucharmap', 'orca', 'onboard'],
   files:   ['nautilus', 'kdePackages.dolphin', 'thunar', 'xfce.thunar', 'nemo',
-            'pcmanfm', 'yazi', 'ranger', 'nnn', 'mc', 'doublecmd'],
+            'cosmic-files', 'pcmanfm', 'yazi', 'ranger', 'nnn', 'mc',
+            'doublecmd'],
   terminal:['alacritty', 'kitty', 'wezterm', 'ghostty', 'foot', 'rio',
-            'kdePackages.konsole', 'gnome-console', 'xfce4-terminal',
-            'xfce.xfce4-terminal', 'tilix', 'terminator'],
+            'kdePackages.konsole', 'gnome-console', 'gnome-terminal',
+            'cosmic-term', 'xfce4-terminal', 'xfce.xfce4-terminal', 'tilix',
+            'terminator'],
   system:  ['htop', 'btop', 'gnome-system-monitor',
             'kdePackages.plasma-systemmonitor', 'xfce4-taskmanager',
             'xfce.xfce4-taskmanager', 'gparted', 'keepassxc', 'seahorse',
             'kdePackages.kwalletmanager', 'baobab', 'timeshift', 'fastfetch',
-            'lm_sensors', 'lshw', 'pciutils', 'kdePackages.kinfocenter',
-            'gnome-logs', 'solaar', 'piper', 'remmina', 'gnome-connections',
-            'virt-viewer', 'kdePackages.discover'],
+            'inxi', 'lm_sensors', 'lshw', 'pciutils', 'blueman',
+            'kdePackages.kinfocenter', 'gnome-logs', 'solaar', 'piper',
+            'remmina', 'gnome-connections', 'virt-viewer',
+            'kdePackages.discover'],
   dev:     ['git', 'neovim', 'helix', 'kdePackages.kate', 'vscodium', 'gh',
             'direnv', 'tmux', 'gcc', 'clang', 'rustc', 'cargo', 'claude-code',
             'opencode', 'bash-language-server'],

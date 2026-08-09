@@ -265,10 +265,15 @@ clicking, exactly like a search hit. Nothing is installed for you.
 It is a short pick, not a catalogue — the one place in the tool where somebody
 else's taste decides what you see, so it stays small. Search for anything else.
 
-The apps GNOME, Plasma and Xfce ship are in there too. Not so they get installed
-twice — enabling a desktop already brings its own — but so you can take one
-without the desktop it came from, which is the usual reason to want `gwenview`
-on Xfce or `gnome-calculator` on Plasma.
+The apps all five desktops ship are in there too — GNOME, Plasma, Xfce,
+Cinnamon and COSMIC. Not so they get installed twice — enabling a desktop
+already brings its own — but so you can take one without the desktop it came
+from, which is the usual reason to want `gwenview` on Xfce, `cosmic-term` on
+GNOME or `gnome-calculator` on Plasma.
+
+What is left out is the other side of the same line: `cosmic-settings` and the
+mint themes are nothing without the desktop they belong to, so they are not
+offered.
 
 Every name is looked up in the catalogue for your channel, which is not a
 formality: `kdenlive` is really `kdePackages.kdenlive`, `0ad` is `zeroad`, and

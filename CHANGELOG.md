@@ -9,6 +9,23 @@ option counts.
 
 ## English
 
+### build 2026-08-10b
+
+- **Cinnamon's and COSMIC's own apps are in the categories now** — 19 more,
+  183 across 12. Read out of evaluated systems the same way the other three
+  were: what each desktop adds over a bare one, minus the session, the themes
+  and the services.
+- Cinnamon brings `xreader`, `xviewer`, `pix`, `celluloid`, `warpinator`,
+  `bulky`, `gucharmap`, `onboard`, `blueman`, `inxi`, `gnome-terminal` and
+  `gnome-screenshot`; COSMIC brings `cosmic-files`, `cosmic-term`,
+  `cosmic-edit`, `cosmic-player`, `cosmic-reader` and `cosmic-screenshot`.
+  Those six run outside COSMIC, which is the whole point of the list.
+- **`cosmic-settings` and `cosmic-launcher` are not there**, and neither are
+  the mint themes: they are nothing without the desktop they belong to.
+  `nemo-with-extensions` and `evolutionWithPlugins` were dropped for a duller
+  reason — the catalogue has no description or version for either wrapper, so
+  they would arrive as blank rows, and `nemo` and `evolution` are already here.
+
 ### build 2026-08-10a
 
 - **Cinnamon and COSMIC in the Desktop dropdown**, alongside GNOME, Plasma and
@@ -417,6 +434,12 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10b
+
+- **Cinnamon と COSMIC の標準アプリを各カテゴリに入れました。** 19個増えて、12分野183個になりました。他の3つと**同じ方法で評価済みシステムから読み出しています。** 各デスクトップが素のシステムに追加するものから、セッション・テーマ・各種サービスを除いた差分です。
+- Cinnamon からは `xreader`・`xviewer`・`pix`・`celluloid`・`warpinator`・`bulky`・`gucharmap`・`onboard`・`blueman`・`inxi`・`gnome-terminal`・`gnome-screenshot`、COSMIC からは `cosmic-files`・`cosmic-term`・`cosmic-edit`・`cosmic-player`・`cosmic-reader`・`cosmic-screenshot` です。**この6つは COSMIC の外でも動きます。** それがこの一覧の目的です。
+- **`cosmic-settings` と `cosmic-launcher`、mint のテーマ類は入れていません。** そのデスクトップが動いていなければ意味がないものだからです。`nemo-with-extensions` と `evolutionWithPlugins` は、もっと単純な理由で外しました。**カタログに説明もバージョンも無いラッパー**なので**空の行として並んでしまう**うえ、`nemo` と `evolution` は既に入っています。
 
 ### build 2026-08-10a
 
