@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-09m';
+const BUILD = '2026-08-09n';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -160,6 +160,7 @@ function selectKind(kind) {
 
   $('#filterline').style.display = kind === 'options' ? '' : 'none';
   $('#presetline').style.display = kind === 'options' ? '' : 'none';
+  $('#langline').style.display = kind === 'options' ? '' : 'none';
   $('#appsline').style.display = kind === 'packages' ? '' : 'none';
   // Leaving the tab drops the category, so the dropdown never claims to be
   // describing a list that has since been replaced by a search.
@@ -636,20 +637,30 @@ const DESKTOPS = {
   ] },
 };
 
+/* Add the first of `paths` that this channel actually has, and put `value` in
+   it. A nullable option wants its value wrapped the way the form holds it;
+   a raw one takes Nix source, so its caller passes quotes. Returns the path
+   used, or null when the channel has none of them. */
+async function addWithValue(paths, value) {
+  for (const path of paths) {
+    await addOption(path);            // a no-op when the catalogue lacks it
+    if (!state.selected.has(path)) continue;
+    const entry = state.selected.get(path);
+    if (value !== undefined) {
+      entry.value = entry.type.kind === 'nullable' ? { __null: false, v: value } : value;
+    }
+    return path;
+  }
+  return null;
+}
+
 async function addDesktop(key) {
   const d = DESKTOPS[key];
   if (!d) return;
   const added = [], missing = [];
   for (const candidates of d.roles) {
-    let found = null;
-    for (const path of candidates) {
-      await addOption(path);          // no-op when the catalogue lacks it
-      if (state.selected.has(path)) { found = path; break; }
-    }
-    if (!found) { missing.push(candidates[0]); continue; }
-    const entry = state.selected.get(found);
-    if (entry.type.kind === 'bool') entry.value = true;
-    added.push(found);
+    const used = await addWithValue(candidates, true);
+    used ? added.push(used) : missing.push(candidates[0]);
   }
   renderEditor();
   pushRender();
@@ -665,6 +676,69 @@ async function addDesktop(key) {
 $('#btn-desktop').addEventListener('click', () => {
   const key = $('#s-desktop').value;
   if (key) addDesktop(key);
+});
+
+/* A language is not one setting. It is the locale, the keymap the console
+   uses, the layout X uses, and — for Japanese, Korean and Chinese — an input
+   method, because none of those can be typed without one.
+
+   Fonts are deliberately not here. `fonts.packages` is a `list of absolute
+   path`, so the form would write `[ "noto-fonts-cjk-sans" ]` — a string where
+   a package belongs, which fails at evaluation. It does not matter: GNOME,
+   Plasma and Xfce all bring noto-fonts-cjk-sans, -serif and -color-emoji
+   already, which was checked rather than assumed.
+
+   The layout is the country's, not the language's, and stops at what the
+   keyboard does. Nothing here guesses a time zone from a language. */
+const LANGUAGES = {
+  en: { label: 'English',  locale: 'en_US.UTF-8', keyMap: 'us',     xkb: 'us' },
+  ja: { label: 'Japanese', locale: 'ja_JP.UTF-8', keyMap: 'jp106',  xkb: 'jp',
+        im: 'fcitx5', addons: ['fcitx5-mozc'] },
+  fr: { label: 'French',   locale: 'fr_FR.UTF-8', keyMap: 'fr',     xkb: 'fr' },
+  de: { label: 'German',   locale: 'de_DE.UTF-8', keyMap: 'de',     xkb: 'de' },
+  es: { label: 'Spanish',  locale: 'es_ES.UTF-8', keyMap: 'es',     xkb: 'es' },
+  ko: { label: 'Korean',   locale: 'ko_KR.UTF-8', keyMap: 'us',     xkb: 'kr',
+        im: 'fcitx5', addons: ['fcitx5-hangul'] },
+  zh: { label: 'Chinese',  locale: 'zh_CN.UTF-8', keyMap: 'us',     xkb: 'us',
+        im: 'fcitx5', addons: ['fcitx5-rime'] },
+};
+
+async function addLanguage(key) {
+  const L = LANGUAGES[key];
+  if (!L) return;
+  const steps = [
+    { paths: ['i18n.defaultLocale'], value: L.locale },
+    // console.keyMap is a union, so the form holds it as Nix source.
+    { paths: ['console.keyMap'], value: JSON.stringify(L.keyMap) },
+    { paths: ['services.xserver.xkb.layout', 'services.xserver.layout'],
+      value: L.xkb },
+  ];
+  if (L.im) steps.push(
+    { paths: ['i18n.inputMethod.enable'], value: true },
+    { paths: ['i18n.inputMethod.type', 'i18n.inputMethod.enabled'], value: L.im },
+    { paths: ['i18n.inputMethod.fcitx5.addons'], value: L.addons });
+
+  const added = [], missing = [];
+  for (const step of steps) {
+    const used = await addWithValue(step.paths, step.value);
+    used ? added.push(used) : missing.push(step.paths[0]);
+  }
+  renderEditor();
+  pushRender();
+  const tail = L.im
+    ? ' fcitx5 is set up for typing it; the CJK fonts come with the desktop.'
+    : '';
+  if (missing.length) {
+    setStatus(`${L.label}: added ${added.length}, but this release has no ` +
+              `${missing.join(', ')}. Check the result before applying it.`, 'bad');
+  } else {
+    setStatus(`${L.label}: ${added.length} settings added.${tail}`, 'ok');
+  }
+}
+
+$('#btn-lang').addEventListener('click', () => {
+  const key = $('#s-lang').value;
+  if (key) addLanguage(key);
 });
 
 /* A few representative packages per area, for when you know the kind of thing
@@ -692,6 +766,19 @@ const APPS = {
   system:  ['htop', 'btop', 'gparted', 'keepassxc', 'baobab', 'timeshift',
             'fastfetch'],
   dev:     ['git', 'neovim', 'helix', 'vscodium', 'gh', 'direnv', 'tmux'],
+  // Several of these are listed under two names. The xfce.* set moved to the
+  // top level between 25.11 and 26.05, and the KDE ones live under
+  // kdePackages — only whichever the channel has comes back, so both can sit
+  // here and the list keeps working either side of the rename.
+  accessories: ['flameshot', 'copyq', 'gnome-calculator', 'kdePackages.kcalc',
+                'galculator', 'file-roller', 'xarchiver', 'gnome-text-editor',
+                'mousepad', 'xfce.mousepad', 'gnome-disk-utility',
+                'gnome-characters'],
+  files:   ['nautilus', 'kdePackages.dolphin', 'thunar', 'xfce.thunar', 'nemo',
+            'pcmanfm', 'yazi', 'ranger', 'nnn', 'mc', 'doublecmd'],
+  terminal:['alacritty', 'kitty', 'wezterm', 'ghostty', 'foot', 'rio',
+            'kdePackages.konsole', 'gnome-console', 'xfce4-terminal',
+            'xfce.xfce4-terminal', 'tilix', 'terminator'],
 };
 
 async function showApps(key) {

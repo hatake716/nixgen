@@ -54,6 +54,23 @@
           </select>
           <button class="mini" id="btn-desktop">Add</button>
         </div>
+        <!-- A language is not one setting: the locale, the console keymap, the
+             X layout, and for CJK an input method and fonts as well. Picking
+             one adds all of them, as cards you can read and change. -->
+        <div class="presetline" id="langline">
+          <span>Language</span>
+          <select id="s-lang">
+            <option value="">choose…</option>
+            <option value="en">English</option>
+            <option value="ja">日本語 — Japanese</option>
+            <option value="fr">Français — French</option>
+            <option value="de">Deutsch — German</option>
+            <option value="es">Español — Spanish</option>
+            <option value="ko">한국어 — Korean</option>
+            <option value="zh">中文 — Chinese</option>
+          </select>
+          <button class="mini" id="btn-lang">Add</button>
+        </div>
         <!-- Picking a category fills the results list, so what happens next is
              the same click as any search hit. Nothing is added on your behalf. -->
         <div class="presetline" id="appsline">
@@ -66,6 +83,9 @@
             <option value="media">Audio and video</option>
             <option value="graphics">Graphics</option>
             <option value="games">Games</option>
+            <option value="accessories">Accessories</option>
+            <option value="files">File managers</option>
+            <option value="terminal">Terminals</option>
             <option value="system">System tools</option>
             <option value="dev">Development</option>
           </select>

@@ -206,6 +206,13 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   in place and can open the remote-play ports. It was left out at first, which
   only sent people looking for it; a line in the status bar when `steam` is in
   the package list says the better way without taking the choice away.
+- **The language preset stops where it stops, on purpose.** Locale, console
+  keymap, X layout, and an input method for Japanese, Korean and Chinese.
+  **Not fonts:** `fonts.packages` is a `list of absolute path`, so the form
+  emits `[ "noto-fonts-cjk-sans" ]` — a string where a package belongs, which
+  fails at evaluation. It does not matter, because all three desktops already
+  ship the CJK and emoji fonts; that was read out of an evaluated system, not
+  assumed. **Not the time zone** either: a language is not a place.
 - **The desktop presets name candidates, not paths.** `DESKTOPS` lists a few
   possible names per role and takes the first the catalogue has, because these
   have already moved once and asymmetrically: `gdm` and `sddm` left

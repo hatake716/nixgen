@@ -9,6 +9,23 @@ option counts.
 
 ## English
 
+### build 2026-08-09n
+
+- **Pick a language and the language is set up.** English, Japanese, French,
+  German, Spanish, Korean or Chinese, next to the desktop dropdown. Each adds
+  the locale, the keymap the console uses and the layout X uses — and for
+  Japanese, Korean and Chinese an input method as well, since none of the
+  three can be typed without one.
+- Fonts are not among them and do not need to be: GNOME, Plasma and Xfce all
+  bring the CJK and emoji fonts already. Nor is the time zone — a language is
+  not a place, and guessing one from the other would be wrong more often than
+  right.
+- **Three more app categories**: accessories, file managers and terminals.
+- A note on the names again: the `xfce.*` packages moved to the top level
+  between 25.11 and 26.05, `dolphin`, `konsole` and `kcalc` live under
+  `kdePackages`. Both spellings are listed, and only the one your channel has
+  is offered.
+
 ### build 2026-08-09m
 
 - **Google Chrome joins the browsers, Steam joins the games.** Both are unfree,
@@ -255,6 +272,13 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-09n
+
+- **言語を選べば、言語設定が完結します。** デスクトップのプルダウンの隣で、英語・日本語・フランス語・ドイツ語・スペイン語・韓国語・中国語から選べます。**ロケール、コンソールのキーマップ、Xのレイアウト**が入り、日本語・韓国語・中国語では**入力メソッド**も設定されます。この3言語は入力メソッド無しには打てないためです。
+- **フォントは含めていません。必要ないからです。** GNOME・Plasma・Xfce のいずれも、CJKフォントと絵文字フォントを既に持っています(実際に評価して確認しました)。**タイムゾーンも設定しません。** 言語は場所ではないので、片方からもう片方を推測すると外すほうが多くなります。
+- **アプリのカテゴリを3つ追加しました。** アクセサリー、ファイルマネージャ、ターミナルです。
+- 名前についてまた1つ。`xfce.*` のパッケージは 25.11 と 26.05 の間にトップレベルへ移動し、`dolphin`・`konsole`・`kcalc` は `kdePackages` の下にあります。**両方の綴りを並べてあり、いま使っているチャンネルにあるほうだけが出ます。**
 
 ### build 2026-08-09m
 

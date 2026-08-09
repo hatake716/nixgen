@@ -269,6 +269,19 @@ from the package, but `programs.steam.enable` under **Options** is the fuller
 way — that is what puts the 32-bit graphics drivers in place, and it can open
 the remote-play ports for you.
 
+### Picking a language
+
+Next to the desktop dropdown under **Options** is a **Language** one: English,
+Japanese, French, German, Spanish, Korean or Chinese. Picking one sets the
+language up in full — the locale, the keymap the console uses, and the layout X
+uses. For Japanese, Korean and Chinese it also sets up fcitx5 with the right
+input engine, because none of those can be typed without one.
+
+Two things it does not do, both deliberately. Fonts: GNOME, Plasma and Xfce all
+ship the CJK and emoji fonts already, so there is nothing to add. And the time
+zone: a language is not a place, so nothing here guesses `Asia/Tokyo` from
+Japanese — search for `timeZone` under **Options** and set it yourself.
+
 ### Picking a desktop
 
 Under **Options** there is a **Desktop** dropdown: GNOME, KDE Plasma or Xfce.
