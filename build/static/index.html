@@ -244,7 +244,9 @@
               the whole system.
               <b>Already have a <code>configuration.nix</code>?</b> Press
               <b class="w">Import configuration.nix</b> first — your settings
-              come back as fields you can edit — and carry on here.
+              come back as fields you can edit, and the ones on this tab (the
+              host name, the user, the boot loader) are filled in from your
+              file — then carry on here.
               <!-- ASCII rather than box drawing: the mono stack falls back to
                    a proportional face for those glyphs on some machines, and a
                    tree that does not line up is worse than no tree. -->
@@ -278,7 +280,9 @@
               visits, so the file is the save: download
               <code>generated.nix</code>, and <b class="w">Import
               configuration.nix</b> brings those settings back as they were.
-              The <b class="w">Setup</b> fields are not part of it.</p>
+              The <b class="w">Setup</b> fields come back only from a file that
+              sets them — a <code>configuration.nix</code> does, a
+              <code>generated.nix</code> usually does not.</p>
             <p>You can go back to a tab at any time — the order above is where
               to start, not a door that shuts behind you.
               <a href="https://hatake716.github.io/nixgen/" target="_blank"
@@ -297,7 +301,7 @@
             <p class="eyebrow">使い方</p>
             <p class="lede">nixgen は新しいファイルを作ります。今あるファイルは読むだけで、書き換えることはありません。<b>タブの並びが、そのまま進める順序です。Setup → Options → Packages、そして確認して受け取ります。</b></p>
             <ol>
-              <li><b>まず <b class="w">Setup</b> から。</b>ホスト名、ユーザー、チャンネル、ブートローダーを決めます。インストール直後に足りない2つのファイルは、ここで用意されます。手で書く側の <code>configuration.nix</code> と、システム全体の入口になる <code>flake.nix</code> です。<b>すでに <code>configuration.nix</code> がある場合は</b>、先に <b class="w">Import configuration.nix</b> を押してください。今の設定が編集できる入力欄として戻ってくるので、そのままここから続けます。
+              <li><b>まず <b class="w">Setup</b> から。</b>ホスト名、ユーザー、チャンネル、ブートローダーを決めます。インストール直後に足りない2つのファイルは、ここで用意されます。手で書く側の <code>configuration.nix</code> と、システム全体の入口になる <code>flake.nix</code> です。<b>すでに <code>configuration.nix</code> がある場合は</b>、先に <b class="w">Import configuration.nix</b> を押してください。今の設定が編集できる入力欄として戻り、このタブの項目(ホスト名・ユーザー・ブートローダーなど)も<b>読み込んだファイルから埋まります</b>。そのままここから続けてください。
                 <pre class="tree">/etc/nixos/
 |-- flake.nix                   Setup から
 |-- configuration.nix           Setup から
@@ -310,7 +314,7 @@
               <li><b><b class="w">Download all three</b> を押します。</b>3つのファイルが1つの書庫で出てきます。既にある <code>hardware-configuration.nix</code> の隣に展開し、<code>sudo nixos-rebuild dry-build</code> を実行してください。<b>問題が無いときだけ</b>切り替えます。コマンドは Setup に表示されています。</li>
             </ol>
             <div class="after">
-              <p><b>タブを閉じると、入力した内容は消えます。</b>何も保存していないので、保存にあたるのはファイルです。<code>generated.nix</code> をダウンロードしておけば、<b class="w">Import configuration.nix</b> で元のとおりに戻せます。<b class="w">Setup</b> の入力欄はこれに含まれません。</p>
+              <p><b>タブを閉じると、入力した内容は消えます。</b>何も保存していないので、保存にあたるのはファイルです。<code>generated.nix</code> をダウンロードしておけば、<b class="w">Import configuration.nix</b> で元のとおりに戻せます。<b class="w">Setup</b> の入力欄が戻るのは、その値を書いてあるファイルを読んだときだけです。<code>configuration.nix</code> には書いてありますが、<code>generated.nix</code> にはたいてい書いてありません。</p>
               <p>タブはいつでも戻れます。上の順序は<b>どこから始めるか</b>の話で、一度離れたら戻れないわけではありません。<a href="https://hatake716.github.io/nixgen/" target="_blank" rel="noreferrer">詳しい説明</a>。</p>
             </div>
           </div>

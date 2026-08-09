@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-10e';
+const BUILD = '2026-08-10f';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -1626,6 +1626,104 @@ function paintCode(text) {
 
 /* ---------------------------------------------------------------- import */
 
+/* What an existing configuration.nix can tell the Setup tab about the machine.
+
+   Every path here has a field on that tab, and the starter file writes it. So
+   the setting moves rather than being copied: leaving the card as well would
+   put the same attribute in both files, which is what the red markers are for
+   and not something to hand somebody on purpose. Nothing is lost — the value
+   is in the field, and the import summary lists what went there.
+
+   Only values that arrived as values are read. An expression carried over
+   verbatim (`lib.mkIf …`) stays a card, because a form field cannot hold it. */
+function fillSetupFrom(incoming) {
+  const value = new Map();
+  for (const x of incoming) {
+    if (!x.entry.verbatim) value.set(resolvePath(x.entry), x.entry.value);
+  }
+  const used = [];
+  const take = (path, fn) => {
+    if (!value.has(path)) return;
+    if (fn(value.get(path)) === false) return;   // not a shape the field holds
+    used.push(path);
+  };
+
+  take('networking.hostName', v => {
+    if (typeof v !== 'string' || !v.trim()) return false;
+    $('#s-host').value = v.trim();
+  });
+  take('networking.networkmanager.enable', v => {
+    if (typeof v !== 'boolean') return false;
+    $('#s-networkmanager').checked = v;
+  });
+  /* Flakes arrive inside `nix.settings`, which is one attrs option holding a
+     key per line of Nix source — `{"experimental-features": "[ \"flakes\" ]"}`
+     — so the flag is read out of the source rather than from a list. The card
+     only moves to Setup when experimental-features is all it holds: substituters
+     and trusted-users belong to nobody's Setup tab, and taking them out of the
+     module to get at one key beside them would lose them. */
+  take('nix.settings', v => {
+    if (!v || typeof v !== 'object' || Array.isArray(v)) return false;
+    const src = v['experimental-features'];
+    if (typeof src !== 'string') return false;
+    $('#s-flakes').checked = /\bflakes\b/.test(src);
+    return Object.keys(v).length === 1 ? undefined : false;
+  });
+  take('system.stateVersion', v => {
+    if (typeof v !== 'string' || !/^\d\d\.\d\d$/.test(v.trim())) return false;
+    $('#s-state').value = v.trim();
+    // It came from their own file, so a later channel switch must not rewrite
+    // it — the same rule as typing one in.
+    state.stateTouched = true;
+  });
+  /* `nixpkgs.hostPlatform` is `string or (attribute set)`, and the form holds a
+     union as Nix source — so the value arrives as `"aarch64-linux"` with the
+     quotes in it, the same way console.keyMap does. An attribute set is a
+     cross-compilation setup and has no place in a dropdown of two. */
+  take('nixpkgs.hostPlatform', v => {
+    if (typeof v !== 'string') return false;
+    const bare = (/^\s*"([^"]*)"\s*$/.exec(v) || [])[1] ?? v.trim();
+    if (![...$('#s-system').options].some(o => o.value === bare)) return false;
+    $('#s-system').value = bare;
+  });
+
+  // Whichever boot loader is switched on, with the lines the starter writes
+  // alongside it.
+  if (value.get('boot.loader.systemd-boot.enable') === true) {
+    $('#s-bootloader').value = 'systemd-boot';
+    used.push('boot.loader.systemd-boot.enable');
+    if (value.get('boot.loader.efi.canTouchEfiVariables') === true) {
+      used.push('boot.loader.efi.canTouchEfiVariables');
+    }
+  } else if (value.get('boot.loader.grub.enable') === true) {
+    $('#s-bootloader').value = 'grub';
+    used.push('boot.loader.grub.enable');
+    const dev = value.get('boot.loader.grub.device');
+    if (typeof dev === 'string' && dev.trim()) {
+      $('#s-grub-device').value = dev.trim();
+      used.push('boot.loader.grub.device');
+    }
+  }
+
+  // The first normal user, and the groups it is in. A name that is not a plain
+  // identifier is left alone: it would not survive the field, which has to
+  // produce `users.users.<name>`.
+  for (const [path, v] of value) {
+    const m = /^users\.users\.([A-Za-z_][A-Za-z0-9_-]*)\.isNormalUser$/.exec(path);
+    if (!m || v !== true) continue;
+    $('#s-make-user').checked = true;
+    $('#s-user').value = m[1];
+    used.push(path);
+    const groups = value.get(`users.users.${m[1]}.extraGroups`);
+    if (Array.isArray(groups) && groups.length) {
+      $('#s-groups').value = groups.join(' ');
+      used.push(`users.users.${m[1]}.extraGroups`);
+    }
+    break;
+  }
+  return used;
+}
+
 $('#btn-import').addEventListener('click', () => $('#file').click());
 $('#file').addEventListener('change', async ev => {
   const f = ev.target.files[0];
@@ -1688,16 +1786,26 @@ $('#file').addEventListener('change', async ev => {
      what was there rather than joining it. Compared by the path each card
      renders to, not by its key: import files a repeat under a suffixed key, so
      the keys can differ while the attribute is the same. */
-  const arriving = new Set(incoming.map(x => resolvePath(x.entry)));
+  // The machine's own details go to the Setup tab, which is where the starter
+  // files write them, and out of the module rather than into both.
+  const toSetup = fillSetupFrom(incoming);
+  const moved = new Set(toSetup);
+  const kept = incoming.filter(x => !moved.has(resolvePath(x.entry)));
+
+  const arriving = new Set(kept.map(x => resolvePath(x.entry)));
   const replaced = [];
   for (const [key, entry] of [...state.selected]) {
     const path = resolvePath(entry);
-    if (!arriving.has(path)) continue;
+    if (!arriving.has(path) && !moved.has(path)) continue;
     state.selected.delete(key);
-    replaced.push(path);
+    if (arriving.has(path)) replaced.push(path);
   }
-  for (const x of incoming) state.selected.set(freeKey(x.path), x.entry);
+  for (const x of kept) state.selected.set(freeKey(x.path), x.entry);
   state.lastTouched = null;
+  if (toSetup.length) {
+    syncSetupVisibility();
+    await loadStarter();
+  }
 
   const notes = [];
   notes.push({ cls: 'ok', title: `Imported ${r.matched.length} settings from ${f.name}`,
@@ -1705,6 +1813,16 @@ $('#file').addEventListener('change', async ev => {
                  ? 'Parsed with nix-instantiate. Your file was not modified.'
                  : 'Read directly — nix-instantiate was not on PATH.' });
   (r.notes || []).forEach(n => notes.push({ cls: 'warn', title: 'Adjusted while reading', body: n }));
+  if (toSetup.length) {
+    notes.push({ cls: 'ok',
+      title: `${toSetup.length} went to the Setup tab`,
+      list: toSetup,
+      body: 'These describe the machine, and the Setup tab is what writes ' +
+            'them — into configuration.nix rather than into the module. They ' +
+            'are fields there now, so change them there. Nothing was lost: ' +
+            'they are out of the module because they would otherwise be in ' +
+            'both files at once.' });
+  }
   if (replaced.length) {
     notes.push({ cls: 'warn',
       title: `${replaced.length} setting(s) already in the form were replaced`,

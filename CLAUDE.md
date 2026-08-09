@@ -119,6 +119,18 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   (module structure), verbatim (an expression), verbatim (not in this release).
   Nothing is discarded. If a fifth case appears, add a group rather than dropping
   it.
+- **The machine's own details go to the Setup tab, and go there instead.**
+  `fillSetupFrom` in `app.js` takes the host name, the user and its groups, the
+  architecture, the boot loader and its GRUB disk, NetworkManager, flakes and
+  `system.stateVersion`, and those cards are then left out of the module: they
+  are fields on that tab and the starter `configuration.nix` writes them, so
+  keeping cards as well would define the same attribute in both files. It is a
+  move, not a discard, and the summary lists what moved. Two shapes have to be
+  read rather than assumed — `nixpkgs.hostPlatform` is a union so its value
+  arrives as Nix source with the quotes on it, and flakes live inside
+  `nix.settings`, an attrs option holding a line of source per key. **That one
+  only moves when experimental-features is the only key**, or substituters and
+  trusted-users would be carried off with it.
 - **Relative paths are restored.** `nix-instantiate --parse` resolves `./x.nix`
   against wherever the file sits, so the parse runs in a directory whose name
   can be recognised and turned back into `.`.

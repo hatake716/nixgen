@@ -354,6 +354,12 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
       Every setting ends up in the output, in one of four ways.</p>
     <p class="ja">ファイルはまず <code>nix-instantiate --parse</code> に渡します。<b>本物のNixパーサに解析させる</b>ので、ソースを正規表現で殴る必要がありません。ファイルは読み取り専用で開かれ、書き換えは一切しません。すべての項目が4通りのいずれかで出力に入ります。</p>
 
+    <p class="en">The machine's own details — host name, user account and groups, architecture, boot
+      loader, NetworkManager, flakes, <code>system.stateVersion</code> — fill the <b>Setup</b> tab
+      instead. Those are fields there, and the starter <code>configuration.nix</code> is what writes
+      them, so they move rather than being put in both files. The import summary lists which did.</p>
+    <p class="ja">そのマシン自体を表す項目(ホスト名、ユーザーとグループ、アーキテクチャ、ブートローダー、NetworkManager、flakes、<code>system.stateVersion</code>)は、<b>Setup</b> タブに入ります。これらは Setup タブの入力欄であり、スターターの <code>configuration.nix</code> が書くものなので、両方のファイルに書くのではなく<b>そちらへ移します</b>。どれが移ったかは取り込みサマリに出ます。</p>
+
     <div class="cols">
       <div class="card ok">
         <h4 class="en">Filled into the form</h4>

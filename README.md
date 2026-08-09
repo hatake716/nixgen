@@ -310,8 +310,15 @@ out, so the file stays as short as what you actually asked for.
 Press **Import configuration.nix** and pick your file. Your current settings
 appear in the form. **The file you choose is only ever read, never written to.**
 
-Each setting lands in one of four groups. All four end up in the output, so
-nothing is lost:
+**The machine's own details go to the Setup tab.** The host name, the user
+account and its groups, the architecture, the boot loader (and the GRUB disk),
+NetworkManager, whether flakes are on, and `system.stateVersion` — those are
+fields on that tab, and the starter `configuration.nix` is what writes them. So
+they move there rather than being written into the module as well; the summary
+lists which ones did. Everything else stays in the module.
+
+The rest lands in one of four groups. All four end up in the output, so nothing
+is lost:
 
 | Group | What it means |
 |---|---|

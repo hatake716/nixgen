@@ -9,6 +9,24 @@ option counts.
 
 ## English
 
+### build 2026-08-10f
+
+- **Reading in a configuration.nix fills the Setup tab.** The host name, the
+  user account and its groups, the architecture, the boot loader and its GRUB
+  disk, NetworkManager, whether flakes are on, and `system.stateVersion` — all
+  of them come from the file you just read, instead of the tab still describing
+  a machine called `nixos`.
+- **Those settings move rather than being copied.** They are fields on that tab
+  and the starter `configuration.nix` is what writes them, so leaving cards
+  behind as well would put the same attribute in both files. The import summary
+  lists exactly which ones went, and everything else stays in the module.
+- Two shapes had to be read rather than assumed: `nixpkgs.hostPlatform` is a
+  union, so its value arrives as Nix source with the quotes still on it, and
+  flakes live inside `nix.settings`, which is one attrs option holding a line of
+  source per key. **That card only moves when experimental-features is all it
+  holds** — nobody's substituters belong on a Setup tab, and taking the option
+  to get at one key beside them would take them too.
+
 ### build 2026-08-10e
 
 Five defects, found by driving the app rather than by reading it. The first two
@@ -489,6 +507,12 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10f
+
+- **configuration.nix を読み込むと、Setup タブに反映されるようにしました。** ホスト名、ユーザーとそのグループ、アーキテクチャ、ブートローダー(GRUBならディスクも)、NetworkManager、flakesの有無、`system.stateVersion` が、**いま読み込んだファイルの内容**になります。読み込んだのに Setup タブが `nixos` という名前のマシンの話をしたまま、ということがなくなりました。
+- **これらの項目は、コピーではなく移動します。** Setup タブの入力欄であり、スターターの `configuration.nix` が書くものだからです。moduleにもカードを残すと、**同じ属性が2つのファイルに書かれる**ことになります。どれが移ったかは取り込みサマリに一覧で出ます。それ以外はすべて module に残ります。
+- 値の形は推測せず、実際に読んで合わせました。`nixpkgs.hostPlatform` は union なので**引用符が付いたままのNixソース**として届きます。flakesは `nix.settings` の中にあり、これは**キーごとにNixソースを持つ1つのattrsオプション**です。**このカードが移るのは experimental-features しか入っていないときだけ**にしました。他人の substituters は Setup タブに置くものではありませんし、隣のキー1つのために取り上げれば**それらも一緒に持って行ってしまう**からです。
 
 ### build 2026-08-10e
 
