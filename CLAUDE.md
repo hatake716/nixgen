@@ -187,6 +187,17 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   `#appsline` the whole line for the last. Measure, do not eyeball — the tools
   clone the select with `width: max-content` and compare against its real box.
   Adding an option means checking the same thing.
+- **"Already added" is read from the module, never remembered.**
+  `alreadyListed` looks in `environment.systemPackages` — the list the form
+  holds or the source of one that came in verbatim — and `syncAddedRows` runs
+  at the end of every `doRender`, so a package removed from the card or typed
+  into the box by hand greys and un-greys the list without anything having to
+  tell it. A flag set when a row is clicked would go stale the first time
+  somebody edited the card instead.
+- **Repainting the package list must keep the category.** `runSearch` is what
+  every repaint goes through, and it knew only about the search box, so adding
+  the first package from a category replaced that category with the default
+  listing — pick Games, click Steam, and the games were gone.
 - **Adding a package must not rebuild the card.** It would reset a text box the
   user had dragged taller. `addPackage` edits the textarea in place.
 - **Adding a package must not replace the value.** When the list came in

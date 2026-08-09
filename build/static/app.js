@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-10j';
+const BUILD = '2026-08-10k';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -553,6 +553,12 @@ function showFile(name) {
 }
 
 async function runSearch() {
+  /* A category is a list too, and repainting has to keep it. Adding the first
+     package from one used to put the default listing back in its place —
+     `addOption` repaints, and this function only knew about the search box —
+     so picking Games and clicking Steam took the games away. */
+  const category = state.kind === 'packages' && $('#s-apps').value;
+  if (category) return showApps(category);
   const q = $('#q').value.trim();
   const sup = $('#only-supported').checked ? '1' : '';
   const url = `/api/search?kind=${state.kind}&q=${encodeURIComponent(q)}&supported=${sup}&limit=80`;
@@ -636,12 +642,38 @@ function packageIcon(attr) {
   return tile;
 }
 
+/* Is this package already in environment.systemPackages?
+
+   Two shapes to read: the list the form holds, and the source of one that came
+   in verbatim (`with pkgs; [ … ]`). Both spellings count — under `with pkgs;`
+   an element is written `vscode` and without it `pkgs.vscode`, and the same
+   package written either way is still in the list. */
+function alreadyListed(attr) {
+  const e = findEntry(TOP_OPTION);
+  if (!e) return false;
+  if (Array.isArray(e.value)) return e.value.includes(attr);
+  const text = String(e.value || '');
+  if (!text.includes('[')) return false;
+  return [attr, 'pkgs.' + attr].some(item =>
+    new RegExp('(^|[\\s\\[])' + rxEscape(item) + '(?=[\\s\\]]|$)').test(text));
+}
+
+/* Grey the rows for packages that are in the list already. Done by walking the
+   rows on screen rather than asking for them again: this runs after every
+   render, so it has to cost nothing, and it has to cover a package removed by
+   hand from the card as well as one added by clicking. */
+function syncAddedRows() {
+  $$('#results .row.pkg').forEach(row =>
+    row.classList.toggle('added', alreadyListed(row.dataset.attr)));
+}
+
 function paintPackages(rows) {
   const box = $('#results');
   box.innerHTML = '';
   if (!rows.length) { box.appendChild(el('div', 'empty', 'No package matches that.')); return; }
   rows.forEach(r => {
-    const b = el('button', 'row pkg');
+    const b = el('button', 'row pkg' + (alreadyListed(r.attr) ? ' added' : ''));
+    b.dataset.attr = r.attr;
     b.appendChild(packageIcon(r.attr));
     const text = el('div', 'rowtext');
     const p = el('div', 'p');
@@ -652,7 +684,12 @@ function paintPackages(rows) {
     if (r.description) text.appendChild(el('div', 'd', r.description));
     text.appendChild(ident(r.version || '', 't'));
     b.appendChild(text);
-    b.addEventListener('click', () => addPackage(r.attr, r.unfree));
+    // A greyed row is not a dead one: clicking it takes you to the card the
+    // package is already in, the way clicking an option you have flashes its
+    // card rather than adding a second.
+    b.addEventListener('click', () => alreadyListed(r.attr)
+      ? flashCard(TOP_OPTION)
+      : addPackage(r.attr, r.unfree));
     box.appendChild(b);
   });
 }
@@ -1642,6 +1679,10 @@ async function doRender() {
   }
   if (notes.length) setStatus(notes.join('\n'), 'todo');
   else if ($('#status').classList.contains('todo')) setStatus('');
+  // Every change to the module comes through here, so this is the one place
+  // that catches a package added by clicking, removed from the card, or typed
+  // into the box by hand.
+  syncAddedRows();
 }
 
 function paintCode(text) {

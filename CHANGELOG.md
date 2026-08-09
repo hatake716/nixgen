@@ -9,6 +9,20 @@ option counts.
 
 ## English
 
+### build 2026-08-10k
+
+- **A package already in `environment.systemPackages` is greyed in the list**,
+  in the categories and in search results alike — the same as an option you
+  have already added. **Clicking it takes you to the card it is in** rather
+  than doing nothing.
+- It reads the module rather than remembering what was clicked, so a package
+  removed from the card, or typed into the box by hand, changes the list the
+  same way. A list that came in verbatim counts too: `with pkgs; [ ripgrep ]`
+  and `pkgs.ripgrep` are the same package written two ways.
+- **Fixed: adding the first package from a category threw the category away.**
+  Adding it repaints the list, and repainting only knew about the search box —
+  so picking Games and clicking Steam left you looking at an unrelated listing.
+
 ### build 2026-08-10j
 
 - **`ollama` is in the Development category**, next to `lmstudio` — the same
@@ -549,6 +563,12 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10k
+
+- **`environment.systemPackages` に既に入っているパッケージは、一覧でグレーアウトします。** 分野から選んだときも検索結果でも同じで、追加済みのオプションと同じ扱いです。**クリックすると、そのパッケージが入っているカードへ移動**します。何も起きないということはありません。
+- 判定は**クリックした履歴ではなく module の中身**を見ています。カードから削除しても、入力欄で手で書き換えても、一覧の表示がそれに追従します。**そのまま転記されたリストも対象**です。`with pkgs; [ ripgrep ]` と `pkgs.ripgrep` は、書き方が違うだけで同じパッケージだからです。
+- **修正：分野から最初の1つを追加すると、その分野の一覧が消えていました。** 追加すると一覧が描き直されるのですが、描き直す処理が**検索欄のことしか知らなかった**ためです。ゲームを選んで Steam を押すと、無関係な一覧が表示される状態でした。
 
 ### build 2026-08-10j
 
