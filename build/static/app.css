@@ -410,3 +410,9 @@ pre.nix .clash { border-left: 2px solid #a34545; margin-left: -2px; padding-left
 .setupform label.check input { width: auto; margin: 0; }
 .setupform label[hidden], .setupform p[hidden] { display: none; }
 #btn-reindex { margin: 0 0 12px; width: 100%; }
+
+/* The Japanese half of a notice: the same words, quieter, directly under the
+   English rather than beside it — these are sentences, and two columns of
+   prose in a narrow pane is worse than two lines. */
+.notice .nt.ja { font-weight: 600; opacity: .85; margin-bottom: 2px; }
+.notice .nb.ja { opacity: .85; }

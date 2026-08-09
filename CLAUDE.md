@@ -223,6 +223,13 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   `order: -1` when it has something to say. It was below the module for a while,
   which put "kept as written: not an option in this release" — the one thing
   `nixos-rebuild` refuses outright — a screen or two down, where it went unread.
+- **Every message the app writes carries both languages, and a new one has to
+  too.** `say(en, ja)` for the status bar, `title_ja` and `body_ja` for a
+  notice. They stack rather than sharing a line — the dropdown options are
+  labels and fit `English — 日本語`, these are sentences and do not. **What the
+  Nix parser says is not translated**: `sayCheck` introduces it in both
+  languages and then quotes it, because somebody searching for an error needs
+  the words it actually printed.
 - **The five steps are written twice, English then Japanese, and the two
   halves are kept in step by hand.** They name tabs and buttons, so a machine
   translation of them points at names that are not on the screen — which is the

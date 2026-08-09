@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-10n';
+const BUILD = '2026-08-10o';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -125,10 +125,13 @@ function setStateVersion(release, channel) {
        is the server not being up yet, or a channel switch swapping the index
        underneath the page, and both are fixed by reloading — but only if you
        are told that. */
-    setStatus(`Could not load from the nixgen server (${err.message}). It may ` +
-              `still be starting, or busy rebuilding the index. Reload the ` +
-              `page; if it keeps happening, look at the terminal it was ` +
-              `started from.`, 'bad');
+    setStatus(say(
+      `Could not load from the nixgen server (${err.message}). It may still ` +
+      `be starting, or busy rebuilding the index. Reload the page; if it ` +
+      `keeps happening, look at the terminal it was started from.`,
+      `nixgen のサーバーから読み込めませんでした(${err.message})。まだ起動中か、` +
+      `インデックスの再構築中かもしれません。ページを再読み込みしてください。` +
+      `繰り返す場合は、起動したターミナルの表示を確認してください。`), 'bad');
     $('#setup').hidden = false;
   }
 })();
@@ -826,11 +829,17 @@ async function addDesktop(key) {
   renderEditor();
   pushRender();
   if (missing.length) {
-    setStatus(`${d.label}: added ${added.length}, but this release has no ` +
-              `${missing.join(', ')}. Check the result before applying it.`, 'bad');
+    setStatus(say(
+      `${d.label}: added ${added.length}, but this release has no ` +
+      `${missing.join(', ')}. Check the result before applying it.`,
+      `${d.label}: ${added.length}件を追加しましたが、このリリースには ` +
+      `${missing.join('、')} がありません。適用する前に結果を確認してください。`), 'bad');
   } else {
-    setStatus(`${d.label}: ${added.length} settings added. Change or remove ` +
-              `any of them like the rest.`, 'ok');
+    setStatus(say(
+      `${d.label}: ${added.length} settings added. Change or remove any of ` +
+      `them like the rest.`,
+      `${d.label}: ${added.length}件の設定を追加しました。他の項目と同じように、` +
+      `変更も削除もできます。`), 'ok');
   }
 }
 
@@ -889,11 +898,18 @@ async function addLanguage(key) {
   const tail = L.im
     ? ' fcitx5 is set up for typing it; the CJK fonts come with the desktop.'
     : '';
+  const tailJa = L.im
+    ? ' 入力には fcitx5 を設定しました。CJKフォントはデスクトップが持っています。'
+    : '';
   if (missing.length) {
-    setStatus(`${L.label}: added ${added.length}, but this release has no ` +
-              `${missing.join(', ')}. Check the result before applying it.`, 'bad');
+    setStatus(say(
+      `${L.label}: added ${added.length}, but this release has no ` +
+      `${missing.join(', ')}. Check the result before applying it.`,
+      `${L.label}: ${added.length}件を追加しましたが、このリリースには ` +
+      `${missing.join('、')} がありません。適用する前に結果を確認してください。`), 'bad');
   } else {
-    setStatus(`${L.label}: ${added.length} settings added.${tail}`, 'ok');
+    setStatus(say(`${L.label}: ${added.length} settings added.${tail}`,
+                  `${L.label}: ${added.length}件の設定を追加しました。${tailJa}`), 'ok');
   }
 }
 
@@ -957,10 +973,14 @@ async function addGpu(key) {
   // No unfree warning here on purpose — doRender raises it, and keeps
   // raising it, which a message written once from this side would not.
   if (missing.length) {
-    setStatus(`${g.label}: added ${added.length}, but this release has no ` +
-              `${missing.join(', ')}. Check the result before applying it.`, 'bad');
+    setStatus(say(
+      `${g.label}: added ${added.length}, but this release has no ` +
+      `${missing.join(', ')}. Check the result before applying it.`,
+      `${g.label}: ${added.length}件を追加しましたが、このリリースには ` +
+      `${missing.join('、')} がありません。適用する前に結果を確認してください。`), 'bad');
   } else {
-    setStatus(`${g.label}: ${added.length} settings added.`, 'ok');
+    setStatus(say(`${g.label}: ${added.length} settings added.`,
+                  `${g.label}: ${added.length}件の設定を追加しました。`), 'ok');
   }
 }
 
@@ -1005,13 +1025,18 @@ async function addKernel(key) {
   const have = new Map((results || []).map(r => [r.attr, r.version]));
   const pick = k.try.find(c => have.has(c.probe));
   if (!pick) {
-    setStatus(`${k.label}: this channel has no ${k.try[0].probe}. ` +
-              `Nothing was added.`, 'bad');
+    setStatus(say(
+      `${k.label}: this channel has no ${k.try[0].probe}. Nothing was added.`,
+      `${k.label}: このチャンネルには ${k.try[0].probe} がありません。` +
+      `何も追加していません。`), 'bad');
     return;
   }
   const used = await addWithValue(['boot.kernelPackages'], pick.expr);
   if (!used) {
-    setStatus(`This release has no boot.kernelPackages. Nothing was added.`, 'bad');
+    setStatus(say(
+      'This release has no boot.kernelPackages. Nothing was added.',
+      'このリリースには boot.kernelPackages がありません。何も追加していません。'),
+      'bad');
     return;
   }
   renderEditor();
@@ -1025,8 +1050,15 @@ async function addKernel(key) {
     ? ' Out-of-tree modules — the NVIDIA driver most of all — can lag a new ' +
       'kernel by weeks. Check with dry-build.'
     : '';
-  setStatus(`${k.label}: boot.kernelPackages = ${pick.expr} — ` +
-            `linux ${have.get(pick.probe)}.${tail}`, 'ok');
+  const tailJa = key === 'latest' || key === 'zen'
+    ? 'カーネル外のモジュール(とりわけ NVIDIA のドライバ)は、新しいカーネルに' +
+      '数週間遅れることがあります。dry-build で確かめてください。'
+    : '';
+  setStatus(say(
+    `${k.label}: boot.kernelPackages = ${pick.expr} — ` +
+    `linux ${have.get(pick.probe)}.${tail}`,
+    `${k.label}: boot.kernelPackages = ${pick.expr} — ` +
+    `linux ${have.get(pick.probe)} です。${tailJa}`), 'ok');
 }
 
 $('#btn-kernel').addEventListener('click', () => {
@@ -1216,8 +1248,11 @@ async function addPackage(attr, unfree) {
     // The entry came in verbatim; keep every element that is already there.
     const merged = appendToNixList(e.value, attr);
     if (merged === null) {
-      setStatus(`Could not add ${attr}: environment.systemPackages holds an ` +
-                `expression this tool cannot edit. Add it by hand.`, 'bad');
+      setStatus(say(
+        `Could not add ${attr}: environment.systemPackages holds an ` +
+        `expression this tool cannot edit. Add it by hand.`,
+        `${attr} を追加できませんでした。environment.systemPackages が、` +
+        `この道具では編集できない式になっています。手で追加してください。`), 'bad');
       return;
     }
     e.value = merged;
@@ -1644,9 +1679,13 @@ async function doRender() {
     if (typeof res.text !== 'string') throw new Error(res.error || 'no file came back');
   } catch (err) {
     renderStale = true;
-    setStatus(`The file could not be rendered (${err.message}). What is shown ` +
-              `is the last one that worked, and nothing will be handed over ` +
-              `until this succeeds — reload the page.`, 'bad');
+    setStatus(say(
+      `The file could not be rendered (${err.message}). What is shown is the ` +
+      `last one that worked, and nothing will be handed over until this ` +
+      `succeeds — reload the page.`,
+      `ファイルを生成できませんでした(${err.message})。表示しているのは` +
+      `最後に成功したものです。成功するまで何も渡しません。` +
+      `ページを再読み込みしてください。`), 'bad');
     return;
   }
   renderStale = false;
@@ -1654,7 +1693,11 @@ async function doRender() {
   if (state.file === 'generated.nix') paintCode(res.text);
   const notes = [];
   const todo = (res.text.match(/CHANGE_ME/g) || []).length;
-  if (todo) notes.push(`${todo} name${todo > 1 ? 's' : ''} still to fill in — look for CHANGE_ME.`);
+  if (todo) {
+    notes.push(say(
+      `${todo} name${todo > 1 ? 's' : ''} still to fill in — look for CHANGE_ME.`,
+      `未入力の名前が${todo}件あります。CHANGE_ME を探してください。`));
+  }
   /* Nothing should be able to put two cards on one attribute: import replaces
      what it lands on, and adding an option you already have flashes that card
      instead. If one gets through anyway the file will not build, and the reason
@@ -1670,20 +1713,30 @@ async function doRender() {
   }
   const twice = [...seenPath].filter(([, n]) => n > 1).map(([path]) => path);
   if (twice.length) {
-    notes.push(`Set twice: ${twice.join(', ')}. NixOS refuses a file that ` +
-               `defines one attribute twice, so remove one of the cards.`);
+    notes.push(say(
+      `Set twice: ${twice.join(', ')}. NixOS refuses a file that defines one ` +
+      `attribute twice, so remove one of the cards.`,
+      `二重に設定されています: ${twice.join('、')}。NixOS は同じ属性を2回定義した` +
+      `ファイルを受け付けません。どちらかのカードを削除してください。`));
   }
   const clashes = [...state.starterDefines].filter(
     p => new RegExp('^  ' + p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ' =', 'm').test(res.text));
   if (clashes.length) {
-    notes.push(`Also set in the starter configuration.nix: ${clashes.join(', ')}. ` +
-               `Shown in red. Delete it from one of the two files — if both use ` +
-               `lib.mkDefault, NixOS cannot choose and the rebuild fails.`);
+    notes.push(say(
+      `Also set in the starter configuration.nix: ${clashes.join(', ')}. ` +
+      `Shown in red. Delete it from one of the two files — if both use ` +
+      `lib.mkDefault, NixOS cannot choose and the rebuild fails.`,
+      `スターターの configuration.nix にも同じ設定があります: ${clashes.join('、')}。` +
+      `赤で表示しています。どちらかのファイルから消してください。両方が ` +
+      `lib.mkDefault だと NixOS はどちらを採るか決められず、rebuild が失敗します。`));
   }
   const unfree = [...state.unfree].filter(a => res.text.includes('pkgs.' + a));
   if (unfree.length) {
-    notes.push(`${unfree.join(', ')} ${unfree.length > 1 ? 'are' : 'is'} unfree. ` +
-               `Set nixpkgs.config.allowUnfree = true; in your configuration.nix.`);
+    notes.push(say(
+      `${unfree.join(', ')} ${unfree.length > 1 ? 'are' : 'is'} unfree. ` +
+      `Set nixpkgs.config.allowUnfree = true; in your configuration.nix.`,
+      `${unfree.join('、')} は unfree です。configuration.nix に ` +
+      `nixpkgs.config.allowUnfree = true; を設定してください。`));
   }
   /* The NVIDIA driver is unfree, and the reminder above cannot see it: that
      one watches environment.systemPackages, and this arrives through a
@@ -1691,17 +1744,24 @@ async function doRender() {
      because a note that is regenerated on every render is one that cannot be
      wiped by the next one — which is exactly what happened when it was. */
   if (/^\s*hardware\.nvidia\./m.test(res.text)) {
-    notes.push(`The NVIDIA driver is unfree. Set nixpkgs.config.allowUnfree = ` +
-               `true; in your configuration.nix, or the build refuses it.`);
+    notes.push(say(
+      `The NVIDIA driver is unfree. Set nixpkgs.config.allowUnfree = true; ` +
+      `in your configuration.nix, or the build refuses it.`,
+      `NVIDIA のドライバは unfree です。configuration.nix に ` +
+      `nixpkgs.config.allowUnfree = true; を設定しないとビルドが拒否されます。`));
   }
   /* Steam runs from the package, but the module is what puts the 32-bit
      graphics drivers in place and can open the remote-play ports. Saying so
      beats leaving Steam out of the list, which only sent people looking. */
   const listed = findEntry(TOP_OPTION);
   if (listed && Array.isArray(listed.value) && listed.value.includes('steam')) {
-    notes.push(`steam is listed as a package. programs.steam.enable under ` +
-               `Options is the fuller way — it sets up the 32-bit graphics ` +
-               `drivers, and can open the remote-play ports.`);
+    notes.push(say(
+      `steam is listed as a package. programs.steam.enable under Options is ` +
+      `the fuller way — it sets up the 32-bit graphics drivers, and can open ` +
+      `the remote-play ports.`,
+      `steam をパッケージとして入れています。Options タブの ` +
+      `programs.steam.enable のほうが本筋です。32bit のグラフィックドライバを` +
+      `揃え、リモートプレイのポートも開けられます。`));
   }
   if (notes.length) setStatus(notes.join('\n'), 'todo');
   else if ($('#status').classList.contains('todo')) setStatus('');
@@ -1847,7 +1907,7 @@ $('#file').addEventListener('change', async ev => {
   if (!f) return;
   ev.target.value = '';
   const text = await f.text();
-  setStatus('Reading ' + f.name + '…');
+  setStatus(say('Reading ' + f.name + '…', f.name + ' を読んでいます…'));
   const r = await fetch('/api/import', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1855,8 +1915,11 @@ $('#file').addEventListener('change', async ev => {
   }).then(r => r.json());
 
   if (r.error) {
-    showNotice([{ cls: 'bad', title: 'Could not read that file', body: r.error }]);
-    setStatus('Import failed.', 'bad');
+    showNotice([{ cls: 'bad',
+                  title: 'Could not read that file',
+                  title_ja: 'そのファイルを読めませんでした',
+                  body: r.error }]);
+    setStatus(say('Import failed.', '読み込みに失敗しました。'), 'bad');
     return;
   }
 
@@ -1925,50 +1988,80 @@ $('#file').addEventListener('change', async ev => {
   }
 
   const notes = [];
-  notes.push({ cls: 'ok', title: `Imported ${r.matched.length} settings from ${f.name}`,
-               body: r.used_nix
-                 ? 'Parsed with nix-instantiate. Your file was not modified.'
-                 : 'Read directly — nix-instantiate was not on PATH.' });
-  (r.notes || []).forEach(n => notes.push({ cls: 'warn', title: 'Adjusted while reading', body: n }));
+  notes.push({ cls: 'ok',
+    title: `Imported ${r.matched.length} settings from ${f.name}`,
+    title_ja: `${f.name} から${r.matched.length}件の設定を読み込みました`,
+    body: r.used_nix
+      ? 'Parsed with nix-instantiate. Your file was not modified.'
+      : 'Read directly — nix-instantiate was not on PATH.',
+    body_ja: r.used_nix
+      ? 'nix-instantiate で解析しました。読んだファイルは書き換えていません。'
+      : 'nix-instantiate が PATH に無かったため、自前の読み取りを使いました。' });
+  (r.notes || []).forEach(n => notes.push({ cls: 'warn',
+    title: 'Adjusted while reading', title_ja: '読み込みの際に調整した点',
+    body: n }));
   if (toSetup.length) {
     notes.push({ cls: 'ok',
       title: `${toSetup.length} went to the Setup tab`,
+      title_ja: `${toSetup.length}件が Setup タブに入りました`,
       list: toSetup,
       body: 'These describe the machine, and the Setup tab is what writes ' +
             'them — into configuration.nix rather than into the module. They ' +
             'are fields there now, so change them there. Nothing was lost: ' +
             'they are out of the module because they would otherwise be in ' +
-            'both files at once.' });
+            'both files at once.',
+      body_ja: 'いずれもマシンそのものを表す項目で、これらを書くのは Setup ' +
+               'タブです。module ではなく configuration.nix に入ります。' +
+               'いまは入力欄になっているので、変更はそちらで行ってください。' +
+               '失われたものはありません。module から外したのは、そのままだと' +
+               '2つのファイルに同じ設定が入るからです。' });
   }
   if (replaced.length) {
     notes.push({ cls: 'warn',
       title: `${replaced.length} setting(s) already in the form were replaced`,
+      title_ja: `フォームにあった${replaced.length}件を置き換えました`,
       list: replaced,
       body: 'The file you just read is what they say now. Two cards for one ' +
             'attribute cannot both be written — NixOS refuses a file that ' +
-            'defines the same one twice.' });
+            'defines the same one twice.',
+      body_ja: 'いま読み込んだファイルの内容になっています。1つの属性に' +
+               '2枚のカードがあると両方は書けません。NixOS は同じ属性を' +
+               '2回定義したファイルを受け付けないからです。' });
   }
   if (r.structure && r.structure.length) {
     notes.push({ cls: 'ok',
       title: `${r.structure.length} module-structure line(s) carried over`,
+      title_ja: `モジュール構造の行を${r.structure.length}件そのまま写しました`,
       list: r.structure.map(x => `${x.path} = ${x.preview}`),
-      body: 'imports and friends are copied through unchanged. Keep this file in the same directory as the one you imported, so its relative paths still resolve.' });
+      body: 'imports and friends are copied through unchanged. Keep this file in the same directory as the one you imported, so its relative paths still resolve.',
+      body_ja: 'imports のような行は、そのまま写します。相対パスが解決できるよう、' +
+               'このファイルは読み込んだファイルと同じディレクトリに置いてください。' });
   }
   if (r.expression.length) {
     notes.push({ cls: 'warn',
       title: `${r.expression.length} kept as written: the value is an expression`,
+      title_ja: `値が式のため、${r.expression.length}件を書かれたとおりに写しました`,
       list: r.expression.map(x => `${x.option} = ${x.preview}`),
-      body: 'lib.mkIf, let bindings and the like cannot go in a form, so they are copied into the output unchanged and highlighted. If one refers to a let binding from your original file, define it there too or Check syntax will flag it.' });
+      body: 'lib.mkIf, let bindings and the like cannot go in a form, so they are copied into the output unchanged and highlighted. If one refers to a let binding from your original file, define it there too or Check syntax will flag it.',
+      body_ja: 'lib.mkIf や let 束縛はフォームに載せられないので、そのまま出力に' +
+               '写して色を付けています。元のファイルの let 束縛を参照している場合は、' +
+               'そちらにも定義を残してください。無いと Check syntax で指摘されます。' });
   }
   if (r.unknown.length) {
-    notes.push({ cls: 'warn', title: `${r.unknown.length} kept as written: not an option in this release`,
+    notes.push({ cls: 'warn',
+      title: `${r.unknown.length} kept as written: not an option in this release`,
+      title_ja: `このリリースに無い項目を${r.unknown.length}件、そのまま写しました`,
       list: r.unknown.map(x => `${x.path} — ${x.why}`),
-      body: 'Copied into the output unchanged so nothing is lost. Highlighted in the file — check each one, since nixos-rebuild will reject an option that no longer exists.' });
+      body: 'Copied into the output unchanged so nothing is lost. Highlighted in the file — check each one, since nixos-rebuild will reject an option that no longer exists.',
+      body_ja: '何も失わないよう、そのまま出力に写して色を付けています。' +
+               '無くなった項目は nixos-rebuild が拒否するので、1件ずつ確認して' +
+               'ください。' });
   }
   showNotice(notes);
   rerender();
   runSearch();
-  setStatus(`Imported ${r.matched.length} settings.`, 'ok');
+  setStatus(say(`Imported ${r.matched.length} settings.`,
+                `${r.matched.length}件の設定を読み込みました。`), 'ok');
 });
 
 function showNotice(items) {
@@ -1978,16 +2071,21 @@ function showNotice(items) {
   items.forEach(it => {
     const n = el('div', 'notice ' + it.cls);
     n.appendChild(el('div', 'nt', it.title));
+    if (it.title_ja) n.appendChild(el('div', 'nt ja', it.title_ja));
     if (it.body) n.appendChild(el('div', 'nb', it.body));
+    if (it.body_ja) n.appendChild(el('div', 'nb ja', it.body_ja));
     if (it.list) {
       const ul = el('ul', 'nl');
       it.list.slice(0, 40).forEach(t => ul.appendChild(keep(el('li', null, t))));
-      if (it.list.length > 40) ul.appendChild(el('li', null, `…and ${it.list.length - 40} more`));
+      if (it.list.length > 40) {
+        ul.appendChild(el('li', null,
+          `…and ${it.list.length - 40} more — ほか${it.list.length - 40}件`));
+      }
       n.appendChild(ul);
     }
     box.appendChild(n);
   });
-  const x = el('button', 'mini', 'dismiss');
+  const x = el('button', 'mini', 'dismiss — 閉じる');
   x.addEventListener('click', () => { box.innerHTML = ''; });
   box.appendChild(x);
 }
@@ -1998,9 +2096,11 @@ $('#btn-copy').addEventListener('click', async () => {
   if (!await settled()) return;
   try {
     await navigator.clipboard.writeText(currentText());
-    setStatus('Copied to clipboard.', 'ok');
+    setStatus(say('Copied to clipboard.', 'クリップボードにコピーしました。'), 'ok');
   } catch {
-    setStatus('Clipboard blocked by the browser. Use Download instead.', 'bad');
+    setStatus(say('Clipboard blocked by the browser. Use Download instead.',
+                  'ブラウザにクリップボードを止められました。Download を使ってください。'),
+              'bad');
   }
 });
 
@@ -2022,10 +2122,13 @@ async function downloadBundle() {
      the index was still building — the archive would be two empty files and a
      module, which looks like a download that worked. */
   if (!state.starter['configuration.nix'] || !state.starter['flake.nix']) {
-    return setStatus('The starter files are not ready yet — open Setup, check ' +
-                     'the fields, and try again. Nothing was downloaded.', 'bad');
+    return setStatus(say(
+      'The starter files are not ready yet — open Setup, check the fields, ' +
+      'and try again. Nothing was downloaded.',
+      'スターターファイルがまだ用意できていません。Setup タブを開いて入力欄を' +
+      '確かめてから、もう一度試してください。何もダウンロードしていません。'), 'bad');
   }
-  setStatus('Packing…');
+  setStatus(say('Packing…', 'まとめています…'));
   const res = await fetch('/api/bundle', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -2038,11 +2141,16 @@ async function downloadBundle() {
       },
     }),
   });
-  if (!res.ok) return setStatus('Could not build the archive.', 'bad');
+  if (!res.ok) return setStatus(say('Could not build the archive.',
+                                    '書庫を作れませんでした。'), 'bad');
   saveBlob(await res.blob(), n + '.tar.gz');
-  setStatus(`${n}.tar.gz — three files under ${n}/. Unpack it with ` +
-            `tar -xzf ${n}.tar.gz. hardware-configuration.nix is not in it: ` +
-            `keep the one this machine already has.`, 'ok');
+  setStatus(say(
+    `${n}.tar.gz — three files under ${n}/. Unpack it with ` +
+    `tar -xzf ${n}.tar.gz. hardware-configuration.nix is not in it: keep the ` +
+    `one this machine already has.`,
+    `${n}.tar.gz — ${n}/ の下に3つのファイルが入っています。` +
+    `tar -xzf ${n}.tar.gz で展開してください。hardware-configuration.nix は` +
+    `含まれていません。このマシンにあるものをそのまま使ってください。`), 'ok');
 }
 
 $('#btn-dl').addEventListener('click', async () => {
@@ -2053,6 +2161,19 @@ $('#btn-dl').addEventListener('click', async () => {
 
 $('#btn-dl-all').addEventListener('click', downloadBundle);
 
+/* The verdict in both languages. A failure carries the parser's own words
+   after it — those are Nix's, in Nix's English, and translating them would
+   mean somebody searching for the error text could not find it. */
+function sayCheck(r) {
+  if (r.ok === true) return say('Parses cleanly.', '構文に問題ありません。');
+  if (r.ok === null) {
+    return say('nix-instantiate not found on PATH — syntax check skipped.',
+               'nix-instantiate が PATH にありません。構文チェックは行いません。');
+  }
+  return say('Nix could not parse this file:',
+             'Nix がこのファイルを解析できませんでした:') + '\n' + r.message;
+}
+
 const checkText = text => fetch('/api/validate', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
@@ -2061,10 +2182,10 @@ const checkText = text => fetch('/api/validate', {
 
 $('#btn-check').addEventListener('click', async () => {
   if (!await settled()) return;
-  setStatus('Checking…');
+  setStatus(say('Checking…', '確認しています…'));
   if (state.file !== ALL) {
     const r = await checkText(currentText());
-    return setStatus(r.message, r.ok === true ? 'ok' : r.ok === false ? 'bad' : '');
+    return setStatus(sayCheck(r), r.ok === true ? 'ok' : r.ok === false ? 'bad' : '');
   }
   /* On the archive tab there is no one file to check, so it checks the three
      that are about to be downloaded and names which of them failed — a report
@@ -2073,12 +2194,19 @@ $('#btn-check').addEventListener('click', async () => {
   const texts = [generatedText, state.starter['configuration.nix'] || '',
                  state.starter['flake.nix'] || ''];
   const rs = await Promise.all(texts.map(checkText));
-  if (rs.some(r => r.ok === null)) return setStatus(rs[0].message, '');
+  if (rs.some(r => r.ok === null)) return setStatus(sayCheck(rs[0]), '');
   const bad = names.filter((_, i) => rs[i].ok === false);
-  if (!bad.length) return setStatus('All three parse cleanly.', 'ok');
-  setStatus(bad.map((n, i) => `${n}: ${rs[names.indexOf(n)].message}`)
-              .join('\n'), 'bad');
+  if (!bad.length) return setStatus(say('All three parse cleanly.',
+                                        '3つとも構文に問題ありません。'), 'ok');
+  setStatus(say('Nix could not parse:', 'Nix が解析できませんでした:') + '\n' +
+            bad.map(n => `${n}: ${rs[names.indexOf(n)].message}`).join('\n'),
+            'bad');
 });
+
+/* One message, both languages. The status bar wraps on whitespace and these
+   are sentences rather than labels, so the Japanese goes on its own line
+   instead of after a dash the way the dropdown options carry it. */
+const say = (en, ja) => `${en}\n${ja}`;
 
 function setStatus(msg, cls = '') {
   const s = $('#status');

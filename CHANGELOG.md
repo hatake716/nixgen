@@ -9,6 +9,17 @@ option counts.
 
 ## English
 
+### build 2026-08-10o
+
+- **Every message the app writes says it in both languages** — the notices
+  above the module and the status bar under the file. English first, the
+  Japanese on the line under it: these are sentences, so they go one above the
+  other rather than sharing a line the way the dropdown options do.
+- **What the Nix parser says stays in its own words.** A failed **Check
+  syntax** is introduced in both languages and then quotes the parser — those
+  are Nix's words, and somebody searching the web for the error needs the text
+  it actually prints.
+
 ### build 2026-08-10n
 
 - **The presets ask for every spelling at once and get back the ones that
@@ -595,6 +606,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10o
+
+- **アプリが出すメッセージを、すべて英語と日本語の併記にしました。** module の上に出る通知と、ファイルの下のステータス欄です。英語が先、その**下の行に日本語**を置いています。プルダウンの選択肢と違ってこちらは文章なので、1行に押し込まず**上下に並べて**います。
+- **Nix のパーサーの出力は、そのままの言葉で残します。** **Check syntax** が失敗したときは、両方の言語で前置きを出したうえで**パーサーの出力をそのまま引用**します。あれは Nix 自身の言葉であり、**エラーを検索する人には実際に表示される文字列が必要**だからです。
 
 ### build 2026-08-10n
 
