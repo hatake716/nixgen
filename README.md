@@ -455,6 +455,13 @@ setting (nothing in the option catalogue mentions it), so it goes into
 `environment.systemPackages` as an ordinary line you can delete, and the status
 bar names it when it goes in.
 
+**The login screen pre-selects the desktop you picked.** Each preset also
+sets `services.displayManager.defaultSession` — `gnome`, `xfce`, `none+i3` and
+so on. The names were read out of evaluated systems, not guessed, because NixOS
+checks them against the real session list at build time. COSMIC is the
+exception: that option only speaks to GDM, LightDM and SDDM, and COSMIC's own
+greeter shows its one session anyway.
+
 **XWayland is switched on** so X11 applications still run. Hyprland and Sway
 have an option for it — it is their default too, and nixgen sets it anyway so
 the card says which way it is set. **niri has no such option**: it does not

@@ -9,6 +9,19 @@ option counts.
 
 ## English
 
+### build 2026-08-11i
+
+- **Picking a desktop pre-selects it on the login screen.** Every desktop
+  preset now sets `services.displayManager.defaultSession` — `gnome`, `xfce`,
+  `none+i3` for i3, and so on. Picking a different desktop later updates the
+  value in place rather than adding a second line.
+- **The names were read out of evaluated systems, not guessed**, because NixOS
+  asserts them against the real session list at build time — a wrong name
+  fails the build, which was triggered on purpose to confirm. All nine were
+  evaluated with the option set.
+- **COSMIC sets none, on purpose**: `defaultSession` only speaks to GDM,
+  LightDM and SDDM, and COSMIC's own greeter shows its one session anyway.
+
 ### build 2026-08-11h
 
 - **The two import buttons swapped places**: Import generated.nix now comes
@@ -848,6 +861,12 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-11i
+
+- **デスクトップを選ぶと、ログイン画面でもそのデスクトップが最初から選択されるようにしました。** 各プリセットが `services.displayManager.defaultSession` を設定します(`gnome`、`xfce`、i3 は `none+i3` など)。後から別のデスクトップを選ぶと、**行が増えるのではなく同じ値が書き換わります。**
+- **セッション名は推測ではなく、評価済みシステムから読み出しました。** NixOS はビルド時に実在するセッション一覧と照合し、**間違った名前はビルドごと失敗します**。それが本当に働くことも、わざと誤名を与えて確認しました。9種すべて、この設定を入れた状態で評価済みです。
+- **COSMIC には設定しません。意図的です。** `defaultSession` が効くのは GDM・LightDM・SDDM だけで、COSMIC 自前のログイン画面は唯一のセッションを最初から表示します。
 
 ### build 2026-08-11h
 

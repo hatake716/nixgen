@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-11h';
+const BUILD = '2026-08-11i';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -769,14 +769,14 @@ async function addOption(path) {
    that will move again. Nothing is invented: these are the settings the NixOS
    manual lists, added as ordinary options you can read and change. */
 const DESKTOPS = {
-  gnome: { label: 'GNOME', roles: [
+  gnome: { label: 'GNOME', session: 'gnome', roles: [
     ['services.xserver.enable'],
     ['services.displayManager.gdm.enable',
      'services.xserver.displayManager.gdm.enable'],
     ['services.desktopManager.gnome.enable',
      'services.xserver.desktopManager.gnome.enable'],
   ] },
-  plasma: { label: 'KDE Plasma', roles: [
+  plasma: { label: 'KDE Plasma', session: 'plasma', roles: [
     ['services.xserver.enable'],
     ['services.displayManager.sddm.enable',
      'services.xserver.displayManager.sddm.enable'],
@@ -784,7 +784,7 @@ const DESKTOPS = {
      'services.desktopManager.plasma5.enable',
      'services.xserver.desktopManager.plasma5.enable'],
   ] },
-  xfce: { label: 'Xfce', roles: [
+  xfce: { label: 'Xfce', session: 'xfce', roles: [
     ['services.xserver.enable'],
     ['services.displayManager.lightdm.enable',
      'services.xserver.displayManager.lightdm.enable'],
@@ -793,7 +793,7 @@ const DESKTOPS = {
   ] },
   // Cinnamon has not moved out of services.xserver, the way xfce has not.
   // lightdm is the greeter it is normally paired with.
-  cinnamon: { label: 'Cinnamon', roles: [
+  cinnamon: { label: 'Cinnamon', session: 'cinnamon', roles: [
     ['services.xserver.enable'],
     ['services.displayManager.lightdm.enable',
      'services.xserver.displayManager.lightdm.enable'],
@@ -811,7 +811,7 @@ const DESKTOPS = {
   ] },
   // LXQt is X11 and, like xfce and cinnamon, never left services.xserver.
   // sddm is the greeter its own documentation pairs it with.
-  lxqt: { label: 'LXQt', roles: [
+  lxqt: { label: 'LXQt', session: 'lxqt', roles: [
     ['services.xserver.enable'],
     ['services.displayManager.sddm.enable',
      'services.xserver.displayManager.sddm.enable'],
@@ -821,7 +821,7 @@ const DESKTOPS = {
   /* i3 is a window manager rather than a desktop: X, a greeter, and i3 on top
      — and nothing else, because what a tiling setup looks like is the user's
      to write. It comes up with an empty screen and its own first-run wizard. */
-  i3: { label: 'i3', roles: [
+  i3: { label: 'i3', session: 'none+i3', roles: [
     ['services.xserver.enable'],
     ['services.displayManager.lightdm.enable',
      'services.xserver.displayManager.lightdm.enable'],
@@ -841,7 +841,7 @@ const DESKTOPS = {
      with it, sddm's own config says `DisplayServer=wayland` and the greeter
      runs under weston; without it, `DisplayServer=x11` — an X11 login screen
      in front of a machine that has no X server for anything else. */
-  hyprland: { label: 'Hyprland', roles: [
+  hyprland: { label: 'Hyprland', session: 'hyprland', roles: [
     ['programs.hyprland.enable'],
     ['programs.hyprland.xwayland.enable'],
     ['services.displayManager.sddm.enable',
@@ -866,7 +866,7 @@ const DESKTOPS = {
      nothing in the option catalogue mentions it. Added as an ordinary line in
      environment.systemPackages, which the status bar says and the card shows,
      so it can be taken out like anything else. */
-  niri: { label: 'niri', roles: [
+  niri: { label: 'niri', session: 'niri', roles: [
     ['programs.niri.enable'],
     ['services.displayManager.sddm.enable',
      'services.xserver.displayManager.sddm.enable'],
@@ -884,7 +884,7 @@ const DESKTOPS = {
              'そのため xwayland-satellite をパッケージとして入れてあります。' +
              'X11 のアプリから見えるようにするには、niri の設定ファイルから' +
              'これを起動してください。' },
-  sway: { label: 'Sway', roles: [
+  sway: { label: 'Sway', session: 'sway', roles: [
     ['programs.sway.enable'],
     ['programs.sway.xwayland.enable'],
     ['services.displayManager.sddm.enable',
@@ -936,6 +936,23 @@ async function addDesktop(key) {
   for (const candidates of d.roles) {
     const used = await addWithValue(candidates, true);
     used ? added.push(used) : missing.push(candidates[0]);
+  }
+  /* Pre-select this desktop on the login screen. The names are not guessed:
+     each system was evaluated and its session list read back — gnome, plasma,
+     xfce, cinnamon, lxqt, hyprland, sway, niri, and i3's is `none+i3`. NixOS
+     asserts the name against that same list at evaluation time, so a wrong
+     one would fail the build rather than fall back. Picking another desktop
+     later updates the value in place, because addWithValue writes into an
+     existing card instead of adding a second.
+
+     COSMIC has no `session` on purpose: defaultSession only speaks to GDM,
+     LightDM and SDDM, and COSMIC boots through its own greeter — which shows
+     the one session it has anyway. The option is `null or session name` with
+     a raw inside, so the value is Nix source and arrives quoted. */
+  if (d.session) {
+    const used = await addWithValue(['services.displayManager.defaultSession'],
+                                    JSON.stringify(d.session));
+    used ? added.push(used) : missing.push('services.displayManager.defaultSession');
   }
   /* A desktop that needs a package as well as its settings. Looked up rather
      than written, the way the app categories are: a name this channel does not

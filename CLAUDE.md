@@ -417,6 +417,15 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   and each carries `noctalia-shell` as a package. Where a preset stops short of
   a role, `note`/`note_ja` says so in the status bar rather than the gap being
   filled with a guess.
+- **The session names in `DESKTOPS` came out of evaluated systems, and NixOS
+  checks them.** Every desktop preset sets
+  `services.displayManager.defaultSession`; the names (`gnome`, `plasma`,
+  `none+i3`, …) were read from `services.displayManager.sessionData.sessionNames`
+  per desktop, and a wrong one fails the build outright — the assertion was
+  triggered on purpose to confirm it is real. The option is `null or session
+  name` with a raw inside, so the value is Nix source and goes in quoted, the
+  way `console.keyMap` does. COSMIC sets none: the option only speaks to GDM,
+  LightDM and SDDM.
 - **A role a desktop does not have is left out, not filled in.** COSMIC is two
   settings where the others are three: it is Wayland, so there is no
   `services.xserver.enable` to set, and it ships its own greeter, so neither
