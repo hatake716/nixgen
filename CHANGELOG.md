@@ -9,6 +9,18 @@ option counts.
 
 ## English
 
+### build 2026-08-11x
+
+- **Sway no longer shows two bars.** Its own config ends with a `bar { }` block
+  running swaybar with a clock, which sat above noctalia's panel. No option
+  turns it off, so the preset replaces `/etc/sway/config` with the package's
+  own file minus that block — `environment.etc."sway/config"`, which NixOS sets
+  with `mkOptionDefault`, so this overrides rather than collides.
+- **Only those 13 lines go.** The result was built and diffed against the
+  package's config: the bar block is gone and all 75 keybindings remain,
+  `$mod+Return` among them. The card is removed again when you pick another
+  desktop.
+
 ### build 2026-08-11v
 
 - **The Hyprland preset now explains the warning across the top of the screen.**
@@ -1037,6 +1049,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-11x
+
+- **sway でバーが2つ出なくなりました。** sway 自身の設定の末尾に、時計付きの swaybar を起動する `bar { }` ブロックがあり、noctalia のパネルの上に並んでいました。これを消すオプションは無いので、プリセットが `/etc/sway/config` を**パッケージ同梱のものからそのブロックだけを除いたもの**に差し替えます(`environment.etc."sway/config"`。NixOS はこれを `mkOptionDefault` で設定しているので、衝突ではなく上書きになります)。
+- **消えるのはその13行だけです。** 生成結果をビルドしてパッケージ同梱の設定と差分を取り、**バーのブロックだけが消え、キー割り当て75行は全て残る**ことを確認しました(`$mod+Return` も含みます)。別のデスクトップを選べばこのカードも外れます。
 
 ### build 2026-08-11v
 

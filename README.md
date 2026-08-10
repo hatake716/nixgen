@@ -476,6 +476,12 @@ the card says which way it is set. **niri has no such option**: it does not
 carry XWayland, so `xwayland-satellite` goes in as a package instead, and your
 niri config has to spawn it.
 
+**Sway's own bar is taken out.** `/etc/sway/config` ends with a `bar { }`
+block running swaybar with a clock in it, so with noctalia on top the screen
+has two. There is no option for it — the sway module offers no `extraConfig` —
+so the preset replaces that file with the package's own minus those 13 lines.
+Every keybinding survives, which was checked by building the result.
+
 **noctalia-shell starts with the session.** A compositor brings no panel and
 no launcher, so the preset adds one — and a shell nobody starts is a package
 sitting in the store, so it also adds a user service bound to

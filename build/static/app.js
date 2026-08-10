@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-11v';
+const BUILD = '2026-08-11x';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -768,6 +768,28 @@ async function addOption(path) {
    takes the first the catalogue actually has, instead of a hard-coded path
    that will move again. Nothing is invented: these are the settings the NixOS
    manual lists, added as ordinary options you can read and change. */
+/* Sway is the one compositor that furnishes itself, and that includes a bar:
+   `/etc/sway/config` ends with a `bar { position top … }` block running swaybar
+   with a clock in it. With noctalia on top of that the screen has two, which is
+   what a real machine reported. There is no option for it — the sway module
+   offers no `extraConfig`, and `mode invisible` (sway-bar(5)) would have to go
+   inside that same block — so the config file itself is replaced with the
+   package's own minus the bar. Everything else survives: 75 bindsym lines, the
+   terminal on $mod+Return, all of it, which was checked by building the result
+   rather than reasoned about.
+
+   NixOS sets `environment.etc."sway/config"` with `mkOptionDefault`, so this
+   overrides it rather than colliding with it. */
+const ETC_PATH = 'environment.etc';
+
+const SWAY_CONFIG_NO_BAR = `{
+      # The package's own config with its swaybar block taken out, so the only
+      # bar on screen is the one noctalia draws.
+      source = pkgs.runCommand "sway-config-no-bar" { } ''
+        sed '/^bar {/,/^}/d' \${pkgs.sway}/etc/sway/config > $out
+      '';
+    }`;
+
 const DESKTOPS = {
   gnome: { label: 'GNOME', session: 'gnome', wayland: true, greeter: 'gdm',
     marker: ['services.desktopManager.gnome.enable',
@@ -944,6 +966,7 @@ const DESKTOPS = {
     ['services.displayManager.sddm.wayland.enable'],
   ],
     autostart: 'noctalia-shell',
+    etc: { 'sway/config': SWAY_CONFIG_NO_BAR },
     packages: ['noctalia-shell'],
     note: 'sddm goes in with it, in Wayland mode, so the machine boots to a ' +
           'login screen with Sway in the session list, and XWayland is ' +
@@ -1072,6 +1095,7 @@ const AUTOSTART_UNIT = `{
 
 const AUTOSTART_PATH = 'systemd.user.services';
 
+
 // Every service name a preset writes, so one can be recognised and removed
 // without having to match the text of the unit it holds.
 const AUTOSTART_NAMES = ['noctalia-shell'];
@@ -1177,6 +1201,38 @@ function dropPresetPackages(keep) {
   return gone;
 }
 
+/* The same merge-don't-assign rule as the autostart unit: `environment.etc` is
+   one attrs card and somebody else's file may be in it. Keyed by the etc path,
+   so a desktop switch takes out only what its own preset put there. */
+const ETC_KEYS = [...new Set(
+  Object.values(DESKTOPS).flatMap(d => Object.keys(d.etc || {})))];
+
+async function addEtc(files) {
+  const existing = findEntry(ETC_PATH);
+  const keys = existing && existing.value && typeof existing.value === 'object'
+    ? { ...existing.value } : {};
+  Object.assign(keys, files);
+  return await addWithValue([ETC_PATH], keys);
+}
+
+function dropEtc(keep) {
+  const e = findEntry(ETC_PATH);
+  if (!e || !e.value || typeof e.value !== 'object') return [];
+  const wanted = new Set(Object.keys(keep || {}));
+  const gone = [];
+  for (const name of Object.keys(e.value)) {
+    if (wanted.has(name) || !ETC_KEYS.includes(name)) continue;
+    delete e.value[name];
+    gone.push(name);
+  }
+  if (!Object.keys(e.value).length) {
+    for (const [key, entry] of [...state.selected]) {
+      if (resolvePath(entry) === ETC_PATH) state.selected.delete(key);
+    }
+  }
+  return gone;
+}
+
 function dropOtherGreeters(keep) {
   const dropped = [];
   for (const [name, paths] of Object.entries(GREETERS)) {
@@ -1227,6 +1283,7 @@ async function addDesktop(key) {
   if (!d) return;
   const dropped = dropOtherGreeters(d.greeter);
   dropAutostart(d.autostart);
+  dropEtc(d.etc);
   const droppedPkgs = dropPresetPackages(key);
   const added = [], missing = [];
   for (const candidates of d.roles) {
@@ -1268,6 +1325,11 @@ async function addDesktop(key) {
   /* Written only when the package it starts actually came back: a unit whose
      ExecStart points at a package this channel does not have would fail at
      nixos-rebuild, which is the one thing these presets must not produce. */
+  let etced = null;
+  if (d.etc) {
+    etced = await addEtc(d.etc);
+    if (!etced) missing.push(ETC_PATH);
+  }
   let autostarted = null;
   if (d.autostart && pkgs.includes(d.autostart)) {
     autostarted = await addAutostart(d.autostart);
@@ -1296,7 +1358,10 @@ async function addDesktop(key) {
         `to graphical-session.target.` : '')
       + (droppedPkgs.length
       ? ` The previous desktop's own packages came out of ` +
-        `environment.systemPackages (${droppedPkgs.join(', ')}).` : '');
+        `environment.systemPackages (${droppedPkgs.join(', ')}).` : '')
+      + (etced
+      ? ` /etc/sway/config is replaced with the package's own minus its ` +
+        `swaybar block, so the only bar on screen is noctalia's.` : '');
     const extraJa = (pkgs.length
       ? `あわせて ${pkgs.join('、')} を environment.systemPackages に入れました。` : '')
       + (imSynced
@@ -1310,7 +1375,11 @@ async function addDesktop(key) {
         `セッションと一緒に起動します。` : '')
       + (droppedPkgs.length
       ? `前のデスクトップ専用のパッケージ(${droppedPkgs.join('、')})は ` +
-        `environment.systemPackages から外しました。` : '');
+        `environment.systemPackages から外しました。` : '')
+      + (etced
+      ? `/etc/sway/config は、パッケージ同梱のものから swaybar のブロックだけを` +
+        `除いたものに差し替えました。画面に出るバーは noctalia のものだけに` +
+        `なります。` : '');
     setStatus(say(
       `${d.label}: ${added.length} settings added. Change or remove any of ` +
       `them like the rest.` + extra + (d.note ? ' ' + d.note : ''),
