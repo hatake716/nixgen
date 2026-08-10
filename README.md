@@ -123,7 +123,80 @@ nix run --refresh github:hatake716/nixgen
 
 The build id in the header tells you which one you are on.
 
-### Step 3 — Keep it around (optional)
+### Step 3 — Build your configuration in the browser
+
+The middle of the screen lists five steps, and they are the order the tabs are
+used in. A first run, concretely:
+
+1. On the **Setup** tab, type a name for the machine into **Host name** and
+   your account into **Main user**, then pick your boot loader —
+   **systemd-boot** for a UEFI machine, **GRUB** for an older BIOS one. The
+   `configuration.nix` and `flake.nix` on the right rewrite themselves as you
+   type.
+2. Open **Options** and add settings. The dropdowns at the top handle the big
+   ones in one go — a kernel, a shell, a desktop, a graphics driver, a
+   language, Flatpak. For anything else, search: type `timeZone`, click the
+   result, fill in the field that appears in the middle.
+3. Open **Packages** and add software: search for `firefox` and click it, or
+   pick a category under **Common apps**. Everything you click lands in
+   `environment.systemPackages`.
+4. Press **Check syntax** at the top right. It should answer `Parses cleanly.`
+   If it reports a problem, fix it before going on.
+5. Press **Download all three**. You get one archive, named after your host,
+   holding the three files nixgen wrote.
+
+Nothing you add is hidden: every setting is ordinary text in the files on the
+right, and every card can be changed or removed again. The
+[Using it](#using-it) section below describes each tab in detail.
+
+### Step 4 — Put it on the machine
+
+**On a new machine** — one still running the configuration the installer wrote
+— unpack the archive and copy the three files in:
+
+```bash
+cd ~/Downloads        # or wherever the archive landed
+tar -xzf desktop.tar.gz
+sudo cp desktop/*.nix /etc/nixos/
+```
+
+(`desktop` is whatever you typed as the host name.) This overwrites the
+`configuration.nix` that was there. `hardware-configuration.nix` — the file
+that describes your disks — is not in the archive and stays as it is. The
+**System update** button in the app runs these same steps for you, asking
+before each one and keeping backups of what it replaces.
+
+Check it, then apply it:
+
+```bash
+sudo nixos-rebuild dry-build
+sudo nixos-rebuild switch
+```
+
+That first `switch` also turns flakes on. From then on the command is the one
+the Setup tab prints:
+
+```bash
+sudo nixos-rebuild switch --flake /etc/nixos#desktop
+```
+
+**On a machine you already configure by hand**, take only `generated.nix` (the
+**Download generated.nix** button), save it beside your own
+`configuration.nix`, and add one line to your `imports` list:
+
+```nix
+{
+  imports = [
+    ./hardware-configuration.nix
+    ./generated.nix          # <- add this line
+  ];
+}
+```
+
+Nothing else in your file is touched, and **deleting that one line undoes
+everything** — run `switch` again and you have exactly your old system back.
+
+### Step 5 — Keep nixgen around (optional)
 
 So you can start it by typing `nixgen`:
 
@@ -140,47 +213,6 @@ nix profile upgrade nixgen
 ```
 
 Remove it later with `nix profile remove nixgen`.
-
-### Step 4 — Use the file it made
-
-Press **Download generated.nix** at the top right and save the file next to the
-`configuration.nix` you already have — usually in `/etc/nixos/`.
-
-```
-/etc/nixos/
-├── configuration.nix           the one you already have; one line gets added
-├── hardware-configuration.nix  written when you installed; left alone
-└── generated.nix               <- save it here
-```
-
-Then open `configuration.nix` and add one line to the `imports` list:
-
-```nix
-{
-  imports = [
-    ./hardware-configuration.nix
-    ./generated.nix          # <- add this line
-  ];
-}
-```
-
-That means "read the contents of `generated.nix` as settings too". **Nothing
-inside your original `configuration.nix` is touched.**
-
-Check that it holds together before applying it:
-
-```bash
-sudo nixos-rebuild dry-build
-```
-
-If there are no errors, apply it for real:
-
-```bash
-sudo nixos-rebuild switch
-```
-
-**To undo everything, delete that one line and run `switch` again.** Nothing
-else changed, so you get exactly your old system back.
 
 ### If something goes wrong
 
@@ -248,7 +280,10 @@ order to work in:
 
 You can go back to any tab at any time; the order is where to start, not a door
 that shuts behind you. Add anything and that panel becomes the thing you added.
-What follows is the longer version.
+
+**The [Getting started](#installing) walkthrough above already covers the whole
+path from install to switch.** What follows is the reference: each tab, each
+button, and the reasons behind them.
 
 ### Setup — starter files for a new machine
 
@@ -473,7 +508,7 @@ Intel.
 
 ### Options — picking a language
 
-The last of the four dropdowns under **Options** is **Language**: English,
+The **Language** dropdown under **Options** offers English,
 Japanese, French, German, Spanish, Korean or Chinese. Picking one sets the
 language up in full — the locale, the keymap the console uses, and the layout X
 uses. For Japanese, Korean and Chinese it also sets up fcitx5 with the right
@@ -576,7 +611,7 @@ sudo nixos-rebuild dry-build
 **Switch only if that is clean.** If you only want `generated.nix` — because
 your `configuration.nix` and `flake.nix` are your own — take it from its file
 tab instead, and add `./generated.nix` to `imports` as in
-[Step 4](#step-4--use-the-file-it-made) above.
+[Step 4](#step-4--put-it-on-the-machine) above.
 
 ### System update — applying it to this machine
 

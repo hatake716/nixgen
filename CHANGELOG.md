@@ -9,6 +9,24 @@ option counts.
 
 ## English
 
+### build 2026-08-11e
+
+Documentation, rewritten for somebody's first time.
+
+- **The README's install section now runs all the way through**: turn on
+  flakes, start nixgen, build the configuration in the browser — a concrete
+  first run, field by field — put the files on the machine, rebuild. The old
+  step 4 still described the one-file, edit-imports-by-hand path from before
+  **Download all three** existed; that path is still there, but as the variant
+  for machines you configure by hand, not the default.
+- **The five steps in the app are one action each now.** The file tree moved
+  from step 1 to step 5 — it shows where files end up, and step 5 is where
+  files end up. Step 2 leads with the dropdowns, which is where a first-timer
+  should start.
+- **The homepage section is a complete path on its own**: what to run first,
+  the five steps, and the three commands that apply the result. Both
+  languages, with links into the README for the long version.
+
 ### build 2026-08-11d
 
 - **The homepage masthead is the logo itself now**, not a drawing of it. It is
@@ -803,6 +821,14 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-11e
+
+ドキュメントを、初めて使う人の目線で書き直しました。
+
+- **READMEのインストール節が、最初から最後まで一本道になりました。** flakes を有効にする → nixgen を起動する → ブラウザで設定を組み立てる(入力欄ごとの具体的な初回例) → ファイルをマシンに載せる → rebuild、の順です。これまでのステップ4は、**Download all three ができる前の**「generated.nix を1つ受け取って imports を手で書き足す」手順のままでした。その方法も残してありますが、既定ではなく「手書きの設定を使い続ける場合」の分岐になりました。
+- **アプリ内の5つの手順を、1手順=1動作にしました。** ファイル配置図は手順1から手順5へ移しました。あの図は「ファイルがどこに置かれるか」を示すもので、ファイルが手元に来るのは手順5だからです。手順2はプルダウンを先に案内します。初めての人が最初に触るべき場所だからです。
+- **ホームページの「進める順序」の節だけで、通しの手順が完結するようにしました。** 最初に実行するもの、5つの手順、受け取った書庫を適用する3コマンドです。英日両方で、詳しい版へのリンクはREADMEに向けています。
 
 ### build 2026-08-11d
 

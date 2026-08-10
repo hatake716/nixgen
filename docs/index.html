@@ -234,13 +234,20 @@ footer a { margin-right: 14px; }
       screen until you add your first setting.</p>
     <p class="ja">Setup → Options → Packages と進み、確認してから受け取ります。最初の設定を足すまでは、アプリの画面中央にも同じ案内が出ています。</p>
 
+    <p class="en"><b>Starting it is the one command above.</b> The first run takes about five
+      minutes while the search index is built; after that it starts in a second. It needs
+      flakes switched on — if <code>nix flake --help</code> prints help text you are set, and
+      the <a href="https://github.com/hatake716/nixgen#step-1--turn-on-flakes">README</a> shows
+      the one line to add if not. Then, in the browser:</p>
+    <p class="ja"><b>起動は上のコマンド1つです。</b>初回は検索インデックスを作るため5分ほどかかります。2回目からは1秒で立ち上がります。flakes が有効になっている必要があります。<code>nix flake --help</code> でヘルプが出れば準備済みです。出ない場合に足す1行は <a href="https://github.com/hatake716/nixgen/blob/main/README.ja.md#ステップ1--flakesを有効にする">README</a> にあります。そのあと、ブラウザで:</p>
+
     <ol class="steps en">
       <li><b>Setup</b> — the machine itself: host name, user account, channel, boot loader. It
         writes the <code>configuration.nix</code> and <code>flake.nix</code> a fresh install still
         needs. <b>Already have a <code>configuration.nix</code>?</b> Press
         <b>Import configuration.nix</b> first and carry on here.</li>
-      <li><b>Options</b> — the settings. Search for what you are after, or take a kernel, a
-        desktop, a graphics driver or a language from the dropdowns.</li>
+      <li><b>Options</b> — the settings. Search for what you are after, or take a kernel, a shell, a
+        desktop, a graphics driver, a language or Flatpak from the dropdowns.</li>
       <li><b>Packages</b> — the software. Search, or pick a category under <b>Common apps</b>.
         Everything lands in <code>environment.systemPackages</code>.</li>
       <li><b>Check syntax</b> — the real Nix parser, on the file it just wrote. It says where the
@@ -255,15 +262,24 @@ footer a { margin-right: 14px; }
          middle of the sentence. -->
     <ol class="steps ja">
       <li><b>Setup</b> — マシンそのものです。ホスト名、ユーザー、チャンネル、ブートローダー。インストール直後に足りない <code>configuration.nix</code> と <code>flake.nix</code> は、ここで出てきます。<b>すでに <code>configuration.nix</code> がある場合は</b>、先に <b>Import configuration.nix</b> を押して、そのままここから続けます。</li>
-      <li><b>Options</b> — 設定項目です。探しているものを検索するか、カーネル・デスクトップ・グラフィックス・言語をプルダウンから選びます。</li>
+      <li><b>Options</b> — 設定項目です。探しているものを検索するか、カーネル・シェル・デスクトップ・グラフィックス・言語・Flatpak をプルダウンから選びます。</li>
       <li><b>Packages</b> — ソフトウェアです。検索するか、<b>Common apps</b> の分野から選びます。選んだものは <code>environment.systemPackages</code> に入ります。</li>
       <li><b>Check syntax</b> — いま書き上がったファイルを、本物のNixパーサに通します。どこで壊れているかは分かりますが、値の<i>型</i>が正しいかどうかは分かりません。</li>
       <li><b>Download all three</b> — <code>configuration.nix</code>・<code>flake.nix</code>・<code>generated.nix</code> が1つの <code>.tar.gz</code> で出てきます。手元の <code>hardware-configuration.nix</code> の隣に展開し、<code>sudo nixos-rebuild dry-build</code> を実行して、問題が無いときだけ切り替えます。</li>
     </ol>
 
+    <p class="en">On a new machine, putting the archive to work is three commands — and the
+      <b>System update</b> button in the app runs them for you, asking before each:</p>
+    <p class="ja">新しいマシンでは、受け取った書庫を使うのはコマンド3つです。アプリの <b>System update</b> ボタンは、これを各段階の確認付きで代行します。</p>
+    <pre class="cmd">tar -xzf desktop.tar.gz
+sudo cp desktop/*.nix /etc/nixos/
+sudo nixos-rebuild dry-build   <span class="p"># then: sudo nixos-rebuild switch</span></pre>
+
     <p class="tiny en">You can go back to any tab whenever you like — the order is where to start,
-      not a door that shuts behind you.</p>
-    <p class="tiny ja">タブにはいつでも戻れます。この順序はどこから始めるかの話で、一度離れたら戻れないわけではありません。</p>
+      not a door that shuts behind you. The
+      <a href="https://github.com/hatake716/nixgen#installing">README</a> walks the whole path
+      with every command written out.</p>
+    <p class="tiny ja">タブにはいつでも戻れます。この順序はどこから始めるかの話で、一度離れたら戻れないわけではありません。全コマンドを書き出した通しの説明は <a href="https://github.com/hatake716/nixgen/blob/main/README.ja.md#インストール">README</a> にあります。</p>
   </div>
 </section>
 
