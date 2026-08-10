@@ -64,6 +64,7 @@ tools/
   fuzz.py           regression + fuzz harness. Run before shipping renderer changes.
   import_check.py   the same for the importer, through both of its readers.
   shots.py          retakes docs/screenshot*.png by driving the real app.
+  mark.py           draws the logo; both pages and the favicon inline its output.
 docs/               the GitHub Pages homepage
 .github/workflows/  the checks below, on every push
 ```
@@ -435,6 +436,16 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   boot sequence unhides the Setup pane at its end, so one failed fetch used to
   leave a blank column and no message; a failed render used to leave the last
   file that worked on screen and downloadable. Both now say what happened.
+- **The mark is generated, and inlined in both pages rather than fetched.**
+  `tools/mark.py` draws it: six arms by rotation so they are actually
+  identical, and two forms because one cannot do both jobs — the full drawing
+  with its arcs for the homepage hero, and a cropped, thicker flake for the
+  headers and the favicon, since the full one at 22px is a smudge. Change the
+  drawing there and paste both forms back into `build/static/index.html` and
+  `docs/index.html`; nothing loads it at runtime, so there is no file to keep
+  in step and no request to fail. **The palette follows the mark**: it is black
+  on white, so `--accent` is ink rather than blue, and anything that used blue
+  to mean "matched" or "selected" uses a tinted ground instead.
 - No browser storage. State lives in `state` in `app.js`.
 
 > 上記はいずれも「見た目は正しいのに後で壊れる」類の落とし穴です。触る前に一読してください。

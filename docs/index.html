@@ -15,6 +15,7 @@
 <meta property="og:title" content="nixgen">
 <meta property="og:description" content="A form for all 24,557 NixOS options and 144,245 packages.">
 <meta property="og:image" content="screenshot.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%224%2018%2084%2084%22%20fill%3D%22none%22%20stroke%3D%22%231b2027%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cg%20transform%3D%22rotate%280%2046%2060%29%22%3E%3Cpath%20d%3D%22M34.5%2060L8%2060%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%280%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2053.31%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%280%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2066.69%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%2860%2046%2060%29%22%3E%3Cpath%20d%3D%22M34.5%2060L8%2060%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%2860%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2053.31%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%2860%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2066.69%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28120%2046%2060%29%22%3E%3Cpath%20d%3D%22M34.5%2060L8%2060%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28120%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2053.31%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28120%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2066.69%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28180%2046%2060%29%22%3E%3Cpath%20d%3D%22M34.5%2060L8%2060%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28180%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2053.31%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28180%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2066.69%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28240%2046%2060%29%22%3E%3Cpath%20d%3D%22M34.5%2060L8%2060%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28240%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2053.31%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28240%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2066.69%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28300%2046%2060%29%22%3E%3Cpath%20d%3D%22M34.5%2060L8%2060%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28300%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2053.31%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28300%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2066.69%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M57.5%2060L51.75%2069.96L40.25%2069.96L34.5%2060L40.25%2050.04L51.75%2050.04Z%22%2F%3E%3Cpath%20d%3D%22M52.33%2060L49.16%2065.48L42.84%2065.48L39.67%2060L42.84%2054.52L49.16%2054.52Z%22%2F%3E%3Cpath%20d%3D%22M46%2060L46%2066.33%22%2F%3E%3Cpath%20d%3D%22M46%2060L40.52%2056.84%22%2F%3E%3Cpath%20d%3D%22M46%2060L51.48%2056.84%22%2F%3E%3C%2Fsvg%3E">
 <style>
 :root {
   --ground:   #d9dde3;
@@ -24,8 +25,8 @@
   --ink-soft: #5c6773;
   --ink-faint:#8e98a4;
   --rule:     #c2c9d2;
-  --accent:   #4b6fb5;
-  --accent-soft:#dde5f4;
+  --accent:   #232c38;
+  --accent-soft:#e7eaef;
   --signal:   #8a5a00;
   --code-bg:  #171c24;
   --code-fg:  #cdd6e3;
@@ -42,7 +43,8 @@ html, body { margin: 0; background: var(--ground); color: var(--ink);
              -webkit-font-smoothing: antialiased; }
 .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
 .cols, .stats, figure, table, pre { min-width: 0; }
-a { color: var(--accent); }
+a { color: var(--accent); text-decoration-thickness: 1px;
+    text-underline-offset: 2px; }
 
 /* language switch ------------------------------------------------------- */
 html[lang="en"] .ja, html[lang="ja"] .en { display: none; }
@@ -50,17 +52,28 @@ html[lang="en"] .ja, html[lang="ja"] .en { display: none; }
 /* masthead -------------------------------------------------------------- */
 header.top { border-bottom: 1px solid var(--rule); background: var(--panel); }
 header.top .wrap { display: flex; align-items: center; gap: 14px; padding-top: 12px; padding-bottom: 12px; }
-.brand { font-family: var(--mono); font-weight: 700; font-size: 17px; letter-spacing: -.02em; }
-.brand span { color: var(--accent); }
+.brand { display: flex; align-items: center; gap: 9px;
+         font-family: var(--mono); font-weight: 700; font-size: 17px;
+         letter-spacing: .02em; color: var(--ink); }
+.brand .mark { display: block; width: 26px; height: 26px; color: var(--ink); }
+.brand .flake { display: block; width: 100%; height: 100%; }
 .top nav { margin-left: auto; display: flex; gap: 8px; align-items: center; }
 .btn { border: 1px solid var(--rule); background: var(--panel-2); color: var(--ink-soft);
        padding: 6px 12px; border-radius: 3px; font-size: 12px; font-weight: 600;
        cursor: pointer; text-decoration: none; display: inline-block; }
 .btn:hover { background: #fff; color: var(--ink); }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-.btn.primary:hover { background: #3f5f9e; color: #fff; }
+.btn.primary:hover { background: #0f151d; color: #fff; }
 
-.hero { padding: 54px 0 40px; }
+.hero { padding: 40px 0 40px; }
+.lockup { display: flex; align-items: center; gap: 14px; margin: 0 0 26px; }
+.lockup .bigmark { display: block; width: 92px; height: 92px; color: var(--ink); }
+.lockup span { font-family: var(--mono); font-weight: 700; font-size: 46px;
+               letter-spacing: .01em; color: var(--ink); }
+@media (max-width: 600px) {
+  .lockup .bigmark { width: 64px; height: 64px; }
+  .lockup span { font-size: 34px; }
+}
 .hero .grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,440px); gap: 44px; align-items: start; }
 h1 { font-size: 40px; line-height: 1.15; letter-spacing: -.025em; margin: 0 0 14px; font-weight: 700; }
 .lede { font-size: 17px; color: var(--ink-soft); margin: 0 0 22px; }
@@ -148,7 +161,7 @@ footer a { margin-right: 14px; }
 
 <header class="top">
   <div class="wrap">
-    <div class="brand">nix<span>gen</span></div>
+    <div class="brand"><span class="mark" aria-hidden="true"><svg class="flake" xmlns="http://www.w3.org/2000/svg" viewBox="4 18 84 84" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><g transform="rotate(0 46 60)"><path d="M34.5 60L8 60"/></g><g transform="rotate(0 46 60)"><path d="M21.25 60L13.82 53.31"/></g><g transform="rotate(0 46 60)"><path d="M21.25 60L13.82 66.69"/></g><g transform="rotate(60 46 60)"><path d="M34.5 60L8 60"/></g><g transform="rotate(60 46 60)"><path d="M21.25 60L13.82 53.31"/></g><g transform="rotate(60 46 60)"><path d="M21.25 60L13.82 66.69"/></g><g transform="rotate(120 46 60)"><path d="M34.5 60L8 60"/></g><g transform="rotate(120 46 60)"><path d="M21.25 60L13.82 53.31"/></g><g transform="rotate(120 46 60)"><path d="M21.25 60L13.82 66.69"/></g><g transform="rotate(180 46 60)"><path d="M34.5 60L8 60"/></g><g transform="rotate(180 46 60)"><path d="M21.25 60L13.82 53.31"/></g><g transform="rotate(180 46 60)"><path d="M21.25 60L13.82 66.69"/></g><g transform="rotate(240 46 60)"><path d="M34.5 60L8 60"/></g><g transform="rotate(240 46 60)"><path d="M21.25 60L13.82 53.31"/></g><g transform="rotate(240 46 60)"><path d="M21.25 60L13.82 66.69"/></g><g transform="rotate(300 46 60)"><path d="M34.5 60L8 60"/></g><g transform="rotate(300 46 60)"><path d="M21.25 60L13.82 53.31"/></g><g transform="rotate(300 46 60)"><path d="M21.25 60L13.82 66.69"/></g><path d="M57.5 60L51.75 69.96L40.25 69.96L34.5 60L40.25 50.04L51.75 50.04Z"/><path d="M52.33 60L49.16 65.48L42.84 65.48L39.67 60L42.84 54.52L49.16 54.52Z"/><path d="M46 60L46 66.33"/><path d="M46 60L40.52 56.84"/><path d="M46 60L51.48 56.84"/></svg></span>nixgen</div>
     <nav>
       <button class="btn" id="lang">日本語</button>
       <a class="btn primary" href="https://github.com/hatake716/nixgen">GitHub</a>
@@ -157,6 +170,10 @@ footer a { margin-right: 14px; }
 </header>
 
 <div class="wrap hero">
+  <!-- The mark at the size it was drawn for: the arcs and the shapes coming
+       off the flake need room, and this is the one place on the page that has
+       it. The masthead carries the plain flake instead. -->
+  <div class="lockup" aria-hidden="true"><svg class="bigmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><g transform="rotate(0 46 60)"><path d="M34.5 60L8 60"/></g><g transform="rotate(0 46 60)"><path d="M21.25 60L13.82 53.31"/></g><g transform="rotate(0 46 60)"><path d="M21.25 60L13.82 66.69"/></g><g transform="rotate(0 46 60)"><path d="M15.6 60L13.8 63.12L10.2 63.12L8.4 60L10.2 56.88L13.8 56.88Z"/></g><g transform="rotate(60 46 60)"><path d="M34.5 60L8 60"/></g><g transform="rotate(60 46 60)"><path d="M21.25 60L13.82 53.31"/></g><g transform="rotate(60 46 60)"><path d="M21.25 60L13.82 66.69"/></g><g transform="rotate(60 46 60)"><path d="M15.6 60L13.8 63.12L10.2 63.12L8.4 60L10.2 56.88L13.8 56.88Z"/></g><g transform="rotate(120 46 60)"><path d="M34.5 60L8 60"/></g><g transform="rotate(120 46 60)"><path d="M21.25 60L13.82 53.31"/></g><g transform="rotate(120 46 60)"><path d="M21.25 60L13.82 66.69"/></g><g transform="rotate(120 46 60)"><path d="M15.6 60L13.8 63.12L10.2 63.12L8.4 60L10.2 56.88L13.8 56.88Z"/></g><g transform="rotate(180 46 60)"><path d="M34.5 60L8 60"/></g><g transform="rotate(180 46 60)"><path d="M21.25 60L13.82 53.31"/></g><g transform="rotate(180 46 60)"><path d="M21.25 60L13.82 66.69"/></g><g transform="rotate(240 46 60)"><path d="M34.5 60L8 60"/></g><g transform="rotate(240 46 60)"><path d="M21.25 60L13.82 53.31"/></g><g transform="rotate(240 46 60)"><path d="M21.25 60L13.82 66.69"/></g><g transform="rotate(240 46 60)"><path d="M15.6 60L13.8 63.12L10.2 63.12L8.4 60L10.2 56.88L13.8 56.88Z"/></g><g transform="rotate(300 46 60)"><path d="M34.5 60L8 60"/></g><g transform="rotate(300 46 60)"><path d="M21.25 60L13.82 53.31"/></g><g transform="rotate(300 46 60)"><path d="M21.25 60L13.82 66.69"/></g><g transform="rotate(300 46 60)"><path d="M15.6 60L13.8 63.12L10.2 63.12L8.4 60L10.2 56.88L13.8 56.88Z"/></g><path d="M57.5 60L51.75 69.96L40.25 69.96L34.5 60L40.25 50.04L51.75 50.04Z"/><path d="M52.33 60L49.16 65.48L42.84 65.48L39.67 60L42.84 54.52L49.16 54.52Z"/><path d="M46 60L46 66.33"/><path d="M46 60L40.52 56.84"/><path d="M46 60L51.48 56.84"/><path d="M73.09 25.33A44 44 0 0 1 73.09 94.67"/><path d="M74.09 15.05A53 53 0 0 1 74.09 104.95"/><path d="M93.49 20.15A62 62 0 0 1 93.49 99.85"/><path d="M84.17 108.86A62 62 0 0 1 63.09 119.6"/><path d="M63.09 0.4A62 62 0 0 1 84.17 11.14"/><path d="M97 22L95 25.46L91 25.46L89 22L91 18.54L95 18.54Z"/><path d="M107.8 14L106.4 16.42L103.6 16.42L102.2 14L103.6 11.58L106.4 11.58Z"/><circle cx="84" cy="16" r="3.8"/><path d="M102.4 34L100.7 36.94L97.3 36.94L95.6 34L97.3 31.06L100.7 31.06Z"/><rect x="84.6" y="33.6" width="4.8" height="4.8"/><circle cx="110" cy="44" r="2"/><path d="M106.2 58L104.6 60.77L101.4 60.77L99.8 58L101.4 55.23L104.6 55.23Z"/><circle cx="92" cy="55" r="1.8" fill="currentColor" stroke="none"/><circle cx="110" cy="72" r="2.2"/><circle cx="86" cy="76" r="2.4" fill="currentColor" stroke="none"/><rect x="96.4" y="83.4" width="5.2" height="5.2"/><path d="M94.4 99L92.7 101.94L89.3 101.94L87.6 99L89.3 96.06L92.7 96.06Z"/><circle cx="108" cy="96" r="1.6" fill="currentColor" stroke="none"/></svg><span>nixgen</span></div>
   <div class="grid">
     <div>
       <h1 class="en">A form for all 24,557<br>NixOS options.</h1>

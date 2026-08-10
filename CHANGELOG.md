@@ -9,6 +9,23 @@ option counts.
 
 ## English
 
+### build 2026-08-11b
+
+- **The mark is in the app and on the homepage**, and the palette follows it:
+  the snowflake with its hexagon core sits beside the wordmark in both
+  headers, and the same drawing is the favicon.
+- **The blue is gone.** The logo is black on white, so the accent is ink now —
+  the primary button, the selected tab, the chips. A search hit used to be
+  blue text and is a tinted ground instead, which is what a monochrome scheme
+  has to do to keep it visible.
+- **Two forms of one drawing.** The homepage hero carries the full mark, arcs
+  and scattered shapes and all; the headers and the favicon carry the plain
+  flake with a heavier stroke. The full one at 22 pixels is a smudge — that
+  was rendered and looked at rather than guessed.
+- `tools/mark.py` draws both. Six arms drawn by hand are six slightly
+  different arms, and a mark pasted into two pages and a favicon is one that
+  drifts between them; this is the same argument as `tools/shots.py`.
+
 ### build 2026-08-11a
 
 - **XWayland goes on with the three Wayland compositors**, so X11 applications
@@ -766,6 +783,13 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-11b
+
+- **ロゴマークをアプリとホームページに入れ、配色もそれに合わせました。** 六角形の核を持つ雪の結晶が、両方のヘッダーでワードマークの隣に並びます。**favicon も同じ絵**です。
+- **青をやめました。** ロゴが白地に黒なので、アクセント色も**インク**にしています(主ボタン、選択中のタブ、チップ)。検索の一致箇所は青い文字でしたが、**淡い地色**に変えました。モノクロで見分けをつけるにはこうする必要があります。
+- **同じ絵の2つの形を使い分けます。** ホームページの冒頭は**全体**(弧と散らばる図形まで)、ヘッダーと favicon は**結晶だけを太い線で**描いたものです。全体を22ピクセルにすると潰れます。これは推測ではなく、**実際に描画して確かめました。**
+- 作図は `tools/mark.py` が行います。**手で描いた6本の腕は6本とも少しずつ違うもの**になりますし、2つのページと favicon に貼り付けたマークは**やがてずれます**。`tools/shots.py` と同じ理屈です。
 
 ### build 2026-08-11a
 

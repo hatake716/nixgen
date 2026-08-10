@@ -6,8 +6,8 @@
   --ink-soft:    #5c6773;
   --ink-faint:   #8e98a4;
   --rule:        #c2c9d2;
-  --accent:      #4b6fb5;
-  --accent-soft: #dde5f4;
+  --accent:      #232c38;
+  --accent-soft: #e7eaef;
   --signal:      #8a5a00;
   --code-bg:     #171c24;
   --code-fg:     #cdd6e3;
@@ -51,8 +51,13 @@ header {
   flex-wrap: wrap;
 }
 
-.brand { font-family: var(--mono); font-weight: 700; letter-spacing: -.02em; }
-.brand span { color: var(--accent); }
+.brand { display: flex; align-items: center; gap: 8px;
+         font-family: var(--mono); font-weight: 700; font-size: 15px;
+         letter-spacing: .02em; color: var(--ink); }
+/* The mark is the drawing at its simplest — six arms and the hexagon core.
+   The full one, arcs and all, needs more than 20 pixels to say anything. */
+.brand .mark { display: block; width: 22px; height: 22px; color: var(--ink); }
+.brand .flake { display: block; width: 100%; height: 100%; }
 
 .channel {
   font-family: var(--mono); font-size: 11px;
@@ -78,7 +83,7 @@ header .actions {
 }
 .btn:hover { background: #fff; color: var(--ink); }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-.btn.primary:hover { background: #3f5f9e; color: #fff; }
+.btn.primary:hover { background: #0f151d; color: #fff; }
 .btn:focus-visible, a:focus-visible, input:focus-visible,
 select:focus-visible, textarea:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 1px;
@@ -139,7 +144,8 @@ main {
 }
 .row:hover { background: var(--accent-soft); }
 .row .p { font-family: var(--mono); font-size: 12px; word-break: break-all; }
-.row .p b { font-weight: 700; color: var(--accent); }
+.row .p b { font-weight: 700; color: var(--ink); background: #e2e6ec;
+            border-radius: 2px; box-shadow: 0 0 0 1px #e2e6ec; }
 .row .d { font-size: 11px; color: var(--ink-soft); margin-top: 2px;
           display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .row .t { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); margin-top: 3px; }
