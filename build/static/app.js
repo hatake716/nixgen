@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-11q';
+const BUILD = '2026-08-11r';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -1061,8 +1061,33 @@ const AUTOSTART_UNIT = `{
 
 const AUTOSTART_PATH = 'systemd.user.services';
 
+// Every service name a preset writes, so one can be recognised and removed
+// without having to match the text of the unit it holds.
+const AUTOSTART_NAMES = ['noctalia-shell'];
+
+/* One service reaches the module in two shapes, and they collide. Written by
+   the preset it is one attrs card holding `noctalia-shell = { … }`; read back
+   out of a file it arrives flattened, one card per leaf —
+   `systemd.user.services.noctalia-shell.after`, `.description`, and so on.
+   Nix will not take both: `attribute
+   'systemd.user.services.noctalia-shell.after' already defined`, which Check
+   syntax cannot see because it is an evaluation error, not a syntax one. It
+   reached a real machine that way. So both shapes are recognised, and writing
+   the card clears the leaves first. */
+function autostartEntries(name) {
+  const leaf = `${AUTOSTART_PATH}.${name}.`;
+  return [...state.selected].filter(([, e]) => {
+    const path = resolvePath(e);
+    return path === AUTOSTART_PATH || path.startsWith(leaf);
+  });
+}
+
 /* Write our one key into the attrs card, leaving every other key alone. */
 async function addAutostart(name) {
+  // Any flattened copy of this service goes first, or the file defines it twice.
+  for (const [key, e] of autostartEntries(name)) {
+    if (resolvePath(e) !== AUTOSTART_PATH) state.selected.delete(key);
+  }
   const existing = findEntry(AUTOSTART_PATH);
   const keys = existing && existing.value && typeof existing.value === 'object'
     ? { ...existing.value } : {};
@@ -1071,22 +1096,71 @@ async function addAutostart(name) {
 }
 
 /* And take it out again when the new desktop does not want it — the same rule
-   the greeters follow. Only the key nixgen wrote is removed; a card left with
-   nothing in it goes rather than rendering as an empty attribute set. */
+   the greeters follow. Both shapes go: the key inside the attrs card, and the
+   flattened cards an import produced. A card left holding nothing goes too,
+   rather than rendering as an empty attribute set.
+
+   The value is not compared against `AUTOSTART_UNIT` any more. A unit that has
+   been through a file and back does not match it character for character, and
+   that is exactly the copy that survived a desktop switch and then collided
+   with a freshly written one. The name is what identifies it. */
 function dropAutostart(keep) {
-  const e = findEntry(AUTOSTART_PATH);
-  if (!e || !e.value || typeof e.value !== 'object') return [];
   const gone = [];
-  for (const name of Object.keys(e.value)) {
-    if (name === keep || e.value[name] !== AUTOSTART_UNIT) continue;
-    delete e.value[name];
-    gone.push(name);
+  for (const name of AUTOSTART_NAMES) {
+    if (name === keep) continue;
+    for (const [key, e] of autostartEntries(name)) {
+      if (resolvePath(e) !== AUTOSTART_PATH) { state.selected.delete(key); gone.push(name); }
+    }
+    const e = findEntry(AUTOSTART_PATH);
+    if (e && e.value && typeof e.value === 'object' && name in e.value) {
+      delete e.value[name];
+      gone.push(name);
+    }
   }
-  if (!Object.keys(e.value).length) {
+  const card = findEntry(AUTOSTART_PATH);
+  if (card && card.value && typeof card.value === 'object'
+      && !Object.keys(card.value).length) {
     for (const [key, entry] of [...state.selected]) {
       if (resolvePath(entry) === AUTOSTART_PATH) state.selected.delete(key);
     }
   }
+  return [...new Set(gone)];
+}
+
+/* A desktop's packages are part of the desktop. Leaving noctalia-shell,
+   xwayland-satellite and foot in `environment.systemPackages` after switching
+   to GNOME installs three things nothing on the machine uses — reported after
+   the unit itself was being removed correctly, which made the leftovers the
+   visible half.
+
+   Only names a `DESKTOPS` preset puts there are candidates, and only when the
+   desktop being chosen does not want them too: foot belongs to Hyprland and
+   niri both, so going between those two must not take it out and put it back.
+   A name the user typed into the card themselves is indistinguishable from
+   one a preset wrote, so the status bar says what went — the same courtesy the
+   greeters get. */
+const PRESET_PACKAGES = [...new Set(
+  Object.values(DESKTOPS).flatMap(d => d.packages || []))];
+
+function dropPresetPackages(keep) {
+  const wanted = new Set((DESKTOPS[keep] && DESKTOPS[keep].packages) || []);
+  const gone = PRESET_PACKAGES.filter(a => !wanted.has(a) && alreadyListed(a));
+  if (!gone.length) return [];
+  const e = findEntry(TOP_OPTION);
+  if (Array.isArray(e.value)) {
+    e.value = e.value.filter(x => !gone.includes(String(x).replace(/^pkgs\./, '')));
+  } else {
+    /* The list came in verbatim, so it is text: drop each name where it stands
+       and leave every other element, and the spacing, as they were. */
+    let text = String(e.value || '');
+    for (const a of gone) {
+      text = text.replace(
+        new RegExp('(^|[\\s\\[])(?:pkgs\\.)?' + rxEscape(a) + '(?=[\\s\\]]|$)', 'g'),
+        '$1').replace(/[ \t]+\n/g, '\n');
+    }
+    e.value = text;
+  }
+  gone.forEach(a => state.unfree.delete(a));
   return gone;
 }
 
@@ -1140,6 +1214,7 @@ async function addDesktop(key) {
   if (!d) return;
   const dropped = dropOtherGreeters(d.greeter);
   dropAutostart(d.autostart);
+  const droppedPkgs = dropPresetPackages(key);
   const added = [], missing = [];
   for (const candidates of d.roles) {
     const used = await addWithValue(candidates, true);
@@ -1205,7 +1280,10 @@ async function addDesktop(key) {
         `(${dropped.join(', ')}) — NixOS refuses two at once.` : '')
       + (autostarted
       ? ` ${d.autostart} starts with the session, through a user service bound ` +
-        `to graphical-session.target.` : '');
+        `to graphical-session.target.` : '')
+      + (droppedPkgs.length
+      ? ` The previous desktop's own packages came out of ` +
+        `environment.systemPackages (${droppedPkgs.join(', ')}).` : '');
     const extraJa = (pkgs.length
       ? `あわせて ${pkgs.join('、')} を environment.systemPackages に入れました。` : '')
       + (imSynced
@@ -1216,7 +1294,10 @@ async function addDesktop(key) {
         `外しました。NixOS は2つ同時を受け付けません。` : '')
       + (autostarted
       ? `${d.autostart} は graphical-session.target に紐づけた user service で、` +
-        `セッションと一緒に起動します。` : '');
+        `セッションと一緒に起動します。` : '')
+      + (droppedPkgs.length
+      ? `前のデスクトップ専用のパッケージ(${droppedPkgs.join('、')})は ` +
+        `environment.systemPackages から外しました。` : '');
     setStatus(say(
       `${d.label}: ${added.length} settings added. Change or remove any of ` +
       `them like the rest.` + extra + (d.note ? ' ' + d.note : ''),
@@ -2243,6 +2324,26 @@ async function doRender() {
       `attribute twice, so remove one of the cards.`,
       `二重に設定されています: ${twice.join('、')}。NixOS は同じ属性を2回定義した` +
       `ファイルを受け付けません。どちらかのカードを削除してください。`));
+  }
+  /* The same crash arrives without any card being repeated: one card holds an
+     attribute set and another holds a leaf inside it —
+     `systemd.user.services = { noctalia-shell = { after = …; }; }` beside
+     `systemd.user.services.noctalia-shell.after`. Nix reads the second as a
+     redefinition of the first, and says so at `nixos-rebuild`; Check syntax
+     cannot, because the file parses. That is how a re-imported unit and a
+     freshly written one collided on a real machine. Counting paths does not
+     see it — the two paths differ — so the containment is what is tested. */
+  const paths = [...seenPath.keys()];
+  const nested = paths.filter(p =>
+    paths.some(q => q !== p && p.startsWith(q + '.')));
+  if (nested.length) {
+    notes.push(say(
+      `Defined inside another card as well: ${nested.join(', ')}. NixOS reads ` +
+      `that as the same attribute twice and the rebuild fails, even though the ` +
+      `file parses. Remove whichever of the two you do not want.`,
+      `別のカードの中でも定義されています: ${nested.join('、')}。NixOS は同じ属性を` +
+      `2回定義したものとして扱い、ファイルの構文が正しくても rebuild が失敗します。` +
+      `不要なほうを削除してください。`));
   }
   const clashes = [...state.starterDefines].filter(
     p => new RegExp('^  ' + p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ' =', 'm').test(res.text));

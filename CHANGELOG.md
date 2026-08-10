@@ -9,6 +9,25 @@ option counts.
 
 ## English
 
+### build 2026-08-11r
+
+Two from a real machine, one crash and one leftover.
+
+- **Fixed: `attribute 'systemd.user.services.noctalia-shell.after' already
+  defined`.** The unit reaches the module in two shapes — an attribute set when
+  a preset writes it, one card per leaf when a file is read back in — and
+  picking a compositor after an import produced both at once. Nix reads that as
+  the same attribute twice. **Check syntax could not catch it**: the file
+  parses, and it is the evaluation that fails. Either shape is now recognised
+  by name, and writing one clears the other.
+- **Fixed: the previous desktop's packages stayed behind.** Switching from niri
+  to GNOME left noctalia-shell, xwayland-satellite and foot installed. They go
+  now, and the status bar says which — but only the ones the new desktop does
+  not want too, so moving between Hyprland and niri keeps foot.
+- **New: a card defined inside another card is reported.** A path that sits
+  under another path is the same crash on any option, so `doRender` says so
+  before the rebuild does.
+
 ### build 2026-08-11q
 
 - **Fixed: the shell started, but nothing launched from it.** A NixOS user
@@ -979,6 +998,14 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-11r
+
+実機からの報告2件。クラッシュ1つと、消え残り1つです。
+
+- **修正: `attribute 'systemd.user.services.noctalia-shell.after' already defined`。** このユニットは module に**2つの形**で入ります。プリセットが書くと属性セット1枚、ファイルから読み戻すと**leaf ごとに1枚**です。取り込みの後にコンポジタを選ぶと、両方が同時に出ていました。Nix はこれを同じ属性の二重定義として扱います。**Check syntax では捕まえられません。** ファイルの構文は正しく、失敗するのは評価だからです。どちらの形も名前で認識し、一方を書くときに他方を消すようにしました。
+- **修正: 前のデスクトップのパッケージが残っていました。** niri から GNOME に切り替えても noctalia-shell・xwayland-satellite・foot が入ったままでした。外すようにし、何を外したかはステータス欄に出します。ただし**新しいデスクトップも必要とするものは残します**。Hyprland と niri を行き来しても foot は消えません。
+- **追加: 別のカードの内側で定義されている場合に警告します。** あるパスが別のパスの下にある状態は、どのオプションでも同じクラッシュになるので、rebuild が言う前に `doRender` が言います。
 
 ### build 2026-08-11q
 

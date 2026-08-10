@@ -443,6 +443,26 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   fails at `nixos-rebuild`. The status bar names what went into
   `environment.systemPackages` alongside the settings; installing something
   without saying so is the one thing this preset must not do.
+- **One service, two shapes, and Nix will not take both.** Written by the
+  preset the unit is an attrs card holding `noctalia-shell = { … }`; read back
+  out of a file it arrives **flattened**, one card per leaf
+  (`systemd.user.services.noctalia-shell.after`, …), because that is what the
+  importer does with an attribute set. Both in one file is `attribute … already
+  defined` at `nixos-rebuild`, and **Check syntax cannot see it** — the file
+  parses. So `autostartEntries` matches either shape by name, `addAutostart`
+  clears the leaves before writing the card, and `dropAutostart` takes both
+  out. **It matches on the name, never on the text of the unit**: a unit that
+  has been through a file and back is not character-for-character the same, and
+  that mismatch is what let the stale copy survive and then collide. The
+  general case is caught in `doRender` — a path that is a prefix of another
+  path is that same crash, whatever option it is on.
+- **A desktop's packages leave with the desktop.** noctalia-shell,
+  xwayland-satellite and foot are put there by a preset, so switching to GNOME
+  takes them out again; `PRESET_PACKAGES` is every name any `DESKTOPS` entry
+  lists, and only the ones the incoming desktop does not also want are removed
+  — foot belongs to Hyprland and niri both, so moving between those two leaves
+  it alone. The status bar names what went, because a name the user typed is
+  indistinguishable from one a preset wrote.
 - **A shell nobody starts is a package in the store, so the compositors write
   a unit.** `AUTOSTART_UNIT` binds noctalia to `graphical-session.target`, and
   all three reach it — sway's default config starts `sway-session.target`
@@ -632,6 +652,8 @@ once in ways nothing else caught.
 | half a dropdown label is missing | a closed select drops what does not fit, and what did not fit was the Japanese |
 | a preset row appears on every tab | the tab switch hid rows by id, and a new row was not on the list |
 | build dies with `not of type 'package'` | `i18n.inputMethod.enable` was written without `type`, pushing a null into systemPackages |
+| `attribute 'systemd.user.services.noctalia-shell.after' already defined` | an imported unit arrives flattened, and the preset wrote the attrs form beside it |
+| the previous desktop's packages stay after switching | only the settings were dropped, not what the preset put in systemPackages |
 | the same crash again, from a file that has a `type` line | the line was `type = null;`, and the guard tested that the entry existed rather than what it held |
 | importing while the Setup tab is open throws | the repaint painted `kind=setup` results — options — with the package painter |
 | the console fills with 404s on a package list | an `<img>` per row asked for icons the server had already said nothing about |
