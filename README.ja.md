@@ -1,5 +1,7 @@
 # nixgen
 
+<img src="docs/logo.png" alt="nixgen" width="360">
+
 NixOSの設定を、検索とフォームで作れるようにする道具です。設定項目24,557個とソフトウェア144,245個の中から探して、チェックボックスや入力欄で値を決めると、そのまま使える設定ファイルが出てきます。
 
 ![nixgen](docs/screenshot.png)

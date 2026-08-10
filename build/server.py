@@ -836,6 +836,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._file("app.js", "text/javascript; charset=utf-8")
         if u.path == "/app.css":
             return self._file("app.css", "text/css; charset=utf-8")
+        if u.path == "/logo.png":
+            return self._file("logo.png", "image/png")
 
         if u.path == "/api/icon":
             path = icon_for(one("attr", ""))

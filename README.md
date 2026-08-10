@@ -1,5 +1,7 @@
 # nixgen
 
+<img src="docs/logo.png" alt="nixgen" width="360">
+
 A search box and a form for your NixOS configuration. Look through 24,557
 settings and 144,245 pieces of software, tick the boxes and fill in the fields,
 and get a configuration file you can use straight away.

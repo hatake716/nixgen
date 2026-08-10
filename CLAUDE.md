@@ -436,6 +436,13 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   boot sequence unhides the Setup pane at its end, so one failed fetch used to
   leave a blank column and no message; a failed render used to leave the last
   file that worked on screen and downloadable. Both now say what happened.
+- **Two levels of detail, and which one goes where was measured.**
+  `docs/logo.png` is the artwork — trimmed, transparent, 9.6 KB — and it is
+  used where there is room: the homepage hero, the top of both READMEs, and
+  above the five steps in the app (served at `/logo.png`). **At 48 pixels it
+  renders as grey mush**, so the header at 22px and the favicon at 16 use the
+  plain flake from `tools/mark.py` instead. Replacing one with the other in
+  either direction breaks whichever end it is moved to.
 - **The mark is generated, and inlined in both pages rather than fetched.**
   `tools/mark.py` draws it: six arms by rotation so they are actually
   identical, and two forms because one cannot do both jobs — the full drawing

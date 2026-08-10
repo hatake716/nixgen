@@ -9,6 +9,17 @@ option counts.
 
 ## English
 
+### build 2026-08-11c
+
+- **The logo itself is in the app, on the homepage and at the top of both
+  READMEs** — trimmed, on a transparent ground, 9.6 KB. The app serves it at
+  `/logo.png` and opens with it above the five steps; the homepage hero is the
+  artwork rather than a drawing of it.
+- **The header and the favicon keep the plain flake**, and that is measured
+  rather than preferred: the artwork rendered at 48 pixels is grey mush, and
+  the header shows a mark at 22. The two are the same motif at two levels of
+  detail, which is what a logo used at both sizes needs.
+
 ### build 2026-08-11b
 
 - **The mark is in the app and on the homepage**, and the palette follows it:
@@ -783,6 +794,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-11c
+
+- **原画そのものを、アプリ・ホームページ・両方のREADMEの冒頭に入れました。** 余白を切り落として透過にし、9.6KBです。アプリは `/logo.png` で配信し、5つの手順の上に表示します。ホームページの冒頭も、描き起こしではなく**原画**になりました。
+- **ヘッダーと favicon は結晶だけの図を使い続けます。** 好みではなく実測です。**原画は48ピクセルで灰色に潰れ**、ヘッダーが必要とするのは22ピクセルです。**同じ意匠を2段階の精細さで持つ**ことが、両方のサイズで使うロゴには必要になります。
 
 ### build 2026-08-11b
 

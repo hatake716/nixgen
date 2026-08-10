@@ -465,3 +465,8 @@ pre.nix .clash { border-left: 2px solid #a34545; margin-left: -2px; padding-left
   background: #fdf6e9; color: var(--ink-soft);
 }
 #howto .warnbox b { color: var(--ink); }
+
+/* The logo as drawn, in the one part of the app with room for it: the panel
+   that fills the module pane until the first setting is added. */
+#howto .howto-logo { display: block; width: 100%; max-width: 300px; height: auto;
+                     margin: 0 0 22px; }
