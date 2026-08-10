@@ -9,6 +9,19 @@ option counts.
 
 ## English
 
+### build 2026-08-12c
+
+- **Sway and niri now set up gnome-keyring.** A compositor has no secret
+  service, so anything that stores credentials — browsers first of all — had
+  nowhere to put them. The daemon goes in, and PAM opens the keyring with your
+  login password, so there is no second prompt.
+- **The PAM switch is on the `login` service, not sddm's** — that one turned
+  out to be a no-op: the built pam.d/sddm is a single `include login` line.
+  Found by building both and reading the files; the generated module was then
+  evaluated and pam.d/login carries the three pam_gnome_keyring lines.
+- Switching between Sway and niri keeps the pair (exactly once); switching to
+  GNOME or Plasma removes it — they wire their own keyring.
+
 ### build 2026-08-12b
 
 - **Fixed: `nixos-rebuild` refused the file after re-picking a language on an
@@ -1111,6 +1124,12 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-12c
+
+- **Sway と niri を選ぶと gnome-keyring が設定されるようになりました。** コンポジタには secret service が無く、資格情報を保存するもの — まずブラウザ — に保存先がありませんでした。デーモンが入り、**PAM がログインパスワードでキーリングを開く**ので、2つめのパスワードを聞かれることもありません。
+- **PAM のスイッチは sddm 側ではなく `login` サービス側です。** sddm 側のスイッチは**何も変えない**ことが分かりました。生成される pam.d/sddm は `include login` の1行だけです。両方をビルドして実ファイルを読んで特定し、生成した module を評価して pam.d/login に pam_gnome_keyring の3行が入ることを確認しました。
+- Sway ⇄ niri の切り替えではこの2枚は**ちょうど1組**のまま残り、GNOME や Plasma に切り替えると外れます。あちらは自前で配線しているためです。
 
 ### build 2026-08-12b
 

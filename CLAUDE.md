@@ -505,6 +505,14 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   no config file to grep), niri works with `foot`. Check both halves for a new
   compositor: whether its module furnishes a terminal, and which one its own
   default config calls for.
+- **The keyring's PAM switch goes on `login`, and the sddm one is a no-op.**
+  `security.pam.services.sddm.enableGnomeKeyring = true` changes nothing: the
+  built pam.d/sddm is one `include login` line, which was read to find out why
+  the first attempt did nothing. The pair the compositors get is
+  `services.gnome.gnome-keyring.enable` (a role) plus a flat card on
+  `security.pam.services.login.enableGnomeKeyring` — verify by building
+  pam.d/login and counting three pam_gnome_keyring lines. Both leave when the
+  desktop does; GNOME and Plasma wire their own.
 - **A flat card must clear its key from ancestor attrs cards, not only from
   descendants.** Importing a file folds a flat
   `environment.sessionVariables.XKB_DEFAULT_LAYOUT = …` line into an attrs

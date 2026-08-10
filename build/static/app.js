@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-12b';
+const BUILD = '2026-08-12c';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -952,6 +952,7 @@ const DESKTOPS = {
     ['services.displayManager.sddm.wayland.enable'],
   ],
     autostart: 'noctalia-shell',
+    keyring: true,
     packages: ['noctalia-shell', 'xwayland-satellite', 'foot'],
     note: 'sddm goes in with it, in Wayland mode, so the machine boots to a ' +
           'login screen with niri in the session list. niri has no XWayland ' +
@@ -974,6 +975,7 @@ const DESKTOPS = {
     ['services.displayManager.sddm.wayland.enable'],
   ],
     autostart: 'noctalia-shell',
+    keyring: true,
     etc: { 'sway/config': SWAY_CONFIG_NO_BAR },
     packages: ['noctalia-shell'],
     note: 'sddm goes in with it, in Wayland mode, so the machine boots to a ' +
@@ -1212,6 +1214,19 @@ function dropPresetPackages(keep) {
 /* The same merge-don't-assign rule as the autostart unit: `environment.etc` is
    one attrs card and somebody else's file may be in it. Keyed by the etc path,
    so a desktop switch takes out only what its own preset put there. */
+/* A compositor has no secret service: browsers and anything else that stores
+   credentials needs gnome-keyring, and a keyring nobody unlocks asks for a
+   second password at every login. `services.gnome.gnome-keyring.enable`
+   installs the daemon. The PAM half goes on the *login* service, not sddm's:
+   sddm's stack is one `include login` line — read out of the built
+   pam.d/sddm after `security.pam.services.sddm.enableGnomeKeyring` turned
+   out to change nothing — so the login switch is the one that puts the
+   auth/password/session pam_gnome_keyring lines in place, and the keyring
+   opens with the login password. GNOME and Plasma wire their own keyring, so
+   the pair leaves when the desktop does. */
+const KEYRING_ENABLE = 'services.gnome.gnome-keyring.enable';
+const KEYRING_PAM = ['security', 'pam', 'services', 'login', 'enableGnomeKeyring'];
+
 const ETC_KEYS = [...new Set(
   Object.values(DESKTOPS).flatMap(d => Object.keys(d.etc || {})))];
 
@@ -1399,6 +1414,18 @@ async function addDesktop(key) {
     etced = addEtc(d.etc);
     if (etced) added.push(etced);
   }
+  let keyringed = false;
+  if (d.keyring) {
+    const kr = await addWithValue([KEYRING_ENABLE], true);
+    if (kr) added.push(kr);
+    added.push(setRawCard(KEYRING_PAM, 'true', 'boolean'));
+    keyringed = !!kr;
+  } else {
+    for (const [key, e] of [...state.selected]) {
+      if (resolvePath(e) === KEYRING_ENABLE) state.selected.delete(key);
+    }
+    dropRawCard(KEYRING_PAM);
+  }
   let autostarted = null;
   if (d.autostart && pkgs.includes(d.autostart)) {
     autostarted = await addAutostart(d.autostart);
@@ -1430,7 +1457,10 @@ async function addDesktop(key) {
         `environment.systemPackages (${droppedPkgs.join(', ')}).` : '')
       + (etced
       ? ` /etc/sway/config is replaced with the package's own minus its ` +
-        `swaybar block, so the only bar on screen is noctalia's.` : '');
+        `swaybar block, so the only bar on screen is noctalia's.` : '')
+      + (keyringed
+      ? ` gnome-keyring is set up and PAM opens it with your login password, ` +
+        `so applications can store credentials.` : '');
     const extraJa = (pkgs.length
       ? `あわせて ${pkgs.join('、')} を environment.systemPackages に入れました。` : '')
       + (imSynced
@@ -1448,7 +1478,10 @@ async function addDesktop(key) {
       + (etced
       ? `/etc/sway/config は、パッケージ同梱のものから swaybar のブロックだけを` +
         `除いたものに差し替えました。画面に出るバーは noctalia のものだけに` +
-        `なります。` : '');
+        `なります。` : '')
+      + (keyringed
+      ? `gnome-keyring も設定し、PAM がログインパスワードで開くようにしました。` +
+        `アプリが資格情報を保存できます。` : '');
     setStatus(say(
       `${d.label}: ${added.length} settings added. Change or remove any of ` +
       `them like the rest.` + extra + (d.note ? ' ' + d.note : ''),

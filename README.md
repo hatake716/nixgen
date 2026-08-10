@@ -455,6 +455,16 @@ the same as ever.
 | COSMIC | its own greeter and the desktop — it is Wayland, so there is no `services.xserver.enable` to set |
 | Sway, niri | one option each |
 
+**Sway and niri also set up gnome-keyring.** A compositor has no secret
+service, so browsers and anything else that stores credentials would fail
+without one — and a keyring nobody unlocks asks for a second password at every
+login. The daemon goes in through `services.gnome.gnome-keyring.enable`, and
+the unlock through `security.pam.services.login.enableGnomeKeyring`: **the
+login service, not sddm's** — sddm's PAM stack is one `include login` line,
+which was read out of the built file after the sddm switch turned out to
+change nothing. Switching to GNOME or Plasma takes the pair out again; those
+wire their own.
+
 **Sway and niri also install `noctalia-shell`.** A compositor is a
 compositor and nothing else — no panel, no launcher, no notifications — and
 noctalia is the piece that puts those on top. It is a package rather than a
