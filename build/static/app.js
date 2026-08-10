@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-11z';
+const BUILD = '2026-08-12a';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -943,7 +943,7 @@ const DESKTOPS = {
      nothing in the option catalogue mentions it. Added as an ordinary line in
      environment.systemPackages, which the status bar says and the card shows,
      so it can be taken out like anything else. */
-  niri: { label: 'niri', session: 'niri', wayland: true, greeter: 'sddm',
+  niri: { label: 'niri + noctalia', session: 'niri', wayland: true, greeter: 'sddm',
     marker: ['programs.niri.enable'],
     roles: [
     ['programs.niri.enable'],
@@ -964,7 +964,7 @@ const DESKTOPS = {
              'そのため xwayland-satellite をパッケージとして入れてあります。' +
              'X11 のアプリから見えるようにするには、niri の設定ファイルから' +
              'これを起動してください。' },
-  sway: { label: 'Sway', session: 'sway', wayland: true, greeter: 'sddm',
+  sway: { label: 'Sway + noctalia', session: 'sway', wayland: true, greeter: 'sddm',
     marker: ['programs.sway.enable'],
     roles: [
     ['programs.sway.enable'],

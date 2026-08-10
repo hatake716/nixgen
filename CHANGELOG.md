@@ -9,6 +9,17 @@ option counts.
 
 ## English
 
+### build 2026-08-12a
+
+- **The Desktop dropdown says what you get: `Sway + noctalia` and
+  `niri + noctalia`.** Both are confirmed working end to end on a real
+  machine — session, shell, terminal, keyboard layout.
+- **Hyprland is hidden.** Its generated config owns the keyboard layout, the
+  terminal and the warning banner, and overrides what nixgen writes, so a
+  working desktop could not be promised from the form alone. Importing a file
+  that carries it still works, and switching desktops still cleans its pieces
+  up — the preset is hidden, not removed.
+
 ### build 2026-08-11z
 
 Two fixes from one sway machine.
@@ -1084,6 +1095,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-12a
+
+- **Desktop のプルダウンの表記を、得られるものの名前にしました。** `Sway + noctalia` と `niri + noctalia` です。どちらも実機で、セッション・シェル・端末・キーボード配列まで**通しで動作確認済み**です。
+- **Hyprland は非表示にしました。** キーボード配列も端末も警告バナーも、Hyprland が自前で書き出す設定ファイルが握っていて、**nixgen の書く設定を上書きします**。フォームだけでは「動くデスクトップ」を約束できないためです。Hyprland を含むファイルの**取り込みは従来どおり動き**、デスクトップ切り替え時の掃除もそのまま働きます。プリセットは削除ではなく非表示です。
 
 ### build 2026-08-11z
 

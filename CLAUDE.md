@@ -561,6 +561,14 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   shipped example carries no marker, the embedded one does. **The wrapper is
   why `strings bin/Hyprland` finds nothing** — read the `.`-prefixed real
   binary.
+- **Hyprland is hidden from the dropdown, not deleted from `DESKTOPS`.** Its
+  generated config owns the keyboard layout, the terminal and the banner, and
+  overrides what nixgen writes — a working desktop cannot be promised from the
+  form alone, so the `<option>` is gone (a comment in `index.html` says so).
+  The entry stays because the cleanup paths read `DESKTOPS`: an imported file
+  that carries Hyprland still gets its greeter, kitty, session name and unit
+  removed on a switch, which is tested. Deleting the entry would orphan all of
+  that.
 - **A window manager is not a desktop, and a compositor is not either.**
   `DESKTOPS` holds ten, in three shapes: X plus a greeter plus the desktop
   (GNOME, Plasma, Xfce, Cinnamon, LXQt), the same three with a window manager

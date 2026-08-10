@@ -107,9 +107,13 @@
             <option value="cinnamon">Cinnamon</option>
             <option value="cosmic">COSMIC</option>
             <option value="lxqt">LXQt</option>
-            <option value="hyprland">Hyprland</option>
-            <option value="sway">Sway</option>
-            <option value="niri">niri</option>
+            <!-- Hyprland is hidden, not gone: its generated config overrides
+                 what nixgen writes (kb_layout, the terminal, the banner), so
+                 a working desktop cannot be promised from here alone. The
+                 DESKTOPS entry stays so an imported file that carries it is
+                 still recognised and cleaned up on a switch. -->
+            <option value="sway">Sway + noctalia</option>
+            <option value="niri">niri + noctalia</option>
             <option value="i3">i3</option>
           </select>
           <button class="mini" id="btn-desktop">Add</button>
