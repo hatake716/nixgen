@@ -371,6 +371,14 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   decision on the page and is not one. The `enable`-without-a-type guard
   checked `findEntry`, so a carried-in null walked straight past it and the
   build failed exactly as before. Guards on nullable options go on the value.
+- **An enabled input method with nothing chosen is repaired, not reported.**
+  `ensureImType` runs at the top of `doRender`, so every route into that state
+  — the search box, either import, a card edited back to null — comes out with
+  fcitx5 rather than a warning about a file that will not build. It fills a
+  blank only: ibus, kime or anything else is somebody's choice. It is a no-op
+  once a type is set, which is why calling it from the render path does not
+  loop. The note that remains is for the one case it cannot fix — a release
+  with no `type` option at all.
 - **The input method is enabled and chosen as one unit, never `enable` alone.**
   `i18n.inputMethod` has two interfaces — new (`enable = true` + `type =
   "fcitx5"`) and old (`enabled = "fcitx5"`). The module reads `type` to pick

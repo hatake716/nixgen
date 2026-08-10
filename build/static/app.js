@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-11n';
+const BUILD = '2026-08-11o';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -953,6 +953,38 @@ async function addWithValue(paths, value) {
     entry.value = entry.type.kind === 'nullable' ? { __null: false, v: value } : value;
   }
   return path;
+}
+
+/* Has an input method actually been chosen? A `null or one of …` option can be
+   present and still say nothing — the form holds it as `{ __null: true }` and
+   it renders as `type = null;`, which reads like a decision on the page and is
+   not one. So this asks what the entry holds, never merely whether it is
+   there. */
+function imChosen(path) {
+  const e = findEntry(path);
+  if (!e) return false;
+  const v = e.value;
+  if (v === null || v === undefined) return false;
+  if (typeof v === 'object' && v.__null) return false;
+  return String(typeof v === 'object' ? (v.v ?? '') : v).trim() !== '';
+}
+
+/* An enabled input method with nothing chosen is the crash, not a state to
+   warn about and leave standing: the module pushes a null package and
+   `nixos-rebuild` dies with `not of type 'package'`, pointing at systemd
+   rather than at the cause. Japanese, Korean and Chinese cannot be typed
+   without one, so fcitx5 goes in — the engine those three presets already
+   use, and the one whose addons the form knows how to fill.
+
+   It only ever fills a blank. A type that says ibus, or kime, or anything
+   else is somebody's choice and is left alone. A release without the option
+   gets nothing written rather than a line that fails later, and the warning
+   in `doRender` stays as the last resort for that case. */
+async function ensureImType() {
+  if (!findEntry('i18n.inputMethod.enable')) return null;
+  if (imChosen('i18n.inputMethod.type') || imChosen('i18n.inputMethod.enabled')) return null;
+  return await addWithValue(['i18n.inputMethod.type', 'i18n.inputMethod.enabled'],
+                            'fcitx5');
 }
 
 /* Every display manager a preset can put in the module. NixOS refuses two at
@@ -2041,6 +2073,13 @@ function segmentsFor(entry) {
 function resolvePath(entry) { return segmentsFor(entry).join('.'); }
 
 async function doRender() {
+  /* Before the file is written, not after: an input method enabled with
+     nothing chosen is filled in here, so every route into that state — the
+     search box, either import, editing a card back to null — comes out with a
+     usable file rather than a warning about a broken one. It is a no-op the
+     moment a type is set, so this does not run twice or loop. */
+  const imFilled = await ensureImType();
+  if (imFilled) renderEditor();
   state.verbatim = new Set(
     [...state.selected.values()].filter(e => e.verbatim).map(e => resolvePath(e)));
   const entries = [...state.selected.values()].map(e => ({
@@ -2166,34 +2205,29 @@ async function doRender() {
      this is the catch-all. Enabled with no `type`/`enabled` makes the module
      push a null package into environment.systemPackages, and the build dies
      with `not of type 'package'`, far from the cause. */
-  /* A `type` that is there but says nothing counts as absent. It is a
-     `null or one of …`, so the form holds it as `{ __null: true }` and it
-     renders as `type = null;` — which reads like a decision and is not one.
-     Checking only that the entry exists let exactly that through: enable on,
-     type null, and the module pushes a null package. Reported from a real
-     machine after the first fix, which is why the check is on the value. */
-  const imChosen = p => {
-    const e = findEntry(p);
-    if (!e) return false;
-    const v = e.value;
-    if (v === null || v === undefined) return false;
-    if (typeof v === 'object' && v.__null) return false;
-    return String(typeof v === 'object' ? (v.v ?? '') : v).trim() !== '';
-  };
+  /* `ensureImType` has already filled a blank type by the time this runs, so
+     reaching here means it could not: the option is not in this release, and
+     the file would fail at `nixos-rebuild` with `not of type 'package'`. */
   if (findEntry('i18n.inputMethod.enable') &&
       !imChosen('i18n.inputMethod.type') &&
       !imChosen('i18n.inputMethod.enabled')) {
     notes.push(say(
-      'i18n.inputMethod.enable is on but no input method is chosen — ' +
-      'i18n.inputMethod.type is missing or null. Set it (fcitx5, ibus, …), or ' +
-      'the build fails with "not of type \'package\'": with no type the module ' +
-      'puts a null into environment.systemPackages. Picking a language under ' +
-      'Options sets both together.',
-      'i18n.inputMethod.enable が有効ですが、入力メソッドが選ばれていません。' +
-      'i18n.inputMethod.type が無いか null です。値(fcitx5、ibus など)を設定して' +
-      'ください。type が無いとモジュールが environment.systemPackages に null を' +
-      '入れ、"not of type \'package\'" でビルドが失敗します。Options タブで言語を' +
-      '選べば、両方が同時に設定されます。'));
+      'i18n.inputMethod.enable is on but no input method is chosen, and this ' +
+      'release has no i18n.inputMethod.type to set. Remove the enable line, or ' +
+      'the build fails with "not of type \'package\'" — with no type the module ' +
+      'puts a null into environment.systemPackages.',
+      'i18n.inputMethod.enable が有効ですが入力メソッドが選ばれておらず、この' +
+      'リリースには設定先の i18n.inputMethod.type がありません。enable の行を' +
+      '外してください。type が無いとモジュールが environment.systemPackages に ' +
+      'null を入れ、"not of type \'package\'" でビルドが失敗します。'));
+  } else if (imFilled) {
+    notes.push(say(
+      `An input method was enabled with nothing chosen, so ${imFilled} is set ` +
+      `to fcitx5 — Japanese, Korean and Chinese cannot be typed without one. ` +
+      `Change it under Options if you use ibus or another engine.`,
+      `入力メソッドが有効なのに何も選ばれていなかったので、${imFilled} を ` +
+      `fcitx5 にしました。日本語・韓国語・中国語は入力メソッド無しには打てません。` +
+      `ibus など他のエンジンを使う場合は Options タブで変更してください。`));
   }
   if (notes.length) setStatus(notes.join('\n'), 'todo');
   else if ($('#status').classList.contains('todo')) setStatus('');

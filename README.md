@@ -529,6 +529,13 @@ language up in full — the locale, the keymap the console uses, and the layout 
 uses. For Japanese, Korean and Chinese it also sets up fcitx5 with the right
 input engine, because none of those can be typed without one.
 
+**An input method that is on but unchosen is filled in with fcitx5.** That
+state is the crash, not something to warn about and leave standing: with no
+`type` the module puts a null package into `environment.systemPackages` and
+`nixos-rebuild` dies pointing at systemd rather than at the cause. It only ever
+fills a blank — a `type` that says ibus is your choice and is left alone — and
+the status bar says when it filled one.
+
 **The input method follows the session.** fcitx5 has two front ends, and the
 wrong one half-works: with the X11 one on a Wayland session, native apps
 misbehave. If a desktop is in the module, the CJK languages set

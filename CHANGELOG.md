@@ -9,6 +9,19 @@ option counts.
 
 ## English
 
+### build 2026-08-11o
+
+- **An input method that is enabled with nothing chosen now gets fcitx5**,
+  rather than a warning about a file that will not build. Japanese, Korean and
+  Chinese cannot be typed without one, and fcitx5 is the engine those three
+  presets already use.
+- It runs on the way to writing the file, so every route into that state is
+  covered: the search box, both imports, and a card edited back to null. A
+  broken `generated.nix` read back in comes out repaired — confirmed by
+  evaluating the result at the revision the crash was reported from.
+- **It fills a blank only.** A `type` that says ibus is somebody's choice and
+  is left alone, which is tested. The status bar says when it filled one.
+
 ### build 2026-08-11n
 
 - **Fixed the same crash arriving a third way: `i18n.inputMethod.type = null;`.**
@@ -932,6 +945,12 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-11o
+
+- **入力メソッドが有効なのに何も選ばれていない場合、fcitx5 を入れる**ようにしました。ビルドできないファイルについて警告するのではなく、直します。日本語・韓国語・中国語は入力メソッド無しには打てず、fcitx5 はこの3つのプリセットが既に使っているエンジンです。
+- ファイルを書く直前に動くので、**その状態に至る経路をすべて覆います。** 検索欄からの追加、2種類の取り込み、カードを null に編集し直した場合。壊れた `generated.nix` を読み戻すと**直った状態で出てきます**。その結果を、クラッシュの報告元のリビジョンで評価して確認しました。
+- **埋めるのは空欄のときだけです。** `type` に ibus が入っていればそれはその人の選択なので触れません(テスト済み)。埋めた場合はステータス欄でお知らせします。
 
 ### build 2026-08-11n
 
