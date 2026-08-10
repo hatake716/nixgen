@@ -362,6 +362,16 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   through a module. Said once from the preset, it was wiped by the next render
   — `doRender` clears a `todo` status when it has no notes of its own. Notes
   regenerated on every render cannot be lost that way.
+- **A shell is the module and the shell, and the module is the half that gets
+  forgotten.** `users.defaultUserShell` alone leaves the shell out of
+  `/etc/shells` and without completions — the login works and nothing else
+  quite does — so `SHELLS` adds `programs.zsh.enable` / `programs.fish.enable`
+  with it. That was checked by evaluating both ways: with the module,
+  `environment.shells` holds zsh or fish; without it, only bash and sh while
+  the account's shell has already changed. bash takes `pkgs.bashInteractive`,
+  not `pkgs.bash` — the second is built without readline. The option is
+  `absolute path or package`, so the value is Nix source, the way
+  `boot.kernelPackages` is.
 - **The desktop presets name candidates, not paths.** `DESKTOPS` lists a few
   possible names per role and takes the first the catalogue has, because these
   have already moved once and asymmetrically: `gdm` and `sddm` left

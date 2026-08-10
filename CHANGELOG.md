@@ -9,6 +9,22 @@ option counts.
 
 ## English
 
+### build 2026-08-10t
+
+- **A Shell dropdown**, between Kernel and Desktop: bash, zsh or fish.
+- **It writes two settings, and the second is the one people forget.**
+  `users.defaultUserShell` alone gives every account a shell that is not in
+  `/etc/shells` and has no completions — `programs.zsh.enable` and
+  `programs.fish.enable` are what register it. Both were evaluated as real
+  systems: with the module, `zsh` and `fish` are in `environment.shells`;
+  without it, that list still holds only bash and sh while the user's shell has
+  already changed.
+- bash gets `pkgs.bashInteractive`, not `pkgs.bash` — the second is the build
+  without readline. `users.defaultUserShell` is `absolute path or package`, so
+  what is written is Nix source in an editable box, the way the kernel is.
+- The status bar says what the setting covers: **every normal account**, not
+  one user.
+
 ### build 2026-08-10s
 
 - **niri too** — a scrollable-tiling Wayland compositor. Ten desktops now, and
@@ -662,6 +678,13 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10t
+
+- **Shell のプルダウンを追加しました。** 位置は Kernel と Desktop の間で、bash・zsh・fish から選べます。
+- **書き込むのは2項目で、忘れられがちなのは2つめ**です。`users.defaultUserShell` だけでは、そのシェルは **`/etc/shells` に載らず補完も入りません**。登録するのは `programs.zsh.enable` と `programs.fish.enable` です。**両方を実際のシステムとして評価**しました。module があると `environment.shells` に `zsh` や `fish` が入り、無いとユーザーのシェルだけが変わって一覧は bash と sh のままです。
+- bash には `pkgs.bash` ではなく **`pkgs.bashInteractive`** を指定します。前者は readline 無しのビルドです。`users.defaultUserShell` の型は `absolute path or package` なので、カーネルと同じく**編集できる入力欄に Nix の式**として入ります。
+- ステータス欄には、この設定が**通常アカウント全部**に効くこと(1人だけではないこと)も出します。
 
 ### build 2026-08-10s
 

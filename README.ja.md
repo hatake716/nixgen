@@ -307,6 +307,16 @@ error: The option `networking.hostName' has conflicting definition values
 
 標準は、この設定を書かなかった場合と同じものです。**最新と Zen は動きます。** カーネル外のモジュールは動いているカーネルに合わせてビルドする必要があり、**NVIDIA のドライバは新しいリリースから数週間遅れる**のが通例です。切り替える前に `nixos-rebuild dry-build` で確かめてください。
 
+### Options — シェルを選ぶ
+
+**Kernel** と **Desktop** の間に **Shell** のプルダウンがあります。bash・zsh・fish から選べます。
+
+**2項目です。忘れられがちなのは module のほう**です。`users.defaultUserShell` だけを設定すると、そのシェルは **`/etc/shells` に載らず、補完も入りません。** ログインはできますが、まともに動かない部分が残ります。それを登録するのが `programs.zsh.enable` と `programs.fish.enable` なので、一緒に入れます。これは**両方を評価して確認**しました。module を入れると `environment.shells` に `zsh` や `fish` が現れ、入れないと bash と sh だけのままです。
+
+bash には `pkgs.bash` ではなく **`pkgs.bashInteractive`** を指定します。前者は readline 無しのビルドで、ログインシェルには向きません。
+
+`users.defaultUserShell` は**このマシンの通常アカウント全部**に効きます。1人だけ変えたい場合は、`users.users.<name>.shell` を検索してください。
+
 ### Options — デスクトップ環境を選ぶ
 
 **Options** タブに **Desktop** のプルダウンがあります。GNOME、KDE Plasma、Xfce、Cinnamon、COSMIC、LXQt、Hyprland、Sway、niri、i3 から選ぶと、NixOSマニュアルが挙げている項目が追加されます。追加されるのは**通常のオプションと同じ**なので、あとから変更も削除もできます。

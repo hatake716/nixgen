@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-10s';
+const BUILD = '2026-08-10t';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -153,6 +153,7 @@ async function boot() {
   // every browser honours the attribute. #s-release is filled in later and
   // guards its own options as it builds them.
   $$('#s-desktop option, #s-lang option, #s-gpu option, #s-kernel option, ' +
+     '#s-shell option, ' +
      '#s-apps option, #s-system option, #s-pin option, ' +
      '#s-bootloader option').forEach(keep);
   renderEditor();
@@ -901,6 +902,59 @@ async function addDesktop(key) {
       `変更も削除もできます。` + (d.note_ja ? d.note_ja : '')), 'ok');
   }
 }
+
+/* A shell is two settings, and the one people forget is the module.
+
+   `users.defaultUserShell` alone gives every account a shell that is not in
+   /etc/shells and has no completions installed — the login works and nothing
+   else quite does. `programs.zsh.enable` and `programs.fish.enable` are what
+   register it properly, so they go in together.
+
+   That option is `absolute path or package`, which the form holds as Nix
+   source, so what is written is `pkgs.fish` rather than a package widget.
+   Bash gets `bashInteractive`: `pkgs.bash` is the build without readline, and
+   handing somebody that as their login shell is a bad afternoon. */
+const SHELLS = {
+  bash: { label: 'bash', pkg: 'pkgs.bashInteractive' },
+  zsh:  { label: 'zsh',  pkg: 'pkgs.zsh',  module: 'programs.zsh.enable' },
+  fish: { label: 'fish', pkg: 'pkgs.fish', module: 'programs.fish.enable' },
+};
+
+async function addShell(key) {
+  const sh = SHELLS[key];
+  if (!sh) return;
+  const steps = [];
+  if (sh.module) steps.push({ paths: [sh.module], value: true });
+  steps.push({ paths: ['users.defaultUserShell'], value: sh.pkg });
+
+  const added = [], missing = [];
+  for (const step of steps) {
+    const used = await addWithValue(step.paths, step.value);
+    used ? added.push(used) : missing.push(step.paths[0]);
+  }
+  renderEditor();
+  pushRender();
+  if (missing.length) {
+    setStatus(say(
+      `${sh.label}: added ${added.length}, but this release has no ` +
+      `${missing.join(', ')}. Check the result before applying it.`,
+      `${sh.label}: ${added.length}件を追加しましたが、このリリースには ` +
+      `${missing.join('、')} がありません。適用する前に結果を確認してください。`), 'bad');
+    return;
+  }
+  setStatus(say(
+    `${sh.label}: ${added.length} settings added. users.defaultUserShell is ` +
+    `every normal account on the machine — for one user only, search for ` +
+    `users.users.<name>.shell instead.`,
+    `${sh.label}: ${added.length}件の設定を追加しました。users.defaultUserShell は` +
+    `このマシンの通常アカウント全部に効きます。1人だけ変えたい場合は、` +
+    `users.users.<name>.shell を検索してください。`), 'ok');
+}
+
+$('#btn-shell').addEventListener('click', () => {
+  const key = $('#s-shell').value;
+  if (key) addShell(key);
+});
 
 $('#btn-desktop').addEventListener('click', () => {
   const key = $('#s-desktop').value;

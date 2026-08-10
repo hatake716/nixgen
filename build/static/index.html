@@ -61,6 +61,19 @@
           </select>
           <button class="mini" id="btn-kernel">Add</button>
         </div>
+        <!-- A shell is the module plus users.defaultUserShell: setting the
+             shell without the module leaves it out of /etc/shells and without
+             completions, which is the half people forget. -->
+        <div class="presetline" id="shellline">
+          <span>Shell</span>
+          <select id="s-shell" class="notranslate" translate="no">
+            <option value="">choose… — 選ぶ</option>
+            <option value="bash">bash</option>
+            <option value="zsh">zsh</option>
+            <option value="fish">fish</option>
+          </select>
+          <button class="mini" id="btn-shell">Add</button>
+        </div>
         <!-- A desktop is three settings whose names nobody remembers, in two
              different namespaces. Adding them here rather than to the starter
              file is deliberate: they are ordinary options, so they arrive as

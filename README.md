@@ -381,6 +381,24 @@ out-of-tree module has to be built against whatever kernel is running — the
 NVIDIA driver is regularly a few weeks behind a brand-new release. Run
 `nixos-rebuild dry-build` before you switch.
 
+### Options — picking a shell
+
+Between **Kernel** and **Desktop** is a **Shell** dropdown: bash, zsh or fish.
+
+**It is two settings, and the one people forget is the module.**
+`users.defaultUserShell` on its own gives every account a shell that is not in
+`/etc/shells` and has no completions installed — you can log in, and very
+little else works properly. `programs.zsh.enable` and `programs.fish.enable`
+are what register it, so they go in together. That was checked by evaluating
+both: with the module, `zsh` and `fish` appear in `environment.shells`; without
+it, the list still holds only bash and sh.
+
+bash gets `pkgs.bashInteractive` rather than `pkgs.bash` — the second is the
+build without readline, and it makes a poor login shell.
+
+`users.defaultUserShell` is **every normal account on the machine**. To change
+one user only, search for `users.users.<name>.shell` instead.
+
 ### Options — picking a desktop
 
 Under **Options** there is a **Desktop** dropdown: GNOME, KDE Plasma, Xfce,
