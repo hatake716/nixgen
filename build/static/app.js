@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-12a';
+const BUILD = '2026-08-12b';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -1225,12 +1225,37 @@ const ETC_KEYS = [...new Set(
    tool itself suggested. A flat line collides with nothing: NixOS merges
    sibling paths across cards, and the same line read back in becomes the same
    card, so the shape survives the round trip that broke the attrs form. */
+/* Our key may also be sitting inside an ancestor attrs card — the same
+   two-shapes collision one level up. Reading a file back in folds a flat
+   `environment.sessionVariables.XKB_DEFAULT_LAYOUT = …` line into an attrs
+   card on `environment.sessionVariables`, so writing the flat line again
+   beside that card defines the leaf twice, and `nixos-rebuild` refuses the
+   file. It reached a real machine exactly that way. The key comes out of the
+   ancestor; the ancestor's other keys stay; an emptied card goes. */
+function dropFromAncestors(segments) {
+  let touched = false;
+  for (let k = segments.length - 1; k >= 1; k--) {
+    const aPath = segments.slice(0, k).join('.');
+    for (const [key, e] of [...state.selected]) {
+      if (resolvePath(e) !== aPath) continue;
+      if (e.value && typeof e.value === 'object' && !Array.isArray(e.value)
+          && Object.prototype.hasOwnProperty.call(e.value, segments[k])) {
+        delete e.value[segments[k]];
+        touched = true;
+        if (!Object.keys(e.value).length) state.selected.delete(key);
+      }
+    }
+  }
+  return touched;
+}
+
 function setRawCard(segments, source, label) {
   const path = segments.join('.');
   for (const [key, e] of [...state.selected]) {
     const q = resolvePath(e);
     if (q === path || q.startsWith(path + '.')) state.selected.delete(key);
   }
+  dropFromAncestors(segments);
   state.selected.set(path, {
     path,
     segments,
@@ -1254,6 +1279,7 @@ function dropRawCard(segments) {
       gone = true;
     }
   }
+  if (dropFromAncestors(segments)) gone = true;
   return gone;
 }
 

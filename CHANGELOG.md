@@ -9,6 +9,22 @@ option counts.
 
 ## English
 
+### build 2026-08-12b
+
+- **Fixed: `nixos-rebuild` refused the file after re-picking a language on an
+  imported module.** Reading a file back in folds a flat
+  `environment.sessionVariables.XKB_DEFAULT_LAYOUT = …` line into an attribute
+  set on the parent option; picking the language again wrote the flat line
+  beside that block, and Nix rejects a leaf defined twice — `attribute …
+  already defined`. The previous fix's own output was the file that came back
+  in, which is how it reached a real machine.
+- Writing a flat card now also takes its key out of any ancestor attribute-set
+  card — just that key; the rest of the block, such as a carried
+  `NIXOS_OZONE_WL`, stays. The machine's exact flow (import, switch to niri,
+  re-pick Japanese) was replayed and the result evaluated at the machine's own
+  nixpkgs revision: one definition, and the variable lands in the session
+  environment.
+
 ### build 2026-08-12a
 
 - **The Desktop dropdown says what you get: `Sway + noctalia` and
@@ -1095,6 +1111,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-12b
+
+- **修正: 取り込んだ module の上で言語を選び直すと、`nixos-rebuild` がファイルを拒否していました。** ファイルを読み戻すと、フラットな `environment.sessionVariables.XKB_DEFAULT_LAYOUT = …` の行は**親オプションの属性セット**に畳まれます。その上で言語を選び直すと、フラットな行が**そのブロックの隣に**書かれ、同じ leaf の二重定義として `attribute … already defined` になります。読み戻されたファイルは**前回の修正自身の出力**で、それが実機に届いた経路です。
+- フラットなカードを書くとき、**祖先の属性セットカードからも同名キーを取り除く**ようにしました。取り除くのはそのキーだけで、ブロックの他のキー(持ち込まれた `NIXOS_OZONE_WL` など)は残ります。実機の流れ(取り込み → niri へ切り替え → 日本語を選び直し)をそのまま再現し、結果を**実機と同じ nixpkgs リビジョンで評価**しました。定義は1つで、変数はセッション環境に入ります。
 
 ### build 2026-08-12a
 

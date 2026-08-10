@@ -505,6 +505,17 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   no config file to grep), niri works with `foot`. Check both halves for a new
   compositor: whether its module furnishes a terminal, and which one its own
   default config calls for.
+- **A flat card must clear its key from ancestor attrs cards, not only from
+  descendants.** Importing a file folds a flat
+  `environment.sessionVariables.XKB_DEFAULT_LAYOUT = …` line into an attrs
+  card on the parent option; re-picking the language then wrote the flat line
+  beside that card, the leaf was defined twice, and `nixos-rebuild` refused
+  the file — the third variation of the two-shapes collision, and it reached a
+  real machine through the previous fix's own output. `dropFromAncestors`
+  walks the prefixes of the card's segments and deletes just the one key,
+  which both `setRawCard` and `dropRawCard` run. The fixed case is the
+  machine's own flow: import a file carrying the flat line, switch desktops,
+  re-pick the language.
 - **What a preset writes under an attrs option is a flat line, not a block.**
   An attrs card (`environment.etc = { … }`) sitting beside a flattened copy of
   itself — which is exactly what Import generated.nix produces — is `attribute
