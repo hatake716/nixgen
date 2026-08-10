@@ -9,6 +9,22 @@ option counts.
 
 ## English
 
+### build 2026-08-11l
+
+- **Fixed a generated file that could fail to build with `not of type
+  'package'`.** The language preset wrote `i18n.inputMethod.enable` and
+  `i18n.inputMethod.type` as two independent steps; if the second did not land,
+  `enable` stayed on alone, the module pushed a null package into
+  `environment.systemPackages`, and `nixos-rebuild` died with an error that
+  points at systemd, not at the cause. Reported from a real machine.
+- The two are now written as one unit: the input method is chosen first, and
+  `enable` is only added when the current interface uses it. A CJK language
+  therefore always emits both or neither.
+- A `doRender` note is the catch-all: enabling `i18n.inputMethod.enable` from
+  the search box, or reading in a file that has it without a type, now says so
+  in the status bar before you build.
+- Reproduced the crash and confirmed the fix as real NixOS systems.
+
 ### build 2026-08-11k
 
 - **Switching desktops swaps the display manager out.** NixOS refuses two at
@@ -889,6 +905,13 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-11l
+
+- **`not of type 'package'` でビルドに失敗しうる生成物を修正しました。** 言語プリセットは `i18n.inputMethod.enable` と `i18n.inputMethod.type` を**別々の手順**で書いており、2つめが入らないと `enable` だけが残り、モジュールが `environment.systemPackages` に null を押し込み、`nixos-rebuild` が原因とは無関係な systemd を指すエラーで落ちていました。実機からの報告です。
+- この2つを**一体**で書くようにしました。入力メソッドを先に確定し、`enable` は現在のインターフェースがそれを使う場合だけ足します。CJK の言語は必ず両方書くか、どちらも書かないかになります。
+- 保険として `doRender` にも判定を入れました。検索欄から `i18n.inputMethod.enable` を単体で有効にした場合や、type の無いファイルを読み込んだ場合に、ビルド前にステータス欄で警告します。
+- クラッシュの再現と、修正後の生成物が通ることを、実際の NixOS システムとして確認しました。
 
 ### build 2026-08-11k
 

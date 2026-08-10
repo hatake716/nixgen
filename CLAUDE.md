@@ -354,6 +354,15 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   prints the `flatpak remote-add … flathub` line. A row with no dropdown is
   right here — there is nothing to choose — and it is a row rather than a
   search result because it is three settings, not one.
+- **The input method is enabled and chosen as one unit, never `enable` alone.**
+  `i18n.inputMethod` has two interfaces — new (`enable = true` + `type =
+  "fcitx5"`) and old (`enabled = "fcitx5"`). The module reads `type` to pick
+  the package it puts in `environment.systemPackages`; `enable` on with `type`
+  unset pushes a null and the build dies with `not of type 'package'`, far from
+  the cause (reproduced to confirm). `addLanguage` writes the selection first
+  and only adds `enable` when the *new* interface answered; a `doRender` note
+  is the catch-all for the option reached from the search box or carried in by
+  an import.
 - **The fcitx5 front end follows the session, and `marker` is how a desktop is
   recognised.** `waylandFrontend = true` drops GTK_IM_MODULE/QT_IM_MODULE so
   Wayland apps use text-input — both directions were evaluated. The sync runs
@@ -567,6 +576,7 @@ once in ways nothing else caught.
 | the whole page scrolls sideways on a phone | four header buttons in a flex row with no `flex-wrap` |
 | half a dropdown label is missing | a closed select drops what does not fit, and what did not fit was the Japanese |
 | a preset row appears on every tab | the tab switch hid rows by id, and a new row was not on the list |
+| build dies with `not of type 'package'` | `i18n.inputMethod.enable` was written without `type`, pushing a null into systemPackages |
 | importing while the Setup tab is open throws | the repaint painted `kind=setup` results — options — with the package painter |
 | the console fills with 404s on a package list | an `<img>` per row asked for icons the server had already said nothing about |
 | the downloaded file is one edit behind the screen | rendering is debounced, and nothing waited for it |

@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-11k';
+const BUILD = '2026-08-11l';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -1185,25 +1185,50 @@ async function addLanguage(key) {
     { paths: ['services.xserver.xkb.layout', 'services.xserver.layout'],
       value: L.xkb },
   ];
-  if (L.im) {
-    steps.push(
-      { paths: ['i18n.inputMethod.enable'], value: true },
-      { paths: ['i18n.inputMethod.type', 'i18n.inputMethod.enabled'], value: L.im },
-      { paths: ['i18n.inputMethod.fcitx5.addons'], value: L.addons });
-    // If a desktop is already in the module, the front end is set to match
-    // its session right away; with no desktop yet, nothing is written and
-    // picking one later sets it (addDesktop calls syncImFrontend).
-    const d = pickedDesktop();
-    if (d && typeof d.wayland === 'boolean') {
-      steps.push({ paths: ['i18n.inputMethod.fcitx5.waylandFrontend'],
-                   value: d.wayland });
-    }
-  }
 
   const added = [], missing = [];
   for (const step of steps) {
     const used = await addWithValue(step.paths, step.value);
     used ? added.push(used) : missing.push(step.paths[0]);
+  }
+
+  /* The input method is enabled and chosen as one unit — that is the whole fix
+     for the crash where it was two. `i18n.inputMethod` has two interfaces:
+     the new one (`enable = true` plus `type = "fcitx5"`, 24.05 onward) and the
+     old one (`enabled = "fcitx5"` alone). The module reads `type` to decide
+     which package goes into `environment.systemPackages`; if `enable` is on
+     and `type` is unset, it pushes a null package and the build dies with
+     `not of type 'package'`.
+
+     So the choice is written FIRST, and whether to write `enable` depends on
+     which interface answered. The new interface gets `enable`; the old one
+     does not have it and must not (it would be an unknown option). A channel
+     with neither is one where the input method cannot be set, and nothing is
+     written — never a lone `enable`. */
+  let imOk = false;
+  if (L.im) {
+    const sel = await addWithValue(
+      ['i18n.inputMethod.type', 'i18n.inputMethod.enabled'], L.im);
+    if (sel) {
+      imOk = true;
+      added.push(sel);
+      if (sel === 'i18n.inputMethod.type') {
+        const en = await addWithValue(['i18n.inputMethod.enable'], true);
+        en ? added.push(en) : missing.push('i18n.inputMethod.enable');
+      }
+      const addons = await addWithValue(['i18n.inputMethod.fcitx5.addons'], L.addons);
+      if (addons) added.push(addons);
+      // Match the front end to the desktop's session if one is already picked;
+      // otherwise picking a desktop later sets it (addDesktop re-syncs).
+      const d = pickedDesktop();
+      if (d && typeof d.wayland === 'boolean') {
+        const fe = await addWithValue(
+          ['i18n.inputMethod.fcitx5.waylandFrontend'], d.wayland);
+        if (fe) added.push(fe);
+      }
+    } else {
+      missing.push('i18n.inputMethod.type');
+    }
   }
   renderEditor();
   pushRender();
@@ -2134,6 +2159,25 @@ async function doRender() {
       'virtualbox をパッケージとして入れていますが、それだけでは仮想マシンを' +
       '起動できません。カーネルモジュールと vboxusers グループを用意するのは、' +
       'Options タブの virtualisation.virtualbox.host.enable です。'));
+  }
+  /* The input method must not be enabled without a type chosen. The language
+     preset now guarantees they arrive together, but the option is reachable
+     from the search box on its own, and a file read in could carry it — so
+     this is the catch-all. Enabled with no `type`/`enabled` makes the module
+     push a null package into environment.systemPackages, and the build dies
+     with `not of type 'package'`, far from the cause. */
+  if (findEntry('i18n.inputMethod.enable') &&
+      !findEntry('i18n.inputMethod.type') &&
+      !findEntry('i18n.inputMethod.enabled')) {
+    notes.push(say(
+      'i18n.inputMethod.enable is on but no input method is chosen. Add ' +
+      'i18n.inputMethod.type (fcitx5, ibus, …), or the build fails with ' +
+      '"not of type \'package\'" — enabling it without a type puts a null ' +
+      'into environment.systemPackages.',
+      'i18n.inputMethod.enable が有効ですが、入力メソッドが選ばれていません。' +
+      'i18n.inputMethod.type(fcitx5、ibus など)を足してください。無いと ' +
+      'environment.systemPackages に null が入り、"not of type \'package\'" で' +
+      'ビルドが失敗します。'));
   }
   if (notes.length) setStatus(notes.join('\n'), 'todo');
   else if ($('#status').classList.contains('todo')) setStatus('');
