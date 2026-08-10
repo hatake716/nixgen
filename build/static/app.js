@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-10v';
+const BUILD = '2026-08-10w';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -816,21 +816,29 @@ const DESKTOPS = {
           'else was assumed.',
     note_ja: 'i3 は何も無い画面で起動し、初回に設定ファイルを作るか尋ねてきます。' +
              'X は必要なのでそのまま入れていますが、それ以外は何も決めていません。' },
-  /* Hyprland and Sway are Wayland compositors, and both are one option: no X,
-     and no greeter either — neither ships one, and picking sddm or greetd on
-     somebody's behalf is a choice about how their machine starts, not a
-     setting the compositor needs. Said in the status bar instead. */
+  /* The three Wayland compositors: no X server — turning one on for a desktop
+     that does not use it builds an X server nothing runs — and sddm in Wayland
+     mode as the greeter. None of them ships one, and a machine that boots to a
+     text console is not what most people mean by "pick a desktop", so the
+     greeter goes in and the card is there to delete. `wayland.enable` is the
+     half that matters, and the two configs were built to see the difference:
+     with it, sddm's own config says `DisplayServer=wayland` and the greeter
+     runs under weston; without it, `DisplayServer=x11` — an X11 login screen
+     in front of a machine that has no X server for anything else. */
   hyprland: { label: 'Hyprland', roles: [
     ['programs.hyprland.enable'],
+    ['services.displayManager.sddm.enable',
+     'services.xserver.displayManager.sddm.enable'],
+    ['services.displayManager.sddm.wayland.enable'],
   ],
     packages: ['noctalia-shell'],
-    note: 'Hyprland brings no greeter: log in on a text console and run ' +
-          'Hyprland, or add one — services.displayManager.sddm.enable with ' +
-          'its wayland option, or greetd — under Options.',
-    note_ja: 'Hyprland はログイン画面を持ちません。テキストコンソールで' +
-             'ログインして Hyprland を実行するか、Options タブで' +
-             'services.displayManager.sddm.enable(wayland を有効に)や greetd を' +
-             '足してください。' },
+    note: 'sddm goes in with it, in Wayland mode, so the machine boots to a ' +
+          'login screen with Hyprland in the session list. Delete those two ' +
+          'cards if you start from a text console or use greetd instead.',
+    note_ja: 'ログイン画面として sddm を Wayland モードで入れてあります。' +
+             '起動するとログイン画面が出て、セッション一覧に Hyprland が' +
+             '並びます。テキストコンソールから起動する場合や greetd を使う' +
+             '場合は、その2枚のカードを削除してください。' },
   /* A compositor is a compositor and nothing else — no panel, no launcher, no
      notifications — so all three Wayland ones bring noctalia-shell, which is
      the piece that puts those on top. It is a package rather than a setting:
@@ -839,28 +847,32 @@ const DESKTOPS = {
      so it can be taken out like anything else. */
   niri: { label: 'niri', roles: [
     ['programs.niri.enable'],
+    ['services.displayManager.sddm.enable',
+     'services.xserver.displayManager.sddm.enable'],
+    ['services.displayManager.sddm.wayland.enable'],
   ],
     packages: ['noctalia-shell'],
-    note: 'niri brings no greeter: log in on a text console and run niri, or ' +
-          'add one — services.displayManager.sddm.enable with its wayland ' +
-          'option, or greetd — under Options. X11 applications need ' +
+    note: 'sddm goes in with it, in Wayland mode, so the machine boots to a ' +
+          'login screen with niri in the session list. X11 applications need ' +
           'xwayland-satellite, which is a package rather than a setting.',
-    note_ja: 'niri はログイン画面を持ちません。テキストコンソールでログインして ' +
-             'niri を実行するか、Options タブで ' +
-             'services.displayManager.sddm.enable(wayland を有効に)や greetd を' +
-             '足してください。X11 のアプリを動かすには xwayland-satellite が' +
-             '必要です。これは設定ではなくパッケージです。' },
+    note_ja: 'ログイン画面として sddm を Wayland モードで入れてあります。' +
+             '起動するとログイン画面が出て、セッション一覧に niri が並びます。' +
+             'X11 のアプリを動かすには xwayland-satellite が必要です。' +
+             'これは設定ではなくパッケージです。' },
   sway: { label: 'Sway', roles: [
     ['programs.sway.enable'],
+    ['services.displayManager.sddm.enable',
+     'services.xserver.displayManager.sddm.enable'],
+    ['services.displayManager.sddm.wayland.enable'],
   ],
     packages: ['noctalia-shell'],
-    note: 'Sway brings no greeter: log in on a text console and run sway, or ' +
-          'add one — services.displayManager.sddm.enable with its wayland ' +
-          'option, or greetd — under Options.',
-    note_ja: 'Sway はログイン画面を持ちません。テキストコンソールでログインして ' +
-             'sway を実行するか、Options タブで ' +
-             'services.displayManager.sddm.enable(wayland を有効に)や greetd を' +
-             '足してください。' },
+    note: 'sddm goes in with it, in Wayland mode, so the machine boots to a ' +
+          'login screen with Sway in the session list. Delete those two cards ' +
+          'if you start from a text console or use greetd instead.',
+    note_ja: 'ログイン画面として sddm を Wayland モードで入れてあります。' +
+             '起動するとログイン画面が出て、セッション一覧に Sway が並びます。' +
+             'テキストコンソールから起動する場合や greetd を使う場合は、' +
+             'その2枚のカードを削除してください。' },
 };
 
 /* Add the first of `paths` that this channel actually has, and put `value` in

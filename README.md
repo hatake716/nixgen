@@ -422,10 +422,14 @@ setting (nothing in the option catalogue mentions it), so it goes into
 `environment.systemPackages` as an ordinary line you can delete, and the status
 bar names it when it goes in.
 
-Hyprland, Sway and niri **bring no greeter**, and nixgen does not pick one for you:
-that is a decision about how your machine starts, not something the compositor
-needs. Log in on a text console and run it, or add `sddm` (with its Wayland
-option) or `greetd` yourself. The status bar says so when you add one.
+None of the three ships a greeter, so **sddm goes in with them, in Wayland
+mode** — the machine boots to a login screen with the compositor in the session
+list. `services.displayManager.sddm.wayland.enable` is the half that matters:
+the two configs were built to compare, and with it sddm says
+`DisplayServer=wayland` and runs its greeter under weston, without it
+`DisplayServer=x11` — an X11 login screen in front of a machine that has no X
+server for anything else. Delete those two cards if you start from a text
+console or prefer `greetd`.
 
 i3 comes up with an empty screen and offers to write you a config on first run.
 Nothing about what a tiling setup should look like is assumed here.

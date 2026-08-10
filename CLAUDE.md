@@ -393,12 +393,14 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
 - **A window manager is not a desktop, and a compositor is not either.**
   `DESKTOPS` holds ten, in three shapes: X plus a greeter plus the desktop
   (GNOME, Plasma, Xfce, Cinnamon, LXQt), the same three with a window manager
-  in the third place (i3), and one option on its own (Hyprland, Sway, niri, and
-  COSMIC's pair). **Hyprland, Sway and niri deliberately get no greeter** — neither
-  ships one, and picking sddm or greetd is a decision about how the machine
-  starts rather than something the compositor needs. Where a preset stops
-  short, `note`/`note_ja` says why in the status bar; that is the shape to use
-  for the next one rather than filling the gap with a guess.
+  in the third place (i3), and the three Wayland compositors (Hyprland, Sway,
+  niri) plus COSMIC's pair. **The three take sddm with `wayland.enable`, and
+  that second option is the point**: the two sddm configs were built to compare
+  them, and without it sddm writes `DisplayServer=x11` — an X11 login screen in
+  front of a machine with no X server. They get no `services.xserver.enable`,
+  and each carries `noctalia-shell` as a package. Where a preset stops short of
+  a role, `note`/`note_ja` says so in the status bar rather than the gap being
+  filled with a guess.
 - **A role a desktop does not have is left out, not filled in.** COSMIC is two
   settings where the others are three: it is Wayland, so there is no
   `services.xserver.enable` to set, and it ships its own greeter, so neither

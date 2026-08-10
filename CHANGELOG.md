@@ -9,6 +9,22 @@ option counts.
 
 ## English
 
+### build 2026-08-10w
+
+- **Hyprland, Sway and niri now come with a login screen.** sddm goes in with
+  them, and so does `services.displayManager.sddm.wayland.enable` — pick one of
+  the three and the machine boots to a greeter with that compositor in the
+  session list, rather than to a text console.
+- **That second option is the point, and the two configs were built to check
+  it.** With it, sddm's own config says `DisplayServer=wayland` and the greeter
+  runs under weston. Without it, `DisplayServer=x11` — an X11 login screen in
+  front of a machine that has no X server for anything else.
+- Still no `services.xserver.enable`: nothing else on those systems wants one.
+  Evaluated as actual NixOS systems — the display manager is on, X is off, and
+  the session list holds `hyprland-0.55.4`, `sway-1.12` or `niri-26.04`.
+- Starting from a text console or using `greetd` instead is two cards to
+  delete, and the status bar says which.
+
 ### build 2026-08-10v
 
 - **Hyprland and Sway install `noctalia-shell` too**, the way niri does — all
@@ -700,6 +716,13 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10w
+
+- **Hyprland・Sway・niri を選ぶと、ログイン画面まで揃うようにしました。** sddm と `services.displayManager.sddm.wayland.enable` が一緒に入ります。3つのどれを選んでも、**テキストコンソールではなくログイン画面が起動**し、セッション一覧にそのコンポジタが並びます。
+- **効いているのは2つめのオプションです。設定ファイルを両方ビルドして確かめました。** 有効なら sddm の設定は `DisplayServer=wayland` になり、ログイン画面は weston の上で動きます。無効だと `DisplayServer=x11` で、**他に何もXを使わないマシンの前にX11のログイン画面だけが立ちます。**
+- `services.xserver.enable` は入れません。これらのシステムでは他に誰も必要としないからです。**実際の NixOS システムとして評価**し、ディスプレイマネージャが有効・Xは無効・セッション一覧に `hyprland-0.55.4` / `sway-1.12` / `niri-26.04` が入ることを確認しています。
+- テキストコンソールから起動したい場合や `greetd` を使いたい場合は、**カードを2枚削除**するだけです。どれを消せばよいかもステータス欄に出ます。
 
 ### build 2026-08-10v
 
