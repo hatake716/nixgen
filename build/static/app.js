@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-11p';
+const BUILD = '2026-08-11q';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -1032,13 +1032,28 @@ const GREETERS = {
    `systemd.user.services` is `attribute set of (submodule)`, so the form has
    no widget for it and holds it the way `nix.settings` is held: one key per
    service, each a line of Nix source. That is also why the writes below merge
-   rather than assign — the card may already hold somebody else's service. */
+   rather than assign — the card may already hold somebody else's service.
+
+   **The PATH is the whole reason the launcher works.** NixOS gives a user
+   service `Environment="PATH=coreutils:findutils:…"` and nothing else, so
+   noctalia came up but could not spawn anything it listed — reported from a
+   real machine. nixpkgs' own niri module sets `enableDefaultPath = false` for
+   exactly this ("breaking spawn actions that rely on it"), but dropping the
+   default only helps where the session put a usable PATH into the user
+   manager, and the three do not agree: niri-session imports one, sway imports
+   only DISPLAY/WAYLAND_DISPLAY/SWAYSOCK, and Hyprland's `systemd.setPath` is
+   off by default above 0.41.2. So the PATH is named outright, using the same
+   list Hyprland's module uses against the same symptom. */
 const AUTOSTART_UNIT = `{
       description = "Noctalia shell";
+      enableDefaultPath = false;
       partOf = [ "graphical-session.target" ];
       after = [ "graphical-session.target" ];
       wantedBy = [ "graphical-session.target" ];
       serviceConfig = {
+        Environment = [
+          "PATH=/run/wrappers/bin:/etc/profiles/per-user/%u/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin"
+        ];
         ExecStart = "\${pkgs.noctalia-shell}/bin/noctalia-shell";
         Restart = "on-failure";
       };

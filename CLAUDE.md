@@ -456,6 +456,17 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   and only the key nixgen wrote. The unit is written **only when the package
   came back**: an ExecStart into a package this channel lacks would fail at
   `nixos-rebuild`.
+- **A user service that spawns things needs a PATH written out.** NixOS gives
+  one `Environment="PATH=coreutils:findutils:…"` and nothing else, so noctalia
+  started and could not launch anything from its own list — reported from a
+  real machine after the unit shipped. nixpkgs' niri module sets
+  `enableDefaultPath = false` for exactly this, but that only helps where the
+  session put a usable PATH into the user manager, and the three disagree:
+  niri-session imports one, sway imports only DISPLAY/WAYLAND_DISPLAY/SWAYSOCK,
+  and Hyprland's `systemd.setPath` defaults off above 0.41.2. So
+  `AUTOSTART_UNIT` drops the default *and* names the PATH, using the list
+  Hyprland's own module uses against the same symptom. Evaluate the unit text
+  and check no coreutils-only PATH survives.
 - **A terminal is part of "it works", and two of the ten ship none.** The
   module defaults were read out of evaluated systems: sway brings foot and
   wmenu, i3 brings xterm and dmenu, **Hyprland and niri bring nothing** — so

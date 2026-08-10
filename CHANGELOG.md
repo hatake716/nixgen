@@ -9,6 +9,22 @@ option counts.
 
 ## English
 
+### build 2026-08-11q
+
+- **Fixed: the shell started, but nothing launched from it.** A NixOS user
+  service is given `PATH=coreutils:findutils:…` and nothing else, so noctalia
+  came up and then could not spawn a single application it had listed.
+  Reported from a real machine running niri.
+- The unit now drops that default and **names its own PATH** — wrappers, the
+  per-user profile, the default profile and the current system. nixpkgs' own
+  niri module drops the default for exactly this reason, but dropping it is
+  only enough where the session left a usable PATH in the user manager, and
+  the three do not agree: niri-session imports one, sway imports only
+  DISPLAY/WAYLAND_DISPLAY/SWAYSOCK, and Hyprland's `systemd.setPath` is off by
+  default above 0.41.2. So it is written out rather than inherited.
+- Confirmed by evaluating all three: the coreutils-only PATH is gone and one
+  usable PATH is in its place.
+
 ### build 2026-08-11p
 
 Sway, niri and Hyprland are usable the moment you log in.
@@ -963,6 +979,12 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-11q
+
+- **修正: シェルは起動するのに、そこからアプリが起動できませんでした。** NixOS の user service には `PATH=coreutils:findutils:…` だけが与えられるため、noctalia は立ち上がっても**自分が一覧に出したアプリを1つも起動できません**でした。niri を動かしている実機からの報告です。
+- ユニットがこの既定を外し、**PATH を自分で書く**ようにしました(wrappers、ユーザーごとのプロファイル、既定プロファイル、現在のシステム)。nixpkgs の niri モジュールもまさにこの理由で既定を外していますが、**外すだけで足りるのはセッションが使える PATH を user manager に残している場合だけ**で、3つは揃っていません。niri-session は取り込みますが、sway は DISPLAY/WAYLAND_DISPLAY/SWAYSOCK しか取り込まず、Hyprland の `systemd.setPath` は 0.41.2 より上では既定で無効です。そのため継承ではなく明示しました。
+- 3つとも評価して確認しました。coreutils だけの PATH は消え、使える PATH が1つ入っています。
 
 ### build 2026-08-11p
 

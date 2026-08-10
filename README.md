@@ -482,7 +482,12 @@ sitting in the store, so it also adds a user service bound to
 `graphical-session.target`. All three reach that target: sway's default config
 starts `sway-session.target`, which binds to it; niri ships its own units; and
 Hyprland gets there through UWSM, which is why its preset asks for `withUWSM`
-and names the `hyprland-uwsm` session. **Hyprland and niri also get `foot`** —
+and names the `hyprland-uwsm` session. The unit **names its own PATH**. A NixOS user service is given
+`PATH=coreutils:findutils:…` and nothing else, so the shell comes up but cannot
+start anything it lists; the three compositors do not agree on what they put in
+the user manager, so the PATH is written out rather than inherited.
+
+**Hyprland and niri also get `foot`** —
 neither ships a terminal, so their default keybinding would otherwise open
 nothing. Sway already brings foot and wmenu, and i3 brings xterm and dmenu.
 
