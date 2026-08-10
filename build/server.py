@@ -574,7 +574,8 @@ def render(payload):
             "note": item.get("note"),
         })
     stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-    return render_module(entries, payload.get("channel", "nixos"), stamp)
+    return render_module(entries, payload.get("channel", "nixos"), stamp,
+                         payload.get("build"))
 
 
 def starter_from(fields):

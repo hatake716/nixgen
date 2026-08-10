@@ -354,6 +354,16 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   prints the `flatpak remote-add … flathub` line. A row with no dropdown is
   right here — there is nothing to choose — and it is a row rather than a
   search result because it is three settings, not one.
+- **The generated file names the nixgen that wrote it.** `render_module` puts
+  the build id in the header, guarded by `_BUILD_ID` because it arrives from
+  the client and is written into a file the user keeps. It is there because a
+  file that fails at `nixos-rebuild` is reported without one, and the first
+  question is always which version produced it: Nix caches `github:` for an
+  hour and `nix profile install` pins outright, so **"the fix is in" and "the
+  fix is what you ran" are different facts**. The second report of the
+  input-method crash was a fixed bug running from a cached copy, and telling
+  that apart took evaluating both shapes against the reporter's own revision —
+  the header is what makes it one glance instead.
 - **The input method is enabled and chosen as one unit, never `enable` alone.**
   `i18n.inputMethod` has two interfaces — new (`enable = true` + `type =
   "fcitx5"`) and old (`enabled = "fcitx5"`). The module reads `type` to pick

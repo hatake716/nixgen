@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-11l';
+const BUILD = '2026-08-11m';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -2059,7 +2059,7 @@ async function doRender() {
     res = await fetch('/api/render', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entries, channel: state.channel }),
+      body: JSON.stringify({ entries, channel: state.channel, build: BUILD }),
     }).then(r => r.json());
     if (typeof res.text !== 'string') throw new Error(res.error || 'no file came back');
   } catch (err) {

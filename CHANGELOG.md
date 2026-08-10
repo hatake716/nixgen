@@ -9,6 +9,21 @@ option counts.
 
 ## English
 
+### build 2026-08-11m
+
+- **The generated file says which nixgen wrote it.** The header now carries the
+  build id beside the channel and the date.
+- Why it earned a line: the input-method crash was reported a second time, from
+  a file a *fixed* nixgen could not have written. Nix caches `github:` for an
+  hour and `nix profile install` pins outright, so a fix being in is not the
+  same as a fix being what you ran — and nothing in the file said which. Both
+  shapes had to be evaluated against the reporter's own nixpkgs revision to
+  tell those apart. The header answers it in one glance.
+- The value is checked against a fixed pattern before it goes in, since it
+  arrives from the client and is written into a file you keep.
+- Confirmed while investigating: the current output builds cleanly at the
+  revision the report came from, and reading a broken file back in warns.
+
 ### build 2026-08-11l
 
 - **Fixed a generated file that could fail to build with `not of type
@@ -905,6 +920,13 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-11m
+
+- **生成ファイルが、どの nixgen で作られたかを記すようになりました。** ヘッダーにチャンネルと日時と並べて build id が入ります。
+- **これを入れた理由**: 入力メソッドのクラッシュが2度目の報告として届きましたが、そのファイルは**修正済みの nixgen では書けない形**でした。Nix は `github:` の参照を1時間キャッシュし、`nix profile install` は固定するので、**「修正が入っている」ことと「実行したものが修正版である」ことは別の事実**です。そしてファイルにはそれを示すものが何もありませんでした。区別するために、報告者自身の nixpkgs リビジョンで両方の形を評価する必要がありました。ヘッダーがあれば一目で済みます。
+- 値はクライアントから届き、利用者が保管するファイルに書き込まれるので、**固定のパターンと照合してから**入れます。
+- 調査の過程で確認: 現在の出力は報告元のリビジョンで問題なくビルドされ、壊れたファイルを読み戻すと警告が出ます。
 
 ### build 2026-08-11l
 
