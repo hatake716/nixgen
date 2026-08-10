@@ -9,6 +9,15 @@ option counts.
 
 ## English
 
+### build 2026-08-11d
+
+- **The homepage masthead is the logo itself now**, not a drawing of it. It is
+  50 pixels tall because that is where the detail holds together on a screen
+  that is not HiDPI — at 26 the flake is a smudge and at 40 it is still noisy,
+  which was rendered at 1× and 2× and looked at.
+- The app's header still carries the plain flake: it is 22 pixels there, and
+  nothing makes that artwork readable at 22.
+
 ### build 2026-08-11c
 
 - **The logo itself is in the app, on the homepage and at the top of both
@@ -794,6 +803,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-11d
+
+- **ホームページのヘッダーも、描き起こしではなく原画そのもの**になりました。高さは50ピクセルです。**HiDPIでない画面でも細部が保つのがこの辺り**だからで、26では潰れ、40でもまだ粗いことを、**1倍と2倍の両方で描画して確かめました。**
+- アプリのヘッダーは結晶だけの図のままです。あちらは22ピクセルで、**この原画を22ピクセルで読める形にする方法はありません。**
 
 ### build 2026-08-11c
 

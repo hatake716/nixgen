@@ -52,11 +52,11 @@ html[lang="en"] .ja, html[lang="ja"] .en { display: none; }
 /* masthead -------------------------------------------------------------- */
 header.top { border-bottom: 1px solid var(--rule); background: var(--panel); }
 header.top .wrap { display: flex; align-items: center; gap: 14px; padding-top: 12px; padding-bottom: 12px; }
-.brand { display: flex; align-items: center; gap: 9px;
-         font-family: var(--mono); font-weight: 700; font-size: 17px;
-         letter-spacing: .02em; color: var(--ink); }
-.brand .mark { display: block; width: 26px; height: 26px; color: var(--ink); }
-.brand .flake { display: block; width: 100%; height: 100%; }
+/* The logo as drawn. 40 CSS pixels is where its detail starts to hold
+   together — at 26 the flake is a smudge, which was rendered and looked at —
+   so the masthead is that much taller than a line of text would need. */
+.brand { display: block; height: 50px; width: auto; }
+@media (max-width: 600px) { .brand { height: 38px; } }
 .top nav { margin-left: auto; display: flex; gap: 8px; align-items: center; }
 .btn { border: 1px solid var(--rule); background: var(--panel-2); color: var(--ink-soft);
        padding: 6px 12px; border-radius: 3px; font-size: 12px; font-weight: 600;
@@ -159,7 +159,7 @@ footer a { margin-right: 14px; }
 
 <header class="top">
   <div class="wrap">
-    <div class="brand"><span class="mark" aria-hidden="true"><svg class="flake" xmlns="http://www.w3.org/2000/svg" viewBox="4 18 84 84" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><g transform="rotate(0 46 60)"><path d="M34.5 60L8 60"/></g><g transform="rotate(0 46 60)"><path d="M21.25 60L13.82 53.31"/></g><g transform="rotate(0 46 60)"><path d="M21.25 60L13.82 66.69"/></g><g transform="rotate(60 46 60)"><path d="M34.5 60L8 60"/></g><g transform="rotate(60 46 60)"><path d="M21.25 60L13.82 53.31"/></g><g transform="rotate(60 46 60)"><path d="M21.25 60L13.82 66.69"/></g><g transform="rotate(120 46 60)"><path d="M34.5 60L8 60"/></g><g transform="rotate(120 46 60)"><path d="M21.25 60L13.82 53.31"/></g><g transform="rotate(120 46 60)"><path d="M21.25 60L13.82 66.69"/></g><g transform="rotate(180 46 60)"><path d="M34.5 60L8 60"/></g><g transform="rotate(180 46 60)"><path d="M21.25 60L13.82 53.31"/></g><g transform="rotate(180 46 60)"><path d="M21.25 60L13.82 66.69"/></g><g transform="rotate(240 46 60)"><path d="M34.5 60L8 60"/></g><g transform="rotate(240 46 60)"><path d="M21.25 60L13.82 53.31"/></g><g transform="rotate(240 46 60)"><path d="M21.25 60L13.82 66.69"/></g><g transform="rotate(300 46 60)"><path d="M34.5 60L8 60"/></g><g transform="rotate(300 46 60)"><path d="M21.25 60L13.82 53.31"/></g><g transform="rotate(300 46 60)"><path d="M21.25 60L13.82 66.69"/></g><path d="M57.5 60L51.75 69.96L40.25 69.96L34.5 60L40.25 50.04L51.75 50.04Z"/><path d="M52.33 60L49.16 65.48L42.84 65.48L39.67 60L42.84 54.52L49.16 54.52Z"/><path d="M46 60L46 66.33"/><path d="M46 60L40.52 56.84"/><path d="M46 60L51.48 56.84"/></svg></span>nixgen</div>
+    <img class="brand" src="logo.png" width="1100" height="527" alt="nixgen">
     <nav>
       <button class="btn" id="lang">日本語</button>
       <a class="btn primary" href="https://github.com/hatake716/nixgen">GitHub</a>
