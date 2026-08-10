@@ -418,6 +418,12 @@ setting (nothing in the option catalogue mentions it), so it goes into
 `environment.systemPackages` as an ordinary line you can delete, and the status
 bar names it when it goes in.
 
+**XWayland is switched on** so X11 applications still run. Hyprland and Sway
+have an option for it — it is their default too, and nixgen sets it anyway so
+the card says which way it is set. **niri has no such option**: it does not
+carry XWayland, so `xwayland-satellite` goes in as a package instead, and your
+niri config has to spawn it.
+
 None of the three ships a greeter, so **sddm goes in with them, in Wayland
 mode** — the machine boots to a login screen with the compositor in the session
 list. `services.displayManager.sddm.wayland.enable` is the half that matters:

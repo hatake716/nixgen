@@ -9,6 +9,19 @@ option counts.
 
 ## English
 
+### build 2026-08-11a
+
+- **XWayland goes on with the three Wayland compositors**, so X11 applications
+  still run. Hyprland and Sway have an option for it and nixgen sets it — it is
+  their default as well, and having the card there means the file says which
+  way it is set rather than leaving it to be assumed.
+- **niri has no such option**, because it does not carry XWayland at all:
+  `xwayland-satellite` goes in as a package instead. Installing it is as far as
+  a configuration file reaches — **your niri config has to spawn it**, and the
+  status bar says so.
+- Evaluated at the indexed revision: `xwayland-24.1.13` in the Hyprland and
+  Sway systems, `xwayland-satellite-0.8.1` in the niri one.
+
 ### build 2026-08-10z
 
 - **There are two imports now, one per file.** **Import configuration.nix**
@@ -753,6 +766,12 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-11a
+
+- **Wayland のコンポジタ3つで XWayland を有効にしました。** X11 のアプリが動くようにするためです。Hyprland と Sway にはオプションがあるので設定します。**既定値も有効**ですが、カードとして残ることで、**どちらに設定されているかがファイルに書かれている**状態になります。
+- **niri にはこのオプションがありません。** XWayland を内蔵していないためで、代わりに `xwayland-satellite` をパッケージとして入れます。設定ファイルでできるのは**入れるところまで**です。**起動は niri の設定ファイルから行う必要があり**、その旨をステータス欄に出します。
+- 索引と同じリビジョンで評価しました。Hyprland と Sway のシステムには `xwayland-24.1.13`、niri には `xwayland-satellite-0.8.1` が入ります。
 
 ### build 2026-08-10z
 

@@ -404,7 +404,12 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   `DESKTOPS` holds ten, in three shapes: X plus a greeter plus the desktop
   (GNOME, Plasma, Xfce, Cinnamon, LXQt), the same three with a window manager
   in the third place (i3), and the three Wayland compositors (Hyprland, Sway,
-  niri) plus COSMIC's pair. **The three take sddm with `wayland.enable`, and
+  niri) plus COSMIC's pair. **XWayland is on for all three, by two different
+  means**: Hyprland and Sway have an option (already their default — set anyway
+  so the file says which way it is), and niri has none because it does not
+  carry XWayland, so `xwayland-satellite` goes in as a package and the note
+  says the niri config has to spawn it. **The three take sddm with
+  `wayland.enable`, and
   that second option is the point**: the two sddm configs were built to compare
   them, and without it sddm writes `DisplayServer=x11` — an X11 login screen in
   front of a machine with no X server. They get no `services.xserver.enable`,

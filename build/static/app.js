@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-10z';
+const BUILD = '2026-08-11a';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -843,18 +843,23 @@ const DESKTOPS = {
      in front of a machine that has no X server for anything else. */
   hyprland: { label: 'Hyprland', roles: [
     ['programs.hyprland.enable'],
+    ['programs.hyprland.xwayland.enable'],
     ['services.displayManager.sddm.enable',
      'services.xserver.displayManager.sddm.enable'],
     ['services.displayManager.sddm.wayland.enable'],
   ],
     packages: ['noctalia-shell'],
     note: 'sddm goes in with it, in Wayland mode, so the machine boots to a ' +
-          'login screen with Hyprland in the session list. Delete those two ' +
-          'cards if you start from a text console or use greetd instead.',
+          'login screen with Hyprland in the session list, and XWayland is ' +
+          'switched on for X11 applications — that one is the default anyway, ' +
+          'and is here so the card says which way it is set. Delete any of ' +
+          'them if you start from a text console or use greetd instead.',
     note_ja: 'ログイン画面として sddm を Wayland モードで入れてあります。' +
              '起動するとログイン画面が出て、セッション一覧に Hyprland が' +
-             '並びます。テキストコンソールから起動する場合や greetd を使う' +
-             '場合は、その2枚のカードを削除してください。' },
+             '並びます。X11 のアプリ用に XWayland も有効にしました。これは' +
+             '元々の既定値でもありますが、どちらに設定されているかがカードで' +
+             '分かるように明示しています。テキストコンソールから起動する場合や ' +
+             'greetd を使う場合は、該当のカードを削除してください。' },
   /* A compositor is a compositor and nothing else — no panel, no launcher, no
      notifications — so all three Wayland ones bring noctalia-shell, which is
      the piece that puts those on top. It is a package rather than a setting:
@@ -867,28 +872,37 @@ const DESKTOPS = {
      'services.xserver.displayManager.sddm.enable'],
     ['services.displayManager.sddm.wayland.enable'],
   ],
-    packages: ['noctalia-shell'],
+    packages: ['noctalia-shell', 'xwayland-satellite'],
     note: 'sddm goes in with it, in Wayland mode, so the machine boots to a ' +
-          'login screen with niri in the session list. X11 applications need ' +
-          'xwayland-satellite, which is a package rather than a setting.',
+          'login screen with niri in the session list. niri has no XWayland ' +
+          'option — it does not carry one — so xwayland-satellite goes in as ' +
+          'a package, and your niri config has to spawn it for X11 ' +
+          'applications to find a display.',
     note_ja: 'ログイン画面として sddm を Wayland モードで入れてあります。' +
              '起動するとログイン画面が出て、セッション一覧に niri が並びます。' +
-             'X11 のアプリを動かすには xwayland-satellite が必要です。' +
-             'これは設定ではなくパッケージです。' },
+             'niri には XWayland のオプションがありません(内蔵していません)。' +
+             'そのため xwayland-satellite をパッケージとして入れてあります。' +
+             'X11 のアプリから見えるようにするには、niri の設定ファイルから' +
+             'これを起動してください。' },
   sway: { label: 'Sway', roles: [
     ['programs.sway.enable'],
+    ['programs.sway.xwayland.enable'],
     ['services.displayManager.sddm.enable',
      'services.xserver.displayManager.sddm.enable'],
     ['services.displayManager.sddm.wayland.enable'],
   ],
     packages: ['noctalia-shell'],
     note: 'sddm goes in with it, in Wayland mode, so the machine boots to a ' +
-          'login screen with Sway in the session list. Delete those two cards ' +
-          'if you start from a text console or use greetd instead.',
+          'login screen with Sway in the session list, and XWayland is ' +
+          'switched on for X11 applications — that one is the default anyway, ' +
+          'and is here so the card says which way it is set. Delete any of ' +
+          'them if you start from a text console or use greetd instead.',
     note_ja: 'ログイン画面として sddm を Wayland モードで入れてあります。' +
              '起動するとログイン画面が出て、セッション一覧に Sway が並びます。' +
-             'テキストコンソールから起動する場合や greetd を使う場合は、' +
-             'その2枚のカードを削除してください。' },
+             'X11 のアプリ用に XWayland も有効にしました。これは元々の既定値' +
+             'でもありますが、どちらに設定されているかがカードで分かるように' +
+             '明示しています。テキストコンソールから起動する場合や greetd を' +
+             '使う場合は、該当のカードを削除してください。' },
 };
 
 /* Add the first of `paths` that this channel actually has, and put `value` in
