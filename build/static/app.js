@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-11y';
+const BUILD = '2026-08-11z';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -790,14 +790,13 @@ async function addOption(path) {
    overrides it rather than colliding with it. */
 const ETC_PATH = 'environment.etc';
 
-const SWAY_CONFIG_NO_BAR = `{
-      # The module's own sway config (isNixOS build: wallpaper + the config.d
-      # include that starts the session services) minus its swaybar block, so
-      # the only bar on screen is the one noctalia draws.
-      source = pkgs.runCommand "sway-config-no-bar" { } ''
-        sed '/^bar {/,/^}/d' \${config.programs.sway.package}/etc/sway/config > $out
-      '';
-    }`;
+const SWAY_CONFIG_NO_BAR =
+  `# The module's own sway config (isNixOS build: wallpaper + the config.d
+    # include that starts the session services) minus its swaybar block, so
+    # the only bar on screen is the one noctalia draws.
+    pkgs.runCommand "sway-config-no-bar" { } ''
+      sed '/^bar {/,/^}/d' \${config.programs.sway.package}/etc/sway/config > $out
+    ''`;
 
 const DESKTOPS = {
   gnome: { label: 'GNOME', session: 'gnome', wayland: true, greeter: 'gdm',
@@ -1216,28 +1215,63 @@ function dropPresetPackages(keep) {
 const ETC_KEYS = [...new Set(
   Object.values(DESKTOPS).flatMap(d => Object.keys(d.etc || {})))];
 
-async function addEtc(files) {
-  const existing = findEntry(ETC_PATH);
-  const keys = existing && existing.value && typeof existing.value === 'object'
-    ? { ...existing.value } : {};
-  Object.assign(keys, files);
-  return await addWithValue([ETC_PATH], keys);
+/* A raw card at an exact attribute path, shaped like the ones an import
+   builds. The presets write these instead of one card holding a whole
+   attribute set, and the collision that forced the change is worth spelling
+   out: an attrs card `environment.etc = { … }` beside a flattened
+   `environment.etc."sway/config".source` card — which is exactly what reading
+   a file back in produces — is `attribute … already defined` at
+   `nixos-rebuild`. It reached a real machine through the recovery path this
+   tool itself suggested. A flat line collides with nothing: NixOS merges
+   sibling paths across cards, and the same line read back in becomes the same
+   card, so the shape survives the round trip that broke the attrs form. */
+function setRawCard(segments, source, label) {
+  const path = segments.join('.');
+  for (const [key, e] of [...state.selected]) {
+    const q = resolvePath(e);
+    if (q === path || q.startsWith(path + '.')) state.selected.delete(key);
+  }
+  state.selected.set(path, {
+    path,
+    segments,
+    type: { kind: 'raw', label },
+    type_str: label,
+    description: '',
+    default_txt: null,
+    slots: [],
+    value: source,
+  });
+  return path;
+}
+
+function dropRawCard(segments) {
+  const path = segments.join('.');
+  let gone = false;
+  for (const [key, e] of [...state.selected]) {
+    const q = resolvePath(e);
+    if (q === path || q.startsWith(path + '.')) {
+      state.selected.delete(key);
+      gone = true;
+    }
+  }
+  return gone;
+}
+
+function addEtc(files) {
+  let wrote = null;
+  for (const [name, src] of Object.entries(files)) {
+    wrote = setRawCard(['environment', 'etc', name, 'source'], src,
+                       'path — written verbatim into the file');
+  }
+  return wrote;
 }
 
 function dropEtc(keep) {
-  const e = findEntry(ETC_PATH);
-  if (!e || !e.value || typeof e.value !== 'object') return [];
   const wanted = new Set(Object.keys(keep || {}));
   const gone = [];
-  for (const name of Object.keys(e.value)) {
-    if (wanted.has(name) || !ETC_KEYS.includes(name)) continue;
-    delete e.value[name];
-    gone.push(name);
-  }
-  if (!Object.keys(e.value).length) {
-    for (const [key, entry] of [...state.selected]) {
-      if (resolvePath(entry) === ETC_PATH) state.selected.delete(key);
-    }
+  for (const name of ETC_KEYS) {
+    if (wanted.has(name)) continue;
+    if (dropRawCard(['environment', 'etc', name, 'source'])) gone.push(name);
   }
   return gone;
 }
@@ -1336,8 +1370,8 @@ async function addDesktop(key) {
      nixos-rebuild, which is the one thing these presets must not produce. */
   let etced = null;
   if (d.etc) {
-    etced = await addEtc(d.etc);
-    if (!etced) missing.push(ETC_PATH);
+    etced = addEtc(d.etc);
+    if (etced) added.push(etced);
   }
   let autostarted = null;
   if (d.autostart && pkgs.includes(d.autostart)) {
@@ -1496,6 +1530,22 @@ async function addLanguage(key) {
     const used = await addWithValue(step.paths, step.value);
     used ? added.push(used) : missing.push(step.paths[0]);
   }
+
+  /* `services.xserver.xkb.layout` reaches the X server and the desktops that
+     read it — and the wlroots compositors read none of it, which is how a
+     machine set to Japanese logged into sway with a US keyboard. Their
+     keymaps come from libxkbcommon, whose fallback when no layout is
+     configured is the XKB_DEFAULT_LAYOUT environment variable (checked in the
+     library itself). `environment.sessionVariables` is set by PAM at login,
+     so it reaches the session however it is started. A flat card, for the
+     same reason the sway config is one: an attrs card here collides with a
+     flattened sessionVariables line read in from a file.
+
+     Hyprland is the exception and gets a note instead: its generated config
+     writes `kb_layout = us` outright, and a config line beats the
+     environment. */
+  added.push(setRawCard(['environment', 'sessionVariables', 'XKB_DEFAULT_LAYOUT'],
+                        JSON.stringify(L.xkb), 'string'));
 
   /* The input method is enabled and chosen as one unit — that is the whole fix
      for the crash where it was two. `i18n.inputMethod` has two interfaces:

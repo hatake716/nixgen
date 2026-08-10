@@ -505,6 +505,22 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   no config file to grep), niri works with `foot`. Check both halves for a new
   compositor: whether its module furnishes a terminal, and which one its own
   default config calls for.
+- **What a preset writes under an attrs option is a flat line, not a block.**
+  An attrs card (`environment.etc = { … }`) sitting beside a flattened copy of
+  itself — which is exactly what Import generated.nix produces — is `attribute
+  … already defined`, and it reached a real machine through this tool's own
+  recovery instructions. `setRawCard` writes
+  `environment.etc."sway/config".source = …;` instead: sibling paths merge in
+  the module system, and the line reads back in as the same card, so the shape
+  survives the round trip. The autostart unit still uses the attrs form with
+  leaf-clearing; anything new should use flat cards.
+- **The Wayland keyboard layout is an environment variable, not an option.**
+  wlroots compositors read none of `services.xserver.xkb`; their keymaps come
+  from libxkbcommon, whose fallback is `XKB_DEFAULT_LAYOUT` (checked in the
+  library's strings). The language preset sets it via
+  `environment.sessionVariables`, which PAM applies to every login. Hyprland's
+  generated config writes `kb_layout = us` outright and wins over the
+  environment — that one is the user's file to change.
 - **`pkgs.sway` is not the sway the module installs.** Same version, two
   builds: the module's has `isNixOS = true`, whose config keeps the wallpaper
   (from /run/current-system) and ends with `include /etc/sway/config.d/*` —

@@ -485,7 +485,18 @@ wallpaper, and the `include /etc/sway/config.d/*` that loads the session
 integration noctalia starts from. That last part is why the file is derived
 from `config.programs.sway.package`, not `pkgs.sway` — they are different
 builds, and the plain one is patched to have neither line. Checked by building
-the result on two nixpkgs revisions.
+the result on two nixpkgs revisions. The override is written as one flat line
+(`environment.etc."sway/config".source = …`) rather than an attribute-set
+block: a file read back in arrives flattened, and a block next to a flattened
+copy of itself is `attribute … already defined` at build time.
+
+**The keyboard follows the language on Wayland too.** `services.xserver.xkb`
+never reaches a wlroots compositor — a machine set to Japanese logged into
+sway with a US keyboard. Their keymaps come from libxkbcommon, whose fallback
+is the `XKB_DEFAULT_LAYOUT` environment variable, so the language preset sets
+it through `environment.sessionVariables`, which PAM applies to every login.
+Hyprland is the exception: its generated config says `kb_layout = us`
+outright, and a config line beats the environment — change it there.
 
 **noctalia-shell starts with the session.** A compositor brings no panel and
 no launcher, so the preset adds one — and a shell nobody starts is a package

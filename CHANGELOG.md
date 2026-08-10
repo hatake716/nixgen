@@ -9,6 +9,26 @@ option counts.
 
 ## English
 
+### build 2026-08-11z
+
+Two fixes from one sway machine.
+
+- **Fixed: re-picking Sway after importing the old file defined
+  `environment.etc."sway/config"` twice** — the imported copy arrives
+  flattened, the preset wrote a block, and Nix refuses the pair. The preset
+  writes a flat line now (`environment.etc."sway/config".source = …`), which
+  merges with anything and reads back in as itself. The recovery path was
+  re-tested end to end: import the broken file, pick Sway, and one definition
+  comes out, derived from the right sway.
+- **Fixed: a Japanese machine logged into sway with a US keyboard.**
+  `services.xserver.xkb` never reaches a wlroots compositor; their keymaps
+  fall back to the `XKB_DEFAULT_LAYOUT` environment variable (libxkbcommon —
+  checked in the library). The language preset now sets it through
+  `environment.sessionVariables`, which PAM applies to every login. Confirmed
+  by evaluation: the variable lands in the session environment beside the
+  user's own entries. Hyprland's own config says `kb_layout = us` and wins
+  over the environment — the preset note says to change it there.
+
 ### build 2026-08-11y
 
 - **Fixed: sway came up black, with no noctalia.** Yesterday's bar removal
@@ -1064,6 +1084,13 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-11z
+
+同じ sway マシンからの報告2件を修正しました。
+
+- **修正: 旧ファイルを取り込んで Sway を選び直すと、`environment.etc."sway/config"` が二重定義になっていました。** 取り込まれた側は**平坦化された行**として届き、プリセットは**ブロック**を書いていたため、Nix が両者を拒否します。プリセットは**フラットな1行**(`environment.etc."sway/config".source = …`)を書くようにしました。この形は何とでもマージでき、読み戻しても同じ形に戻ります。復旧手順(壊れたファイルを取り込み → Sway を選び直す)を通しで再検証し、正しい sway 由来の定義が**1つだけ**出てくることを確認しました。
+- **修正: 日本語設定のマシンが、sway に US 配列でログインしていました。** `services.xserver.xkb` は wlroots 系コンポジタには届きません。これらのキーマップは環境変数 `XKB_DEFAULT_LAYOUT` にフォールバックします(libxkbcommon のライブラリ実体で確認)。言語プリセットが `environment.sessionVariables` 経由でこれを設定するようにしました。PAM が全ログインに適用します。評価で、この変数が利用者自身の項目と並んでセッション環境に入ることを確認済みです。**Hyprland は例外**で、自動生成設定の `kb_layout = us` が環境変数に勝つため、注記でその旨を案内します。
 
 ### build 2026-08-11y
 
