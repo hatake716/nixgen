@@ -25,7 +25,20 @@
            where the button beside it already says the same thing. -->
       <button class="btn" id="btn-dl-all">Download all three</button>
       <button class="btn primary" id="btn-dl">Download generated.nix</button>
+      <!-- The one button that changes the machine, so it is the last one and
+           does not look like the others. It hands over a command rather than
+           doing the work: nixgen has no authentication, and a local server
+           that could overwrite /etc/nixos and rebuild would be a door any
+           page in the browser could knock on. -->
+      <button class="btn danger" id="btn-update">System update</button>
     </div>
+    <dialog id="dlg">
+      <div class="dlg-body"></div>
+      <div class="dlg-actions">
+        <button class="btn" id="dlg-no">Cancel — やめる</button>
+        <button class="btn primary" id="dlg-yes"></button>
+      </div>
+    </dialog>
   </header>
 
   <main>
@@ -301,6 +314,14 @@
               <code>sudo nixos-rebuild dry-build</code>, and switch only if that
               is clean. Setup prints the command.</li>
           </ol>
+          <p class="warnbox"><b>System update does steps 4 and 5 for you — once
+            everything is set.</b> It downloads the archive and hands you one
+            command that overwrites the three files in <code>/etc/nixos</code>
+            and rebuilds the machine, asking before each. Finish the settings
+            and the software first and press <b class="w">Check syntax</b>:
+            this replaces the configuration your machine boots from. The files
+            it replaces are kept beside the new ones, and
+            <code>hardware-configuration.nix</code> is never touched.</p>
           <div class="after">
             <p><b>Closing the tab loses the form.</b> Nothing is kept between
               visits, so the file is the save: download
@@ -339,6 +360,7 @@
               <li><b>ひと通り終えたら <b class="w">Check syntax</b> を押します。</b>本物の Nix のパーサーを通し、どこで壊れているかを伝えます。値の<i>型</i>が正しいかどうかまでは分かりません。それは次の手順の役目です。ここで指摘が出たら、直してから先に進んでください。</li>
               <li><b><b class="w">Download all three</b> を押します。</b>3つのファイルが1つの書庫で出てきます。既にある <code>hardware-configuration.nix</code> の隣に展開し、<code>sudo nixos-rebuild dry-build</code> を実行してください。<b>問題が無いときだけ</b>切り替えます。コマンドは Setup に表示されています。</li>
             </ol>
+            <p class="warnbox"><b>System update は、手順4と5を代わりに行います。ただし、設定がすべて済んでいることが前提です。</b>書庫をダウンロードし、<code>/etc/nixos</code> の3ファイルを上書きしてマシンを再構築する<b>コマンドを1つ</b>渡します。各段階の前に確認を求めます。<b>設定とソフトウェアをひととおり終え、<b class="w">Check syntax</b> を通してから</b>実行してください。<b>このマシンが起動に使う設定を置き換えます。</b>置き換えられたファイルは新しいものの隣に残り、<code>hardware-configuration.nix</code> には一切触れません。</p>
             <div class="after">
               <p><b>タブを閉じると、入力した内容は消えます。</b>何も保存していないので、保存にあたるのはファイルです。<code>generated.nix</code> をダウンロードしておけば、<b class="w">Import configuration.nix</b> で元のとおりに戻せます。<b class="w">Setup</b> の入力欄が戻るのは、その値を書いてあるファイルを読んだときだけです。<code>configuration.nix</code> には書いてありますが、<code>generated.nix</code> にはたいてい書いてありません。</p>
               <p>タブはいつでも戻れます。上の順序は<b>どこから始めるか</b>の話で、一度離れたら戻れないわけではありません。<a href="https://hatake716.github.io/nixgen/" target="_blank" rel="noreferrer">詳しい説明</a>。</p>

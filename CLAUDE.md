@@ -522,6 +522,19 @@ once in ways nothing else caught.
 - **Generate only; never write to the user's file.** Reading is safe; replacing
   values while preserving layout and comments is far harder and failure damages
   a working system.
+- **System update hands over a command; the server never runs the privileged
+  half.** There is no authentication on 127.0.0.1:8823, so an endpoint that
+  could overwrite `/etc/nixos` and run `nixos-rebuild switch` would be
+  reachable from any page open in the same browser — a drive-by rebuild with
+  attacker-supplied contents. The button confirms, downloads, and puts one
+  `bash -c '…'` on the clipboard; `sudo` and the two remaining confirmations
+  live in the user's terminal. **Do not "improve" this into a POST that
+  executes.** Three details in that command are load-bearing: it is `bash -c`
+  with no single quotes inside, because it has to paste into fish and zsh too;
+  the download folder is searched for rather than named, since `xdg-user-dir`
+  answers `$HOME` when it is not installed and the folder may be `ダウンロード`;
+  and `cp --backup=numbered` leaves the replaced files as `.~1~` beside the new
+  ones. `hardware-configuration.nix` is not in the archive and is never named.
 - **`Check syntax` is `nix-instantiate --parse` and nothing more.** It cannot
   judge types. Every piece of copy that mentions it says so, because a user who
   thinks it validates will skip `dry-build`.

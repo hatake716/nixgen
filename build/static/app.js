@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-10w';
+const BUILD = '2026-08-10x';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -2372,6 +2372,151 @@ $('#btn-dl').addEventListener('click', async () => {
 });
 
 $('#btn-dl-all').addEventListener('click', downloadBundle);
+
+/* ------------------------------------------------------- system update */
+
+/* A yes/no box, both languages, resolving to true or false. `<dialog>` rather
+   than window.confirm: confirm() is one line of plain text, and what is about
+   to happen here needs a list and a command in a box. */
+function ask(build, yesLabel) {
+  const dlg = $('#dlg');
+  const body = dlg.querySelector('.dlg-body');
+  body.innerHTML = '';
+  build(body);
+  $('#dlg-yes').textContent = yesLabel;
+  dlg.showModal();
+  return new Promise(resolve => {
+    const done = ok => {
+      $('#dlg-yes').removeEventListener('click', yes);
+      $('#dlg-no').removeEventListener('click', no);
+      dlg.removeEventListener('cancel', no);
+      dlg.close();
+      resolve(ok);
+    };
+    const yes = () => done(true);
+    const no = () => done(false);
+    $('#dlg-yes').addEventListener('click', yes);
+    $('#dlg-no').addEventListener('click', no);
+    dlg.addEventListener('cancel', no);
+  });
+}
+
+const line = (parent, cls, text) => parent.appendChild(el('p', cls, text));
+
+/* The command the second dialog hands over.
+
+   One `bash -c` rather than a block of shell: it has to survive being pasted
+   into fish, which has no heredocs and different `read` flags, and into zsh —
+   all three were tried. Nothing inside is single-quoted, because the whole
+   thing is.
+
+   The download folder is looked for rather than assumed: `xdg-user-dir` knows
+   the localised name, and when it is not installed it answers with $HOME, so
+   the loop tests for the archive itself rather than for the directory —
+   ~/Downloads and ~/ダウンロード are both tried, and the home directory last.
+
+   The old files are kept: `cp --backup=numbered` leaves configuration.nix.~1~
+   beside the new one, so a bad rebuild can be walked back. Only the three
+   nixgen wrote are touched; hardware-configuration.nix is never in the
+   archive and never named here. */
+function updateCommand() {
+  const n = bundleName();
+  const rebuild = $('#s-flakes').checked
+    ? `sudo nixos-rebuild switch --flake /etc/nixos#${n}`
+    : 'sudo nixos-rebuild switch';
+  return 'bash -c ' + "'" + [
+    'set -e',
+    `h=${n}`,
+    'for d in "$(xdg-user-dir DOWNLOAD 2>/dev/null)" "$HOME/Downloads" ' +
+      '"$HOME/ダウンロード" "$HOME"; do ' +
+      '[ -f "$d/$h.tar.gz" ] && a="$d/$h.tar.gz" && break; done',
+    '[ -n "$a" ] || { echo "$h.tar.gz not found in your download folder"; exit 1; }',
+    't=$(mktemp -d)',
+    'tar -xzf "$a" -C "$t"',
+    'echo',
+    'echo "These three will overwrite the ones in /etc/nixos ' +
+      '(the old ones are kept as .~1~):"',
+    'ls -1 "$t/$h"',
+    'read -r -p "Copy them in? [y/N] " r',
+    '[ "$r" = y ] || exit 1',
+    'sudo cp --backup=numbered -v "$t/$h"/configuration.nix ' +
+      '"$t/$h"/flake.nix "$t/$h"/generated.nix /etc/nixos/',
+    'read -r -p "Rebuild the system now? [y/N] " r',
+    '[ "$r" = y ] || exit 1',
+    rebuild,
+  ].join('; ') + "'";
+}
+
+/* Three confirmations, as asked for: one here before the download, and two
+   inside the command — before it overwrites /etc/nixos, and before it
+   rebuilds. The privileged half is a command you run rather than something
+   this server does: nixgen has no authentication, and an endpoint that could
+   overwrite /etc/nixos and rebuild would be reachable from any page open in
+   the same browser. */
+async function systemUpdate() {
+  const n = bundleName();
+  const ok = await ask(body => {
+    body.appendChild(el('h3', null, 'Update this machine from what is on screen?'));
+    body.appendChild(el('h3', 'ja', 'いま画面にある内容で、このマシンを更新しますか。'));
+    line(body, null, 'Three steps follow, each one asked about before it happens:');
+    const ol = el('ol');
+    [`${n}.tar.gz is downloaded and unpacked`,
+     'its three files overwrite the ones in /etc/nixos, keeping the old ones',
+     'the system is rebuilt and switched to',
+    ].forEach(t => ol.appendChild(el('li', null, t)));
+    body.appendChild(ol);
+    line(body, 'ja', '手順は3つで、それぞれの前に確認します。' +
+                     `${n}.tar.gz をダウンロードして展開、その3ファイルで ` +
+                     '/etc/nixos を上書き(元のファイルは残します)、最後に' +
+                     'システムを再構築して切り替えます。');
+    line(body, null, 'Finish setting everything up first, and press Check syntax: ' +
+                     'this replaces the configuration your machine boots from.');
+    line(body, 'ja', '設定をひととおり終えて Check syntax を通してから実行して' +
+                     'ください。このマシンが起動に使う設定を置き換えます。');
+  }, 'Download — ダウンロード');
+  if (!ok) return;
+
+  await downloadBundle();
+  if (renderStale) return;
+
+  const cmd = updateCommand();
+  const copied = await ask(body => {
+    body.appendChild(el('h3', null, 'Now run this in a terminal'));
+    body.appendChild(el('h3', 'ja', '続きはターミナルで、このコマンドを実行してください'));
+    line(body, null, 'It finds the archive in your download folder whatever that ' +
+                     'folder is called, unpacks it, and asks twice: once before ' +
+                     'copying into /etc/nixos, once before the rebuild.');
+    line(body, 'ja', 'ダウンロード先のフォルダ名が Downloads でも ダウンロード でも' +
+                     '見つけます。展開したあと、/etc/nixos へコピーする前と、' +
+                     '再構築の前に、それぞれ確認を求めます。');
+    body.appendChild(keep(el('pre', 'cmd', cmd)));
+    line(body, null, 'sudo will ask for your password. The files it replaces are ' +
+                     'kept beside the new ones as configuration.nix.~1~ and so on, ' +
+                     'and hardware-configuration.nix is not touched.');
+    line(body, 'ja', 'sudo がパスワードを尋ねます。置き換えられたファイルは ' +
+                     'configuration.nix.~1~ のような名前で隣に残り、' +
+                     'hardware-configuration.nix には触れません。');
+  }, 'Copy the command — コマンドをコピー');
+  if (!copied) return;
+
+  try {
+    await navigator.clipboard.writeText(cmd);
+    setStatus(say(
+      'The command is on the clipboard. Paste it into a terminal — it asks ' +
+      'before it overwrites /etc/nixos and again before the rebuild.',
+      'コマンドをクリップボードにコピーしました。ターミナルに貼り付けて' +
+      'ください。/etc/nixos を上書きする前と、再構築の前に、それぞれ確認を' +
+      '求めます。'), 'ok');
+  } catch {
+    setStatus(say(
+      'Clipboard blocked by the browser — the command is in the box that was ' +
+      'just open; press System update again to see it.',
+      'ブラウザにクリップボードを止められました。コマンドはいま開いていた枠に' +
+      '出ています。System update をもう一度押すと再表示できます。'), 'bad');
+  }
+}
+
+$('#btn-update').addEventListener('click', systemUpdate);
 
 /* The verdict in both languages. A failure carries the parser's own words
    after it — those are Nix's, in Nix's English, and translating them would

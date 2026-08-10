@@ -574,6 +574,38 @@ your `configuration.nix` and `flake.nix` are your own — take it from its file
 tab instead, and add `./generated.nix` to `imports` as in
 [Step 4](#step-4--use-the-file-it-made) above.
 
+### System update — applying it to this machine
+
+The last button in the header, and the only one that changes the machine.
+
+Press it and you are asked three times, once per step:
+
+1. **In the browser** — a summary of what is about to happen, then the archive
+   downloads.
+2. **In your terminal** — the command unpacks it, lists the three files, and
+   asks before copying them into `/etc/nixos`.
+3. **In your terminal** — it asks again before `nixos-rebuild switch`.
+
+The second dialog hands you one command and copies it to the clipboard. It
+finds the archive whether your download folder is called `Downloads` or
+`ダウンロード` — `xdg-user-dir` is asked first, and both names are tried after
+that. It was checked from bash, zsh and fish, since a block of shell that
+pastes cleanly into one of those does not always paste cleanly into the others.
+
+**The files it replaces are kept.** `configuration.nix.~1~` and so on sit
+beside the new ones, so a rebuild you regret can be walked back.
+**`hardware-configuration.nix` is never touched** — it is not in the archive
+and the command does not name it.
+
+**Finish everything first.** This replaces the configuration your machine boots
+from, so set what you want, add the software, and press **Check syntax** before
+you use it.
+
+**nixgen does not do the privileged half itself, on purpose.** The server has
+no authentication, and an endpoint that could overwrite `/etc/nixos` and
+rebuild would be reachable from any page open in the same browser. Handing you
+a command keeps `sudo` — and the decision — where it belongs.
+
 ### Reading it in another language
 
 The screen is an ordinary web page, so your browser's translation works on it.

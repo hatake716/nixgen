@@ -419,3 +419,43 @@ pre.nix .clash { border-left: 2px solid #a34545; margin-left: -2px; padding-left
    prose in a narrow pane is worse than two lines. */
 .notice .nt.ja { font-weight: 600; opacity: .85; margin-bottom: 2px; }
 .notice .nb.ja { opacity: .85; }
+
+/* The system-update button: the only one that changes the machine, so it does
+   not wear the same colour as the downloads beside it. */
+.btn.danger { border-color: var(--signal); color: var(--signal); background: #fdf6e9; }
+.btn.danger:hover { background: #fff; color: #7a4f00; }
+
+#dlg {
+  border: 1px solid var(--rule); border-radius: var(--r); padding: 0;
+  max-width: 620px; width: calc(100% - 32px); color: var(--ink);
+  background: var(--panel); box-shadow: 0 18px 60px rgba(20,26,34,.28);
+}
+#dlg::backdrop { background: rgba(20,26,34,.42); }
+#dlg .dlg-body { padding: 20px 22px 6px; font-size: 13px; line-height: 1.65; }
+#dlg .dlg-body h3 { margin: 0 0 4px; font-size: 15px; }
+#dlg .dlg-body h3.ja { margin: 0 0 12px; font-size: 13.5px; color: var(--ink-soft); }
+#dlg .dlg-body p { margin: 0 0 10px; }
+#dlg .dlg-body p.ja { color: var(--ink-soft); }
+#dlg .dlg-body ol { margin: 0 0 10px; padding-left: 20px; }
+#dlg .dlg-body li { margin-bottom: 3px; }
+/* The command is Nix-adjacent shell, and long: it scrolls inside its own box
+   rather than widening the dialog. */
+#dlg pre.cmd {
+  background: var(--code-bg); color: var(--code-fg); font-family: var(--mono);
+  font-size: 11.5px; line-height: 1.6; padding: 12px 14px; border-radius: var(--r);
+  margin: 0 0 12px; white-space: pre-wrap; word-break: break-all; max-height: 200px;
+  overflow-y: auto;
+}
+#dlg .dlg-actions {
+  display: flex; gap: 8px; justify-content: flex-end;
+  padding: 12px 22px 18px; flex-wrap: wrap;
+}
+
+/* The one paragraph in the steps that is about changing the machine rather
+   than writing a file, so it does not read as another step. */
+#howto .warnbox {
+  margin: 4px 0 18px; padding: 11px 13px; font-size: 12.5px; line-height: 1.65;
+  border: 1px solid var(--signal); border-left-width: 3px; border-radius: var(--r);
+  background: #fdf6e9; color: var(--ink-soft);
+}
+#howto .warnbox b { color: var(--ink); }

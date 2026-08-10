@@ -9,6 +9,27 @@ option counts.
 
 ## English
 
+### build 2026-08-10x
+
+- **A System update button**, last in the header and the only one that changes
+  the machine. Three confirmations, one per step: a summary in the browser
+  before the archive downloads, then the command asks before it overwrites
+  `/etc/nixos` and again before `nixos-rebuild switch`.
+- **It hands over a command rather than doing the work.** nixgen's server has
+  no authentication, and an endpoint that could overwrite `/etc/nixos` and
+  rebuild would be reachable from any page open in the same browser. The
+  command is copied to the clipboard.
+- **The download folder is found, not assumed** — `xdg-user-dir` first, then
+  `Downloads` and `ダウンロード`, then the home directory. Tried from bash, zsh
+  and fish, because a block of shell that pastes into one does not always paste
+  into the others.
+- **What it replaces is kept**: `configuration.nix.~1~` and so on stay beside
+  the new files. `hardware-configuration.nix` is not in the archive and the
+  command does not name it — checked by running the whole thing against a
+  stand-in directory.
+- The five steps now carry a box saying to finish everything and run **Check
+  syntax** first, since this replaces the configuration the machine boots from.
+
 ### build 2026-08-10w
 
 - **Hyprland, Sway and niri now come with a login screen.** sddm goes in with
@@ -716,6 +737,14 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10x
+
+- **System update ボタンを追加しました。** ヘッダーの右端で、**マシンそのものを変える唯一のボタン**です。各段階の前に3回確認します。ブラウザで内容を確認してから書庫をダウンロードし、コマンドが `/etc/nixos` を上書きする前と、`nixos-rebuild switch` の前に、それぞれ確認します。
+- **処理そのものは行わず、コマンドを渡します。** nixgen のサーバーには認証がなく、`/etc/nixos` を上書きして再構築できる口を開けると、**同じブラウザで開いている任意のページから叩ける**ことになるためです。コマンドはクリップボードにコピーします。
+- **ダウンロード先は決め打ちせず、探します。** まず `xdg-user-dir`、次に `Downloads` と `ダウンロード`、最後にホームディレクトリです。**bash・zsh・fish のすべてから試しました。** あるシェルで貼って動くものが、別のシェルでも動くとは限らないためです。
+- **置き換えたファイルは残します。** `configuration.nix.~1~` のような名前で新しいものの隣に残ります。`hardware-configuration.nix` は書庫にも入らず、コマンドも名前を出しません。**代わりのディレクトリを用意して一連の動作を実際に走らせて確認**しました。
+- 5つの手順にも注意書きを追加しました。**設定をすべて終えて Check syntax を通してから**使うこと、**マシンが起動に使う設定を置き換える**ことを明記しています。
 
 ### build 2026-08-10w
 
