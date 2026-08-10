@@ -505,6 +505,14 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   no config file to grep), niri works with `foot`. Check both halves for a new
   compositor: whether its module furnishes a terminal, and which one its own
   default config calls for.
+- **Nesting is only a collision when the key is in both cards, and the
+  warning must check the key.** `nix.settings = { experimental-features = …; }`
+  beside `nix.settings.cores` is ordinary Nix — the catalogue holds
+  `nix.settings.cores` as its own option, so every imported file produces this
+  shape, and the path-only version of the check warned about files that built
+  fine (evaluated to confirm). The check reads the leaf's next segment and
+  asks whether the ancestor's value actually holds it — as an object key, or
+  by `key =` pattern when the value is verbatim source.
 - **The keyring's PAM switch goes on `login`, and the sddm one is a no-op.**
   `security.pam.services.sddm.enableGnomeKeyring = true` changes nothing: the
   built pam.d/sddm is one `include login` line, which was read to find out why

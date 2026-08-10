@@ -9,6 +9,20 @@ option counts.
 
 ## English
 
+### build 2026-08-12d
+
+- **Fixed a false alarm on import.** Reading in a file with `nix.settings`
+  lines warned "defined inside another card as well" and predicted a failed
+  rebuild — for a file that builds fine. The catalogue holds
+  `nix.settings.cores` and friends as their own options, so an import always
+  produces leaf cards beside the folded `nix.settings` card; that nesting is
+  legal Nix as long as no key is in both places, which the old check (paths
+  only) never looked at.
+- The check now reads the actual key: it warns when the leaf's key really is
+  inside the ancestor card — as an object key, or spelled in verbatim source —
+  and stays quiet otherwise. Both directions verified in the browser, and the
+  once-flagged file evaluated as a real system with every setting landing.
+
 ### build 2026-08-12c
 
 - **Sway and niri now set up gnome-keyring.** A compositor has no secret
@@ -1124,6 +1138,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-12d
+
+- **取り込み時の誤警告を修正しました。** `nix.settings` の行を含むファイルを読み込むと「別のカードの中でも定義されています」と表示し、rebuild の失敗を予告していましたが、**そのファイルは問題なくビルドできます**。カタログは `nix.settings.cores` などを独立したオプションとして持つため、取り込みは畳まれた `nix.settings` カードの隣に leaf カードを必ず作ります。この入れ子は**同じキーが両方に無い限り合法な Nix**で、旧判定(パスだけを見る)はそれを確かめていませんでした。
+- 判定が**実際のキー**を見るようにしました。leaf のキーが祖先カードの中に本当にあるとき(オブジェクトのキーとして、または verbatim ソース内の `key =` として)だけ警告し、それ以外は黙ります。両方向をブラウザで検証し、誤警告されていたファイルは実システムとして評価してすべての設定が効くことを確認しました。
 
 ### build 2026-08-12c
 

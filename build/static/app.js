@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-12c';
+const BUILD = '2026-08-12d';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -2525,25 +2525,42 @@ async function doRender() {
       `二重に設定されています: ${twice.join('、')}。NixOS は同じ属性を2回定義した` +
       `ファイルを受け付けません。どちらかのカードを削除してください。`));
   }
-  /* The same crash arrives without any card being repeated: one card holds an
-     attribute set and another holds a leaf inside it —
-     `systemd.user.services = { noctalia-shell = { after = …; }; }` beside
-     `systemd.user.services.noctalia-shell.after`. Nix reads the second as a
-     redefinition of the first, and says so at `nixos-rebuild`; Check syntax
-     cannot, because the file parses. That is how a re-imported unit and a
-     freshly written one collided on a real machine. Counting paths does not
-     see it — the two paths differ — so the containment is what is tested. */
-  const paths = [...seenPath.keys()];
-  const nested = paths.filter(p =>
-    paths.some(q => q !== p && p.startsWith(q + '.')));
+  /* One card holding an attribute set and another holding a leaf inside it is
+     only a problem when the same key is in both: `nix.settings = { cores = 8; }`
+     beside `nix.settings.cores` is `attribute … already defined`, while the
+     same block beside `nix.settings.max-jobs` is ordinary Nix that parses and
+     builds — proven by evaluating both. The first version of this check
+     compared paths alone and flagged the legal shape too; a real import (the
+     catalogue holds `nix.settings.cores` as its own option, so a file's flat
+     lines come back as leaf cards beside the folded attrs card) warned about
+     a file that built fine. So the key is what is tested: the leaf's next
+     segment must actually appear inside the ancestor's value — as a key when
+     the value is the form's object, by pattern when it is verbatim source. */
+  const entriesByPath = new Map();
+  for (const e of state.selected.values()) entriesByPath.set(resolvePath(e), e);
+  const paths = [...entriesByPath.keys()];
+  const nested = paths.filter(p => paths.some(q => {
+    if (q === p || !p.startsWith(q + '.')) return false;
+    const anc = entriesByPath.get(q);
+    const key = segmentsFor(entriesByPath.get(p))[segmentsFor(anc).length];
+    if (!anc || key === undefined) return false;
+    const v = anc.value;
+    if (v && typeof v === 'object' && !Array.isArray(v)) {
+      return Object.prototype.hasOwnProperty.call(v, key);
+    }
+    if (typeof v === 'string') {
+      return new RegExp('(^|[\\s{;])' + rxEscape(key) + '\\s*=').test(v);
+    }
+    return false;
+  }));
   if (nested.length) {
     notes.push(say(
-      `Defined inside another card as well: ${nested.join(', ')}. NixOS reads ` +
-      `that as the same attribute twice and the rebuild fails, even though the ` +
-      `file parses. Remove whichever of the two you do not want.`,
-      `別のカードの中でも定義されています: ${nested.join('、')}。NixOS は同じ属性を` +
-      `2回定義したものとして扱い、ファイルの構文が正しくても rebuild が失敗します。` +
-      `不要なほうを削除してください。`));
+      `Defined inside another card as well: ${nested.join(', ')}. Nix refuses ` +
+      `a file that defines one attribute twice, so the build fails. Remove ` +
+      `whichever of the two you do not want.`,
+      `別のカードの中でも定義されています: ${nested.join('、')}。Nix は同じ属性を` +
+      `2回定義したファイルを拒否するので、ビルドが失敗します。不要なほうを` +
+      `削除してください。`));
   }
   const clashes = [...state.starterDefines].filter(
     p => new RegExp('^  ' + p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ' =', 'm').test(res.text));
