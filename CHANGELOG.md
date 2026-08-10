@@ -9,6 +9,15 @@ option counts.
 
 ## English
 
+### build 2026-08-10v
+
+- **Hyprland and Sway install `noctalia-shell` too**, the way niri does — all
+  three are compositors and nothing else, and noctalia is what puts a panel, a
+  launcher and notifications on top. The other six desktops bring their own and
+  get nothing extra.
+- Both evaluated as actual NixOS systems at the indexed revision:
+  `noctalia-shell-4.7.6` alongside `hyprland-0.55.4` and `sway-1.12`.
+
 ### build 2026-08-10u
 
 - **Picking niri installs `noctalia-shell` with it.** niri is a compositor and
@@ -691,6 +700,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10v
+
+- **Hyprland と Sway でも `noctalia-shell` が一緒に入る**ようにしました。niri と同じ扱いです。3つともコンポジタそのものだけで、パネル・ランチャー・通知を載せるのが noctalia です。他の6つは自前で持っているので、何も足しません。
+- 2つとも索引と同じリビジョンで**実際の NixOS システムとして評価**しました。`hyprland-0.55.4` や `sway-1.12` と並んで `noctalia-shell-4.7.6` が入ります。
 
 ### build 2026-08-10u
 

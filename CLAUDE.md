@@ -382,9 +382,9 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   has no catalogue to check against, and a preset nobody can see or edit is the
   wrong shape for this tool.
 - **A desktop preset may need a package, and it is looked up like any other.**
-  niri is the only one so far: it is a compositor and nothing else, so
-  `packages: ['noctalia-shell']` puts the panel, launcher and notifications on
-  top. Nothing in the option catalogue mentions noctalia, which is why it is a
+  The three Wayland compositors carry one: each is a compositor and nothing
+  else, so `packages: ['noctalia-shell']` puts the panel, launcher and
+  notifications on top. Nothing in the option catalogue mentions noctalia, which is why it is a
   package rather than a role — and it goes through `/api/packages?attrs=`
   first, so a channel without it gets nothing written rather than a line that
   fails at `nixos-rebuild`. The status bar names what went into

@@ -415,11 +415,12 @@ other.
 | COSMIC | its own greeter and the desktop — it is Wayland, so there is no `services.xserver.enable` to set |
 | Hyprland, Sway, niri | one option each |
 
-**Picking niri also installs `noctalia-shell`.** niri is a compositor and
-nothing else — no panel, no launcher, no notifications — and noctalia is the
-piece that puts those on top of it. It is a package rather than a setting
-(nothing in the option catalogue mentions it), so it goes into
-`environment.systemPackages` as an ordinary line you can delete.
+**Hyprland, Sway and niri also install `noctalia-shell`.** A compositor is a
+compositor and nothing else — no panel, no launcher, no notifications — and
+noctalia is the piece that puts those on top. It is a package rather than a
+setting (nothing in the option catalogue mentions it), so it goes into
+`environment.systemPackages` as an ordinary line you can delete, and the status
+bar names it when it goes in.
 
 Hyprland, Sway and niri **bring no greeter**, and nixgen does not pick one for you:
 that is a decision about how your machine starts, not something the compositor

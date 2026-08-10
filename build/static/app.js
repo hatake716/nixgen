@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-10u';
+const BUILD = '2026-08-10v';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -823,6 +823,7 @@ const DESKTOPS = {
   hyprland: { label: 'Hyprland', roles: [
     ['programs.hyprland.enable'],
   ],
+    packages: ['noctalia-shell'],
     note: 'Hyprland brings no greeter: log in on a text console and run ' +
           'Hyprland, or add one — services.displayManager.sddm.enable with ' +
           'its wayland option, or greetd — under Options.',
@@ -830,10 +831,10 @@ const DESKTOPS = {
              'ログインして Hyprland を実行するか、Options タブで' +
              'services.displayManager.sddm.enable(wayland を有効に)や greetd を' +
              '足してください。' },
-  /* niri is a compositor and nothing else — no panel, no launcher, no
-     notifications. noctalia-shell is the piece that puts those on top of it,
-     and it is a package rather than a setting: nothing in the option
-     catalogue mentions it. Added as an ordinary line in
+  /* A compositor is a compositor and nothing else — no panel, no launcher, no
+     notifications — so all three Wayland ones bring noctalia-shell, which is
+     the piece that puts those on top. It is a package rather than a setting:
+     nothing in the option catalogue mentions it. Added as an ordinary line in
      environment.systemPackages, which the status bar says and the card shows,
      so it can be taken out like anything else. */
   niri: { label: 'niri', roles: [
@@ -852,6 +853,7 @@ const DESKTOPS = {
   sway: { label: 'Sway', roles: [
     ['programs.sway.enable'],
   ],
+    packages: ['noctalia-shell'],
     note: 'Sway brings no greeter: log in on a text console and run sway, or ' +
           'add one — services.displayManager.sddm.enable with its wayland ' +
           'option, or greetd — under Options.',
