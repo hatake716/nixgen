@@ -9,6 +9,11 @@ option counts.
 
 ## English
 
+### build 2026-08-11h
+
+- **The two import buttons swapped places**: Import generated.nix now comes
+  first, then Import configuration.nix.
+
 ### build 2026-08-11g
 
 A debugging pass over the whole app. Two fixes; everything else held.
@@ -843,6 +848,10 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-11h
+
+- **取り込みボタン2つの位置を入れ替えました。** Import generated.nix が先、Import configuration.nix が後になります。
 
 ### build 2026-08-11g
 
