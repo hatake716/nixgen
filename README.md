@@ -479,8 +479,13 @@ niri config has to spawn it.
 **Sway's own bar is taken out.** `/etc/sway/config` ends with a `bar { }`
 block running swaybar with a clock in it, so with noctalia on top the screen
 has two. There is no option for it — the sway module offers no `extraConfig` —
-so the preset replaces that file with the package's own minus those 13 lines.
-Every keybinding survives, which was checked by building the result.
+so the preset replaces that file with the module's own minus those 13 lines.
+Every keybinding survives, and so do the two lines that matter most: the
+wallpaper, and the `include /etc/sway/config.d/*` that loads the session
+integration noctalia starts from. That last part is why the file is derived
+from `config.programs.sway.package`, not `pkgs.sway` — they are different
+builds, and the plain one is patched to have neither line. Checked by building
+the result on two nixpkgs revisions.
 
 **noctalia-shell starts with the session.** A compositor brings no panel and
 no launcher, so the preset adds one — and a shell nobody starts is a package

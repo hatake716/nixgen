@@ -505,6 +505,16 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   no config file to grep), niri works with `foot`. Check both halves for a new
   compositor: whether its module furnishes a terminal, and which one its own
   default config calls for.
+- **`pkgs.sway` is not the sway the module installs.** Same version, two
+  builds: the module's has `isNixOS = true`, whose config keeps the wallpaper
+  (from /run/current-system) and ends with `include /etc/sway/config.d/*` —
+  the line that loads the systemd integration, which is what starts noctalia.
+  Plain `pkgs.sway` is patched the other way: include removed, wallpaper
+  commented out (`sway-config-no-nix-store-references.patch` vs
+  `sway-config-nixos-paths.patch`). Deriving the no-bar config from the plain
+  one shipped a file with neither line, and the machine came up black with no
+  shell. Derive from `config.programs.sway.package`, and verify the built file
+  has the include, the wallpaper, no bar block and all 75 bindsym lines.
 - **Sway furnishes itself, bar included, and that bar has to go.**
   `/etc/sway/config` ends with `bar { position top … }` running swaybar, so
   noctalia makes two. The sway module has no `extraConfig` and `mode invisible`

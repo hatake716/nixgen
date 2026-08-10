@@ -9,6 +9,21 @@ option counts.
 
 ## English
 
+### build 2026-08-11y
+
+- **Fixed: sway came up black, with no noctalia.** Yesterday's bar removal
+  derived the replacement config from `pkgs.sway` — which is not the sway the
+  module installs. Same version, two builds: the module's (`isNixOS = true`)
+  keeps the wallpaper and ends with `include /etc/sway/config.d/*`, the line
+  that loads the systemd integration noctalia starts from; the plain one is
+  patched to have neither. So the replacement had no wallpaper (black screen)
+  and no include (no session target, no shell). The nixpkgs patches say so in
+  as many words, which is how this was found.
+- The file now derives from `config.programs.sway.package`. Verified by
+  building it on both the pinned revision and the reporting machine's: the
+  include and the wallpaper are back, the bar block is gone, and all 75
+  keybindings remain.
+
 ### build 2026-08-11x
 
 - **Sway no longer shows two bars.** Its own config ends with a `bar { }` block
@@ -1049,6 +1064,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-11y
+
+- **修正: sway が黒い画面のままになり、noctalia も起動しませんでした。** 昨日のバー除去は、差し替え設定を `pkgs.sway` から作っていました。ところが**それはモジュールがインストールする sway ではありません**。同じバージョンの別ビルドで、モジュール側(`isNixOS = true`)の設定には壁紙があり、末尾に `include /etc/sway/config.d/*` — **noctalia の起動元になる systemd 連携を読み込む行** — があります。素の `pkgs.sway` は**その両方を持たないようにパッチ**されています。そのため差し替え後は壁紙が無く(黒画面)、include も無い(セッション target が立たず、シェルも起動しない)状態でした。nixpkgs のパッチファイルにそのまま書かれており、そこから特定しました。
+- 差し替えは `config.programs.sway.package` から作るようにしました。**ピン留めリビジョンと報告元マシンのリビジョンの両方でビルドして確認**: include と壁紙が戻り、バーのブロックは消え、キー割り当て75行は全て残ります。
 
 ### build 2026-08-11x
 

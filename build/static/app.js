@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-11x';
+const BUILD = '2026-08-11y';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -774,19 +774,28 @@ async function addOption(path) {
    what a real machine reported. There is no option for it — the sway module
    offers no `extraConfig`, and `mode invisible` (sway-bar(5)) would have to go
    inside that same block — so the config file itself is replaced with the
-   package's own minus the bar. Everything else survives: 75 bindsym lines, the
-   terminal on $mod+Return, all of it, which was checked by building the result
-   rather than reasoned about.
+   package's own minus the bar.
+
+   **`config.programs.sway.package`, never `pkgs.sway`.** They are different
+   builds of the same version: the module's has `isNixOS = true`, whose config
+   ends with `include /etc/sway/config.d/*` — the line that loads the systemd
+   integration, which is what starts noctalia — and draws its wallpaper from
+   /run/current-system. Plain `pkgs.sway` is patched the other way: the include
+   removed, the wallpaper commented out. Deriving from that one shipped a
+   config with no include and no background, and a real machine came up black
+   with no shell — the report that produced this comment. The sed only removes
+   the bar block, so the include line at the end survives.
 
    NixOS sets `environment.etc."sway/config"` with `mkOptionDefault`, so this
    overrides it rather than colliding with it. */
 const ETC_PATH = 'environment.etc';
 
 const SWAY_CONFIG_NO_BAR = `{
-      # The package's own config with its swaybar block taken out, so the only
-      # bar on screen is the one noctalia draws.
+      # The module's own sway config (isNixOS build: wallpaper + the config.d
+      # include that starts the session services) minus its swaybar block, so
+      # the only bar on screen is the one noctalia draws.
       source = pkgs.runCommand "sway-config-no-bar" { } ''
-        sed '/^bar {/,/^}/d' \${pkgs.sway}/etc/sway/config > $out
+        sed '/^bar {/,/^}/d' \${config.programs.sway.package}/etc/sway/config > $out
       '';
     }`;
 
