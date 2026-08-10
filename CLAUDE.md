@@ -868,6 +868,20 @@ once in ways nothing else caught.
 - Tone: plain, specific, no marketing. Limitations are stated where a reader
   would hit them, not buried. The homepage says what the tool cannot do on the
   front page on purpose.
+- **The pitch is three reasons in a fixed order**, and both READMEs and the
+  homepage's `section.pitch` carry the same three: a desktop that works on the
+  first login, Japanese set up all the way through, nothing changes until you
+  say so. The order is what moves a reader — what you get, who it is for, then
+  why it is safe to try. **Safety goes third on purpose**: it removes an
+  objection rather than creating a reason, and the closing line ties it back
+  ("a desktop you can switch away from cleanly is one you can afford to try").
+  Each reason is carried by specifics that were paid for in real failures —
+  the PATH, the Wayland layout variable, the missing privileged endpoint — not
+  by adjectives. **The counts are evidence, not the pitch**: 24,557 is
+  nixpkgs' number, so it stays in the hero and never becomes the headline. Do
+  not write "perfect" or its like about the Japanese support; it is the one
+  claim a single bug disproves, and the Wayland layout was wrong until
+  2026-08-11z.
 
 > ドキュメントの数値は必ず再計算してください。コピーすると必ずずれます。
 

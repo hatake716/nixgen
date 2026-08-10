@@ -9,6 +9,21 @@ option counts.
 
 ## English
 
+### Documentation, 2026-08-12
+
+- **The homepage and both READMEs now lead with three reasons**, in the order
+  that matches what a reader is actually deciding: a desktop that works on the
+  first login, Japanese set up all the way through, and nothing changing on
+  your machine until you say so.
+- The homepage headline is **"From a fresh install to a machine you can use"**,
+  and the three reasons sit directly under the hero on their own tinted band —
+  the most prominent section on the page.
+- Each reason is carried by the specifics behind it: the PATH a shell needs to
+  launch anything, the Wayland keyboard layout that is an environment variable
+  nothing documents, the privileged endpoint this tool deliberately does not
+  have. The option counts stay in the hero as evidence rather than as the
+  pitch — they are nixpkgs' numbers, not this tool's achievement.
+
 ### build 2026-08-12d
 
 - **Fixed a false alarm on import.** Reading in a file with `nix.settings`
@@ -1138,6 +1153,12 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### ドキュメント、2026-08-12
+
+- **ホームページと両方の README が、3つの理由から始まるようにしました。** 読む人が実際に判断する順序に合わせています。初回ログインから使えるデスクトップ、通しで整う日本語環境、そして**あなたが実行するまでマシンには何も起きない**こと。
+- ホームページの見出しは **「インストール直後から、使えるマシンまで。」** です。3つの理由はヒーローの直下に、地色を変えた独立した帯として置きました。**ページ内で最も目立つ節**です。
+- どの理由も、裏にある具体で支えています。シェルがアプリを起動するために要る PATH、どこにも書かれていない Wayland のキーボードレイアウト環境変数、この道具が意図的に持たない特権の口。**オプション数はヒーローに残し、看板にはしません。** あれは nixpkgs の数字で、この道具の成果ではないからです。
 
 ### build 2026-08-12d
 

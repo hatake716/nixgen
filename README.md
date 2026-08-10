@@ -2,11 +2,40 @@
 
 <img src="docs/logo.png" alt="nixgen" width="360">
 
-A search box and a form for your NixOS configuration. Look through 24,557
-settings and 144,245 pieces of software, tick the boxes and fill in the fields,
-and get a configuration file you can use straight away.
+**From a fresh install to a machine you can use — without knowing a single
+option name.** Search all 24,557 settings and 144,245 packages, fill in values
+with widgets that know the type, and get a configuration file you can read
+before anything on your machine changes.
 
 ![nixgen](docs/screenshot.png)
+
+### Three reasons
+
+**1. A desktop that works on the first login.** Enabling a desktop is one line
+anyone can write. What nobody tells you is the rest: the greeter and its
+Wayland mode, the session name NixOS checks at build time, XWayland, the
+shell's autostart unit and the PATH it needs to launch anything, the terminal
+its default config asks for by name, the keyring, the bar that would otherwise
+appear twice. Every one of those was found by running a real machine and
+hitting the failure.
+
+**2. Japanese, set up all the way through.** Locale, console keymap, and the
+keyboard layout for X *and* Wayland — two different settings, and the Wayland
+one is an environment variable nothing documents. Then fcitx5 with mozc, its
+front end matched to the session your desktop actually runs. The app itself
+says everything in both languages, and guards option paths from machine
+translation: a translated `services.openssh.enable` is not valid Nix.
+
+**3. Nothing on your machine changes until you say so.** nixgen writes new
+files and never edits yours; a `configuration.nix` you import is only ever
+read. It has no privileged endpoint at all — the server *cannot* change your
+system, because a local server with no authentication is a door any page in
+your browser could knock on. It hands you one command instead, you read the
+file first, `dry-build` before you switch, and the files it replaces stay
+beside the new ones.
+
+Because of the third, the first two are worth trying: a desktop you can switch
+away from cleanly is a desktop you can afford to try.
 
 日本語版: [README.ja.md](./README.ja.md) ·
 Homepage: <https://hatake716.github.io/nixgen/>

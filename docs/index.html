@@ -114,6 +114,27 @@ figure { margin: 26px 0 0; }
 figure img { width: 100%; display: block; border: 1px solid var(--rule); border-radius: 3px; }
 figcaption { font-size: 12px; color: var(--ink-faint); margin-top: 8px; }
 
+/* The three reasons. Given more room than any other section — a tinted ground,
+   more padding, larger type — because it is the one thing a first-time reader
+   should take away, and it sits directly under the hero. Each column needs
+   minmax(0, …): a long code span would otherwise widen the track instead of
+   wrapping inside it. */
+section.pitch { background: var(--panel); padding: 52px 0 46px; }
+.three { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+         gap: 34px 30px; margin: 0 0 26px; }
+.three .one { min-width: 0; }
+.three .num { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+              color: var(--ink-faint); font-weight: 700; margin: 0 0 8px; }
+.three h3 { font-size: 19px; line-height: 1.35; letter-spacing: -.01em;
+            margin: 0 0 10px; }
+.three p { font-size: 14px; color: var(--ink-soft); margin: 0; max-width: none; }
+section.pitch .tiny { max-width: 68ch; }
+@media (max-width: 700px) {
+  section.pitch { padding: 38px 0 34px; }
+  .three { gap: 28px; }
+  .three h3 { font-size: 17px; }
+}
+
 .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 22px; }
 .card { background: var(--panel); border: 1px solid var(--rule); border-radius: 3px; padding: 16px 18px; }
 .card h4 { margin: 0 0 6px; font-size: 13px; font-family: var(--mono); }
@@ -175,14 +196,14 @@ footer a { margin-right: 14px; }
        alt="nixgen">
   <div class="grid">
     <div>
-      <h1 class="en">A form for all 24,557<br>NixOS options.</h1>
-      <h1 class="ja">NixOSの全24,557<br>オプションをフォームで。</h1>
+      <h1 class="en">From a fresh install to a<br>machine you can use.</h1>
+      <h1 class="ja">インストール直後から、<br>使えるマシンまで。</h1>
 
-      <p class="lede en">Search every option and package in the stable channel, fill in
-        values with real widgets, and get a <code>.nix</code> module you can import.
-        It reads your existing <b>configuration.nix</b> too, and follows whichever of the
-        last three releases you are on.</p>
-      <p class="lede ja">安定版チャンネルの全オプションとパッケージを検索し、型に応じたウィジェットで値を入れると、そのまま <code>imports</code> できる <code>.nix</code> が出てきます。既存の <b>configuration.nix</b> の読み込みにも対応し、直近3リリースのどれにでも追従します。</p>
+      <p class="lede en">Without knowing a single option name. Search all 24,557 of them,
+        fill in values with real widgets, pick a desktop that works on the first login —
+        and take away a <code>.nix</code> file you can read before anything on your
+        machine changes.</p>
+      <p class="lede ja"><b>オプション名を1つも知らないまま。</b>24,557件を検索し、型に応じたウィジェットで値を入れ、<b>初回ログインから使えるデスクトップ</b>を選び、<b>マシンに何も起きないうちに中身を読める</b> <code>.nix</code> を持ち帰れます。</p>
 
       <div class="stats">
         <div class="stat"><b>24,557</b><span class="en">options</span><span class="ja">オプション</span></div>
@@ -220,9 +241,63 @@ footer a { margin-right: 14px; }
   </figure>
 </div>
 
-<!-- First thing after the hero, because "which of these do I do first" is the
-     first question the three panes raise. Same five steps as the app shows in
-     its empty module pane, in the same order and with the same names. -->
+<!-- The three reasons, before the how-to. Ordered by what moves somebody:
+     what you get, who it is for, and only then why it is safe to try — safety
+     removes an objection rather than creating a reason, so it goes third and
+     close, not first. The counts stay in the hero as evidence; they are
+     nixpkgs' numbers, not an achievement of this tool, so they are not the
+     pitch. -->
+<section class="pitch">
+  <div class="wrap">
+    <div class="three">
+      <div class="one">
+        <p class="num">01</p>
+        <h3 class="en">A desktop that works on the first login.</h3>
+        <h3 class="ja">初回ログインから使えるデスクトップ。</h3>
+        <p class="en">Enabling a desktop is one line anyone can write. What nobody tells
+          you is the rest: the greeter and its Wayland mode, the session name NixOS
+          checks at build time, XWayland, the shell's autostart unit and the PATH it
+          needs to launch anything, the terminal its default config asks for by name,
+          the keyring, the bar that would otherwise appear twice. Every one of those
+          was found by running a real machine and hitting the failure.</p>
+        <p class="ja">デスクトップを有効にする1行は誰でも書けます。誰も教えてくれないのは<b>その周りの残り全部</b>です。グリーターとその Wayland モード、NixOS がビルド時に検証するセッション名、XWayland、シェルの自動起動ユニットと<b>アプリを起動できる PATH</b>、既定設定が名指しする端末、キーリング、放っておくと2つ出るバー。<b>どれも実機で動かして、実際に踏んで分かったもの</b>です。</p>
+      </div>
+      <div class="one">
+        <p class="num">02</p>
+        <h3 class="en">Japanese, set up all the way through.</h3>
+        <h3 class="ja">日本語環境が、通しで整う。</h3>
+        <p class="en">Locale, console keymap, and the keyboard layout for X <i>and</i>
+          Wayland — those are two different settings, and the Wayland one is an
+          environment variable nothing documents. Then fcitx5 with mozc, and its front
+          end matched to the session your desktop actually runs. The app itself says
+          everything in both languages, and guards option paths from machine
+          translation, because a translated <code>services.openssh.enable</code> is not
+          valid Nix.</p>
+        <p class="ja">ロケール、コンソールのキーマップ、そして X <b>と</b> Wayland <b>両方</b>のキーボードレイアウト。この2つは別の設定で、<b>Wayland 側はどこにも書かれていない環境変数</b>です。さらに fcitx5 と mozc、そして<b>実際に動くセッションに合わせたフロントエンド</b>。アプリ自身も全文を英日併記で表示し、オプション名は機械翻訳から守ります。訳された <code>services.openssh.enable</code> は Nix として無効だからです。</p>
+      </div>
+      <div class="one">
+        <p class="num">03</p>
+        <h3 class="en">Nothing on your machine changes until you say so.</h3>
+        <h3 class="ja">あなたが実行するまで、マシンには何も起きない。</h3>
+        <p class="en">nixgen writes new files and never edits yours; the
+          <code>configuration.nix</code> you import is only ever read. It has no
+          privileged endpoint at all — <b>the server cannot change your system</b>,
+          because a local server with no authentication is a door any page in your
+          browser could knock on. It hands you one command instead. You read the file
+          first, <code>dry-build</code> before you switch, and the files it replaces stay
+          beside the new ones.</p>
+        <p class="ja">nixgen は<b>新しいファイルを作るだけ</b>で、あなたのファイルは書き換えません。読み込んだ <code>configuration.nix</code> は最後まで<b>読むだけ</b>です。特権の口は1つもありません。<b>このサーバーにシステムを変更する能力がない</b>のは、認証の無いローカルサーバーが、ブラウザで開いた任意のページから叩ける入口になるからです。代わりに<b>コマンドを1つ渡します</b>。中身を読んでから、<code>dry-build</code> で確かめてから切り替えられ、置き換えられたファイルは隣に残ります。</p>
+      </div>
+    </div>
+    <p class="tiny en">Because of the third, the first two are worth trying: a desktop you
+      can switch away from cleanly is a desktop you can afford to try.</p>
+    <p class="tiny ja">3つめがあるから、1つめと2つめを試せます。<b>綺麗に元へ戻せるデスクトップは、気軽に試せるデスクトップ</b>です。</p>
+  </div>
+</section>
+
+<!-- Then "which of these do I do first", which is the first question the three
+     panes raise. Same five steps as the app shows in its empty module pane, in
+     the same order and with the same names. -->
 <section>
   <div class="wrap">
     <p class="eyebrow en">The order of work</p>
