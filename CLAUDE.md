@@ -354,6 +354,14 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   prints the `flatpak remote-add … flathub` line. A row with no dropdown is
   right here — there is nothing to choose — and it is a row rather than a
   search result because it is three settings, not one.
+- **The fcitx5 front end follows the session, and `marker` is how a desktop is
+  recognised.** `waylandFrontend = true` drops GTK_IM_MODULE/QT_IM_MODULE so
+  Wayland apps use text-input — both directions were evaluated. The sync runs
+  from both ends (addLanguage reads the module, addDesktop re-syncs an existing
+  IM card) and writes nothing when no desktop is picked. The shared roles —
+  xserver, sddm, defaultSession — cannot tell desktops apart, which is why
+  every `DESKTOPS` entry carries `marker`: the option that is that desktop's
+  own. A new desktop needs all three of `wayland`, `session` and `marker`.
 - **The language preset stops where it stops, on purpose.** Locale, console
   keymap, X layout, and an input method for Japanese, Korean and Chinese.
   **Not fonts:** `fonts.packages` is a `list of absolute path`, so the form

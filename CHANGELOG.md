@@ -9,6 +9,21 @@ option counts.
 
 ## English
 
+### build 2026-08-11j
+
+- **The input method follows the session now.** fcitx5 has two front ends, and
+  the wrong one half-works: with the X11 one on a Wayland session, native apps
+  misbehave. Picking a CJK language sets
+  `i18n.inputMethod.fcitx5.waylandFrontend` to match the desktop in the module,
+  and picking a different desktop later flips the same card — Wayland on for
+  GNOME, Plasma, COSMIC, Hyprland, Sway and niri, off for Xfce, Cinnamon, LXQt
+  and i3.
+- With no desktop picked, nothing is written; choosing one later sets it.
+  A language without an input method is untouched.
+- **Both directions were evaluated as real systems**: with the Wayland front
+  end, `GTK_IM_MODULE` and `QT_IM_MODULE` are gone and apps use the
+  text-input protocol; without it, both say `fcitx`.
+
 ### build 2026-08-11i
 
 - **Picking a desktop pre-selects it on the login screen.** Every desktop
@@ -861,6 +876,12 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-11j
+
+- **入力メソッドがセッションに追従するようになりました。** fcitx5 には2つのフロントエンドがあり、**間違ったほうは中途半端に動きます**(Wayland セッションで X11 側のままだと、ネイティブなアプリの入力が乱れます)。CJK の言語を選ぶと、module にあるデスクトップに合わせて `i18n.inputMethod.fcitx5.waylandFrontend` が設定され、**後から別のデスクトップを選ぶと同じカードが切り替わります。** GNOME・Plasma・COSMIC・Hyprland・Sway・niri で有効、Xfce・Cinnamon・LXQt・i3 で無効です。
+- デスクトップ未選択なら何も書きません。後から選んだ時点で設定されます。入力メソッドの無い言語には触れません。
+- **両方向を実システムとして評価しました。** Wayland フロントエンド有効時は `GTK_IM_MODULE`・`QT_IM_MODULE` が外れてアプリは text-input プロトコルを使い、無効時は両方とも `fcitx` になります。
 
 ### build 2026-08-11i
 

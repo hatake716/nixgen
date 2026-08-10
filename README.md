@@ -521,6 +521,14 @@ language up in full — the locale, the keymap the console uses, and the layout 
 uses. For Japanese, Korean and Chinese it also sets up fcitx5 with the right
 input engine, because none of those can be typed without one.
 
+**The input method follows the session.** fcitx5 has two front ends, and the
+wrong one half-works: with the X11 one on a Wayland session, native apps
+misbehave. If a desktop is in the module, the CJK languages set
+`i18n.inputMethod.fcitx5.waylandFrontend` to match its session — and picking a
+different desktop later flips it. Both directions were evaluated: with it on,
+`GTK_IM_MODULE` and `QT_IM_MODULE` are gone and apps use the Wayland
+text-input protocol.
+
 Two things it does not do, both deliberately. Fonts: GNOME, Plasma and Xfce all
 ship the CJK and emoji fonts already, so there is nothing to add. And the time
 zone: a language is not a place, so nothing here guesses `Asia/Tokyo` from
