@@ -9,6 +9,24 @@ option counts.
 
 ## English
 
+### build 2026-08-11p
+
+Sway, niri and Hyprland are usable the moment you log in.
+
+- **noctalia-shell starts with the session.** Each of the three now writes a
+  user service bound to `graphical-session.target` — the panel, launcher and
+  notifications come up on their own instead of the package sitting unused.
+- **All three reach that target**, which is the part that decides whether the
+  unit ever runs: sway's default config starts `sway-session.target`, which
+  binds to it; niri ships its own units; Hyprland only gets there through UWSM,
+  so its preset now sets `programs.hyprland.withUWSM` and names the
+  `hyprland-uwsm` session. All three were evaluated with the unit in place.
+- **Hyprland and niri also get `foot`.** Neither ships a terminal, so the
+  default keybinding opened nothing — read out of evaluated systems, not
+  assumed. Sway already brings foot and wmenu; i3 brings xterm and dmenu.
+- The unit is written only when the package came back, merges into the card
+  rather than replacing it, and comes out again when you switch desktops.
+
 ### build 2026-08-11o
 
 - **An input method that is enabled with nothing chosen now gets fcitx5**,
@@ -945,6 +963,15 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-11p
+
+Sway・niri・Hyprland が、ログインした時点で使える状態になりました。
+
+- **noctalia-shell がセッションと一緒に起動します。** 3つとも `graphical-session.target` に紐づけた user service を書くようにしました。パネル・ランチャー・通知がひとりでに立ち上がります。**誰も起動しないシェルは、ストアに置かれているだけ**でした。
+- **3つともこの target に到達することを確かめました。** ユニットが実際に動くかを決めるのはここです。sway は既定設定が `sway-session.target` を起動し、それがこの target に `bindsTo` しています。niri は自前のユニットを同梱しています。**Hyprland は UWSM を通してしか到達しない**ので、プリセットで `programs.hyprland.withUWSM` を有効にし、セッション名も `hyprland-uwsm` にしました。3つとも、このユニットを入れた状態で評価済みです。
+- **Hyprland と niri には `foot` も入れます。** どちらも端末を1つも持たず、既定のキー割り当てで開く先がありませんでした(評価済みシステムから読み出した事実で、推測ではありません)。sway は foot と wmenu を、i3 は xterm と dmenu を既に持っています。
+- ユニットは**パッケージが実在したときだけ**書き、カードの他のキーは**置き換えずに残し**、デスクトップを切り替えると外れます。
 
 ### build 2026-08-11o
 

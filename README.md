@@ -476,6 +476,16 @@ the card says which way it is set. **niri has no such option**: it does not
 carry XWayland, so `xwayland-satellite` goes in as a package instead, and your
 niri config has to spawn it.
 
+**noctalia-shell starts with the session.** A compositor brings no panel and
+no launcher, so the preset adds one — and a shell nobody starts is a package
+sitting in the store, so it also adds a user service bound to
+`graphical-session.target`. All three reach that target: sway's default config
+starts `sway-session.target`, which binds to it; niri ships its own units; and
+Hyprland gets there through UWSM, which is why its preset asks for `withUWSM`
+and names the `hyprland-uwsm` session. **Hyprland and niri also get `foot`** —
+neither ships a terminal, so their default keybinding would otherwise open
+nothing. Sway already brings foot and wmenu, and i3 brings xterm and dmenu.
+
 None of the three ships a greeter, so **sddm goes in with them, in Wayland
 mode** — the machine boots to a login screen with the compositor in the session
 list. `services.displayManager.sddm.wayland.enable` is the half that matters:

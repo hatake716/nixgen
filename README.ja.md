@@ -351,6 +351,8 @@ bash には `pkgs.bash` ではなく **`pkgs.bashInteractive`** を指定しま�
 
 **XWayland も有効にします。** X11 のアプリが動くようにするためです。Hyprland と Sway にはそのためのオプションがあり(既定値も有効です)、**どちらに設定されているかがカードで分かるよう明示**しています。**niri にはこのオプションがありません。** XWayland を内蔵していないためで、代わりに `xwayland-satellite` をパッケージとして入れます。**X11 のアプリから見えるようにするには、niri の設定ファイルからこれを起動してください。**
 
+**noctalia-shell はセッションと一緒に起動します。** コンポジタはパネルもランチャーも持たないのでプリセットが1つ入れますが、**誰も起動しないシェルはストアに置かれているだけ**なので、`graphical-session.target` に紐づけた user service も一緒に書きます。3つともこの target に到達します。sway は既定設定が `sway-session.target` を起動し、その target がこれに `bindsTo` しています。niri は自前の systemd ユニットを同梱しています。Hyprland は UWSM 経由で到達するので、プリセットが `withUWSM` を有効にし、セッション名も `hyprland-uwsm` にしています。**Hyprland と niri には `foot` も入れます。** どちらも端末を1つも持たず、既定のキー割り当てで開く先が無いためです。sway は foot と wmenu を、i3 は xterm と dmenu を既に持っています。
+
 3つともログイン画面を持たないので、**sddm を Wayland モードで一緒に入れます。** 起動するとログイン画面が出て、セッション一覧にそのコンポジタが並びます。効いているのは `services.displayManager.sddm.wayland.enable` のほうです。**両方の設定ファイルをビルドして比べました。** 有効なら sddm の設定は `DisplayServer=wayland` になり、ログイン画面は weston の上で動きます。無効だと `DisplayServer=x11` で、**他に何もXを使わないマシンの前にX11のログイン画面だけが立つ**ことになります。テキストコンソールから起動する場合や `greetd` を使う場合は、この2枚のカードを削除してください。
 
 i3 は**何も無い画面で起動**し、初回に設定ファイルを作るか尋ねてきます。タイル型の使い勝手をどうするかは、ここでは一切決めていません。

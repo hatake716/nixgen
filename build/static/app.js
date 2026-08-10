@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-11o';
+const BUILD = '2026-08-11p';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -861,27 +861,41 @@ const DESKTOPS = {
      with it, sddm's own config says `DisplayServer=wayland` and the greeter
      runs under weston; without it, `DisplayServer=x11` — an X11 login screen
      in front of a machine that has no X server for anything else. */
-  hyprland: { label: 'Hyprland', session: 'hyprland', wayland: true, greeter: 'sddm',
+  /* `hyprland-uwsm` rather than `hyprland`, and `withUWSM` with it. UWSM is
+     what starts `graphical-session.target`, and without that target the
+     noctalia unit below is written but never runs — Hyprland is the one of
+     the three that does not reach it on its own. Both session names register
+     (checked with sessionNames), so naming the uwsm one is a choice between
+     two real sessions, not a guess. */
+  hyprland: { label: 'Hyprland', session: 'hyprland-uwsm', wayland: true, greeter: 'sddm',
     marker: ['programs.hyprland.enable'],
     roles: [
     ['programs.hyprland.enable'],
+    ['programs.hyprland.withUWSM'],
     ['programs.hyprland.xwayland.enable'],
     ['services.displayManager.sddm.enable',
      'services.xserver.displayManager.sddm.enable'],
     ['services.displayManager.sddm.wayland.enable'],
   ],
-    packages: ['noctalia-shell'],
+    autostart: 'noctalia-shell',
+    packages: ['noctalia-shell', 'foot'],
     note: 'sddm goes in with it, in Wayland mode, so the machine boots to a ' +
-          'login screen with Hyprland in the session list, and XWayland is ' +
-          'switched on for X11 applications — that one is the default anyway, ' +
-          'and is here so the card says which way it is set. Delete any of ' +
-          'them if you start from a text console or use greetd instead.',
+          'login screen, and XWayland is switched on for X11 applications. ' +
+          'UWSM is on and the session is hyprland-uwsm: that is what starts ' +
+          'graphical-session.target, which the noctalia unit is bound to. ' +
+          'foot is the terminal — Hyprland ships none, and the default ' +
+          'keybinding opens one. Delete any of them if you start from a text ' +
+          'console or use greetd instead.',
     note_ja: 'ログイン画面として sddm を Wayland モードで入れてあります。' +
              '起動するとログイン画面が出て、セッション一覧に Hyprland が' +
              '並びます。X11 のアプリ用に XWayland も有効にしました。これは' +
              '元々の既定値でもありますが、どちらに設定されているかがカードで' +
-             '分かるように明示しています。テキストコンソールから起動する場合や ' +
-             'greetd を使う場合は、該当のカードを削除してください。' },
+             '分かるように明示しています。UWSM を有効にし、セッションは ' +
+             'hyprland-uwsm にしました。graphical-session.target を張るのが ' +
+             'UWSM で、noctalia の user service はその target に紐づくためです。' +
+             '端末は foot です。Hyprland は端末を1つも持たないので、既定の' +
+             'キー割り当てで開く先がありません。テキストコンソールから起動する' +
+             '場合や greetd を使う場合は、該当のカードを削除してください。' },
   /* A compositor is a compositor and nothing else — no panel, no launcher, no
      notifications — so all three Wayland ones bring noctalia-shell, which is
      the piece that puts those on top. It is a package rather than a setting:
@@ -896,7 +910,8 @@ const DESKTOPS = {
      'services.xserver.displayManager.sddm.enable'],
     ['services.displayManager.sddm.wayland.enable'],
   ],
-    packages: ['noctalia-shell', 'xwayland-satellite'],
+    autostart: 'noctalia-shell',
+    packages: ['noctalia-shell', 'xwayland-satellite', 'foot'],
     note: 'sddm goes in with it, in Wayland mode, so the machine boots to a ' +
           'login screen with niri in the session list. niri has no XWayland ' +
           'option — it does not carry one — so xwayland-satellite goes in as ' +
@@ -917,6 +932,7 @@ const DESKTOPS = {
      'services.xserver.displayManager.sddm.enable'],
     ['services.displayManager.sddm.wayland.enable'],
   ],
+    autostart: 'noctalia-shell',
     packages: ['noctalia-shell'],
     note: 'sddm goes in with it, in Wayland mode, so the machine boots to a ' +
           'login screen with Sway in the session list, and XWayland is ' +
@@ -1005,6 +1021,60 @@ const GREETERS = {
   'cosmic-greeter': ['services.displayManager.cosmic-greeter.enable'],
 };
 
+/* A compositor brings a shell, and a shell nobody starts is a package sitting
+   in the store. The three Wayland ones get a user service bound to
+   `graphical-session.target`, which every one of them reaches: sway's default
+   config execs `systemctl --user start sway-session.target` and that target
+   `bindsTo` it, niri ships its own units, and Hyprland gets there through
+   UWSM — which is why its preset asks for `withUWSM` and names the
+   `hyprland-uwsm` session. All three were evaluated with this unit in place.
+
+   `systemd.user.services` is `attribute set of (submodule)`, so the form has
+   no widget for it and holds it the way `nix.settings` is held: one key per
+   service, each a line of Nix source. That is also why the writes below merge
+   rather than assign — the card may already hold somebody else's service. */
+const AUTOSTART_UNIT = `{
+      description = "Noctalia shell";
+      partOf = [ "graphical-session.target" ];
+      after = [ "graphical-session.target" ];
+      wantedBy = [ "graphical-session.target" ];
+      serviceConfig = {
+        ExecStart = "\${pkgs.noctalia-shell}/bin/noctalia-shell";
+        Restart = "on-failure";
+      };
+    }`;
+
+const AUTOSTART_PATH = 'systemd.user.services';
+
+/* Write our one key into the attrs card, leaving every other key alone. */
+async function addAutostart(name) {
+  const existing = findEntry(AUTOSTART_PATH);
+  const keys = existing && existing.value && typeof existing.value === 'object'
+    ? { ...existing.value } : {};
+  keys[name] = AUTOSTART_UNIT;
+  return await addWithValue([AUTOSTART_PATH], keys);
+}
+
+/* And take it out again when the new desktop does not want it — the same rule
+   the greeters follow. Only the key nixgen wrote is removed; a card left with
+   nothing in it goes rather than rendering as an empty attribute set. */
+function dropAutostart(keep) {
+  const e = findEntry(AUTOSTART_PATH);
+  if (!e || !e.value || typeof e.value !== 'object') return [];
+  const gone = [];
+  for (const name of Object.keys(e.value)) {
+    if (name === keep || e.value[name] !== AUTOSTART_UNIT) continue;
+    delete e.value[name];
+    gone.push(name);
+  }
+  if (!Object.keys(e.value).length) {
+    for (const [key, entry] of [...state.selected]) {
+      if (resolvePath(entry) === AUTOSTART_PATH) state.selected.delete(key);
+    }
+  }
+  return gone;
+}
+
 function dropOtherGreeters(keep) {
   const dropped = [];
   for (const [name, paths] of Object.entries(GREETERS)) {
@@ -1054,6 +1124,7 @@ async function addDesktop(key) {
   const d = DESKTOPS[key];
   if (!d) return;
   const dropped = dropOtherGreeters(d.greeter);
+  dropAutostart(d.autostart);
   const added = [], missing = [];
   for (const candidates of d.roles) {
     const used = await addWithValue(candidates, true);
@@ -1091,6 +1162,15 @@ async function addDesktop(key) {
     }
     d.packages.filter(a => !pkgs.includes(a)).forEach(a => missing.push(a));
   }
+  /* Written only when the package it starts actually came back: a unit whose
+     ExecStart points at a package this channel does not have would fail at
+     nixos-rebuild, which is the one thing these presets must not produce. */
+  let autostarted = null;
+  if (d.autostart && pkgs.includes(d.autostart)) {
+    autostarted = await addAutostart(d.autostart);
+    if (autostarted) added.push(autostarted);
+    else missing.push(AUTOSTART_PATH);
+  }
   renderEditor();
   pushRender();
   if (missing.length) {
@@ -1107,7 +1187,10 @@ async function addDesktop(key) {
         ` (${d.wayland ? 'on' : 'off'}).` : '')
       + (dropped.length
       ? ` The previous desktop's display manager came out ` +
-        `(${dropped.join(', ')}) — NixOS refuses two at once.` : '');
+        `(${dropped.join(', ')}) — NixOS refuses two at once.` : '')
+      + (autostarted
+      ? ` ${d.autostart} starts with the session, through a user service bound ` +
+        `to graphical-session.target.` : '');
     const extraJa = (pkgs.length
       ? `あわせて ${pkgs.join('、')} を environment.systemPackages に入れました。` : '')
       + (imSynced
@@ -1115,7 +1198,10 @@ async function addDesktop(key) {
         `${d.wayland ? '有効' : '無効'}にしました。` : '')
       + (dropped.length
       ? `前のデスクトップのディスプレイマネージャ(${dropped.join('、')})は` +
-        `外しました。NixOS は2つ同時を受け付けません。` : '');
+        `外しました。NixOS は2つ同時を受け付けません。` : '')
+      + (autostarted
+      ? `${d.autostart} は graphical-session.target に紐づけた user service で、` +
+        `セッションと一緒に起動します。` : '');
     setStatus(say(
       `${d.label}: ${added.length} settings added. Change or remove any of ` +
       `them like the rest.` + extra + (d.note ? ' ' + d.note : ''),

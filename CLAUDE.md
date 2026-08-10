@@ -443,6 +443,25 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   fails at `nixos-rebuild`. The status bar names what went into
   `environment.systemPackages` alongside the settings; installing something
   without saying so is the one thing this preset must not do.
+- **A shell nobody starts is a package in the store, so the compositors write
+  a unit.** `AUTOSTART_UNIT` binds noctalia to `graphical-session.target`, and
+  all three reach it — sway's default config starts `sway-session.target`
+  (which `bindsTo` it), niri ships its own units, Hyprland only through UWSM,
+  which is why that preset sets `withUWSM` and names the **`hyprland-uwsm`**
+  session rather than `hyprland`. All three were evaluated with the unit in
+  place. `systemd.user.services` is `attribute set of (submodule)` and
+  unsupported, so it is held the way `nix.settings` is — a line of source per
+  key — and the writes **merge rather than assign**, because the card may hold
+  somebody else's service. It is dropped on a desktop switch like a greeter,
+  and only the key nixgen wrote. The unit is written **only when the package
+  came back**: an ExecStart into a package this channel lacks would fail at
+  `nixos-rebuild`.
+- **A terminal is part of "it works", and two of the ten ship none.** The
+  module defaults were read out of evaluated systems: sway brings foot and
+  wmenu, i3 brings xterm and dmenu, **Hyprland and niri bring nothing** — so
+  their default keybinding opens nothing and the desktop looks broken. Both
+  get `foot`, the one sway already uses. Check this for a new compositor
+  rather than assuming its module is furnished.
 - **A window manager is not a desktop, and a compositor is not either.**
   `DESKTOPS` holds ten, in three shapes: X plus a greeter plus the desktop
   (GNOME, Plasma, Xfce, Cinnamon, LXQt), the same three with a window manager
