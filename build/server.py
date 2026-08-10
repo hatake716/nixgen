@@ -607,8 +607,18 @@ def starter_from(fields):
         imports=imports)
 
 
-def validate(text):
-    """Syntax-check with the real Nix parser when it is on PATH."""
+_VALIDATE_NAMES = {"generated.nix", "configuration.nix", "flake.nix", "all three"}
+
+
+def validate(text, name=None):
+    """Syntax-check with the real Nix parser when it is on PATH.
+
+    `name` only decides how the temp path is spelled back in the error, so the
+    message names the file the user was looking at. It is checked against a
+    fixed set rather than trusted, since it is substituted into the returned
+    text.
+    """
+    display = name if name in _VALIDATE_NAMES else "generated.nix"
     nix = shutil.which("nix-instantiate")
     if not nix:
         return {"ok": None, "message": "nix-instantiate not found on PATH — syntax check skipped."}
@@ -619,7 +629,7 @@ def validate(text):
         proc = subprocess.run([nix, "--parse", tmp], capture_output=True, text=True, timeout=30)
         if proc.returncode == 0:
             return {"ok": True, "message": "Parses cleanly."}
-        err = (proc.stderr or "").replace(tmp, "generated.nix").strip()
+        err = (proc.stderr or "").replace(tmp, display).strip()
         return {"ok": False, "message": err[:2000]}
     except subprocess.TimeoutExpired:
         return {"ok": None, "message": "Syntax check timed out."}
@@ -988,7 +998,7 @@ class Handler(BaseHTTPRequestHandler):
             # a hundred of them, which is not something to put in a URL.
             return self._json(starter_from(payload))
         if u.path == "/api/validate":
-            return self._json(validate(payload.get("text", "")))
+            return self._json(validate(payload.get("text", ""), payload.get("name")))
         if u.path == "/api/bundle":
             root, raw = bundle(payload)
             self.send_response(200)

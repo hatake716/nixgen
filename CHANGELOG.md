@@ -9,6 +9,28 @@ option counts.
 
 ## English
 
+### build 2026-08-11g
+
+A debugging pass over the whole app. Two fixes; everything else held.
+
+- **Fixed: importing a configuration.nix with a `let` binding gave no warning.**
+  nixgen carries a value that is an expression exactly as written, but the
+  `let` it might lean on is not carried — so a line that referenced one now
+  references an undefined variable, and Check syntax said so with no
+  explanation. The import summary now warns in advance, listing which values
+  are expressions.
+- **Fixed: a Check syntax error always named `generated.nix`.** Checking
+  `configuration.nix` reported the fault against the wrong file; it names the
+  file you are actually looking at now. The name is checked against a fixed set
+  before it goes into the message.
+- Verified and found sound: the full round trip (build → archive → read both
+  files back), a channel switch with settings in the form, importing a file
+  full of quoted paths, negatives, `mkIf`, non-ASCII names and dotted packages,
+  rapid preset clicks, removing every card, the index-deletion path (refuses
+  the in-use DB, path-like names, and channels still offered), and the System
+  update command across odd host names. No crash, no console error, no 4xx in
+  ordinary use.
+
 ### build 2026-08-11e
 
 Documentation, rewritten for somebody's first time.
@@ -821,6 +843,14 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-11g
+
+アプリ全体のデバッグを行いました。修正は2件、それ以外はすべて健全でした。
+
+- **修正: `let` 束縛のある configuration.nix を読み込んでも警告が出ませんでした。** nixgen は式である値を書かれたとおりに写しますが、それが依存する `let` は写しません。そのため `let` の名前を参照していた行が未定義変数を参照する状態になり、Check syntax が理由なく指摘していました。取り込みサマリで、どの値が式かを挙げて**事前に警告**するようにしました。
+- **修正: Check syntax のエラーが常に `generated.nix` という名前で出ていました。** configuration.nix を検査したときに別のファイル名で誤って報告していたので、**いま見ているファイルの名前**を出すようにしました。名前はメッセージに入れる前に固定の集合と照合します。
+- 検証して健全と確認: 一連の往復(組み立て→書庫→両ファイルを読み戻す)、設定が入った状態でのチャンネル切替、引用符付きパス・負数・`mkIf`・非ASCII名・ドット付きパッケージだらけのファイルの取り込み、プリセットの連打、全カード削除、インデックス削除経路(使用中DB・パス状の名前・提供中チャンネルを拒否)、変わったホスト名での System update コマンド。通常操作でクラッシュ・コンソールエラー・4xx はありません。
 
 ### build 2026-08-11e
 

@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-11e';
+const BUILD = '2026-08-11g';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -2311,6 +2311,28 @@ async function readInto(ev, into) {
       body_ja: '何も失わないよう写してありますが、1件ずつ確認してください。' +
                '無くなった項目は nixos-rebuild が拒否します。' });
   }
+  /* Some carried values are expressions rather than literals — `lib.mkIf …`,
+     or a name from a `let` in the file you read. The `let` itself is not
+     carried (nixgen has no field for it), so a line that leaned on one now
+     references a variable that is not here. Check syntax will say
+     "undefined variable"; this says in advance why, so that is not a
+     mystery. Shown only when the file actually had one. */
+  if (r.expression.length) {
+    notes.push({ cls: 'warn',
+      title: `${r.expression.length} carried as written, and may lean on your ` +
+             `original file`,
+      title_ja: `${r.expression.length}件は式のまま写しました。元ファイルの定義に` +
+                `依存していることがあります`,
+      list: r.expression.map(x => x.option),
+      body: 'These are expressions — lib.mkIf, or a name from a let binding. ' +
+            'The let binding itself is not carried, so if one refers to one, ' +
+            'Check syntax will flag an undefined variable. Add that binding to ' +
+            'configuration.nix by hand.',
+      body_ja: 'lib.mkIf や let 束縛の名前など、式として写したものです。let 束縛' +
+               '自体は運ばれないので、それを参照している場合は Check syntax が' +
+               '「undefined variable」を指摘します。その束縛は configuration.nix ' +
+               'に手で足してください。' });
+  }
   showNotice(notes);
   setStatus(say(
     `${f.name}: ${r.matched.length} settings read into configuration.nix.`,
@@ -2672,17 +2694,19 @@ function sayCheck(r) {
              'Nix がこのファイルを解析できませんでした:') + '\n' + r.message;
 }
 
-const checkText = text => fetch('/api/validate', {
+// `name` is the file the text came from, so the parser's error names the file
+// you are looking at rather than always saying generated.nix.
+const checkText = (text, name) => fetch('/api/validate', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ text }),
+  body: JSON.stringify({ text, name }),
 }).then(r => r.json());
 
 $('#btn-check').addEventListener('click', async () => {
   if (!await settled()) return;
   setStatus(say('Checking…', '確認しています…'));
   if (state.file !== ALL) {
-    const r = await checkText(currentText());
+    const r = await checkText(currentText(), state.file);
     return setStatus(sayCheck(r), r.ok === true ? 'ok' : r.ok === false ? 'bad' : '');
   }
   /* On the archive tab there is no one file to check, so it checks the three
@@ -2691,7 +2715,7 @@ $('#btn-check').addEventListener('click', async () => {
   const names = ['generated.nix', 'configuration.nix', 'flake.nix'];
   const texts = [generatedText, state.starter['configuration.nix'] || '',
                  state.starter['flake.nix'] || ''];
-  const rs = await Promise.all(texts.map(checkText));
+  const rs = await Promise.all(texts.map((t, i) => checkText(t, names[i])));
   if (rs.some(r => r.ok === null)) return setStatus(sayCheck(rs[0]), '');
   const bad = names.filter((_, i) => rs[i].ok === false);
   if (!bad.length) return setStatus(say('All three parse cleanly.',
