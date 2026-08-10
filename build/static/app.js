@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-11r';
+const BUILD = '2026-08-11t';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -2727,6 +2727,25 @@ async function readInto(ev, into) {
   (r.notes || []).forEach(n => notes.push({ cls: 'warn',
     title: 'Adjusted while reading', title_ja: '読み込みの際に調整した点',
     body: n }));
+  /* Nix will not parse a file that defines one attribute twice — it is a parse
+     error, not a warning — so the file was read without it. Said here rather
+     than left as a refusal: the rest of the file is the user's settings, and
+     reading it in is what lets nixgen show the clash instead of only Nix
+     naming a line number. Reading it also resolves it, since a second card on
+     one path replaces the first. */
+  if (r.duplicate) {
+    notes.push({ cls: 'warn',
+      title: `${r.duplicate} was defined twice in that file`,
+      title_ja: `そのファイルでは ${r.duplicate} が2回定義されていました`,
+      body: 'Nix refuses such a file outright — it is a parse error, so ' +
+            'nixos-rebuild stops before it starts. It was read without Nix ' +
+            'this time so nothing is lost, and reading it in leaves one ' +
+            'definition. Check that card before you build.',
+      body_ja: 'Nix はこうしたファイルをそのまま拒否します。構文エラーなので ' +
+               'nixos-rebuild は始まる前に止まります。今回は Nix を使わずに' +
+               '読んだので失われたものはなく、読み込んだ結果は定義1つに' +
+               'なっています。ビルド前にそのカードを確認してください。' });
+  }
   if (r.unknown.length) {
     notes.push({ cls: 'warn',
       title: `${r.unknown.length} of them are not options in this release`,
@@ -2801,6 +2820,25 @@ async function intoModule(f, r, incoming, toSetup) {
   (r.notes || []).forEach(n => notes.push({ cls: 'warn',
     title: 'Adjusted while reading', title_ja: '読み込みの際に調整した点',
     body: n }));
+  /* Nix will not parse a file that defines one attribute twice — it is a parse
+     error, not a warning — so the file was read without it. Said here rather
+     than left as a refusal: the rest of the file is the user's settings, and
+     reading it in is what lets nixgen show the clash instead of only Nix
+     naming a line number. Reading it also resolves it, since a second card on
+     one path replaces the first. */
+  if (r.duplicate) {
+    notes.push({ cls: 'warn',
+      title: `${r.duplicate} was defined twice in that file`,
+      title_ja: `そのファイルでは ${r.duplicate} が2回定義されていました`,
+      body: 'Nix refuses such a file outright — it is a parse error, so ' +
+            'nixos-rebuild stops before it starts. It was read without Nix ' +
+            'this time so nothing is lost, and reading it in leaves one ' +
+            'definition. Check that card before you build.',
+      body_ja: 'Nix はこうしたファイルをそのまま拒否します。構文エラーなので ' +
+               'nixos-rebuild は始まる前に止まります。今回は Nix を使わずに' +
+               '読んだので失われたものはなく、読み込んだ結果は定義1つに' +
+               'なっています。ビルド前にそのカードを確認してください。' });
+  }
   if (toSetup.length) {
     notes.push({ cls: 'ok',
       title: `${toSetup.length} went to the Setup tab`,

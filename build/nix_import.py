@@ -207,11 +207,26 @@ def _split_list(body):
 
 # ------------------------------------------------------------- normalisation
 
+# Nix rejects a file that defines one attribute twice, and it does so in the
+# parser — `{ a = { b = 1; }; a.b = 1; }` never reaches evaluation. That is a
+# whole file refused over one repeated line, and refusing it is the wrong
+# answer here: the rest of it is the user's settings, and nixgen is the tool
+# that can show them the clash. So this one error falls back to reading the
+# file directly instead of giving up. Nothing else does — a real syntax error
+# still stops the import, because guessing at a broken file is how a generated
+# file ends up quietly wrong.
+_ALREADY_DEFINED = re.compile(r"attribute '([^']+)' already defined")
+
+
 def normalise(text):
-    """Hand the file to Nix and take back its canonical form."""
+    """Hand the file to Nix and take back its canonical form.
+
+    Returns (source, used_nix, tmpdir, duplicate) — `duplicate` is the
+    attribute path Nix found twice, when that is why we fell back.
+    """
     nix = shutil.which("nix-instantiate")
     if not nix:
-        return text, False, None
+        return text, False, None, None
     tmpdir = tempfile.mkdtemp(prefix="nixgen-")
     tmp = os.path.join(tmpdir, "configuration.nix")
     with open(tmp, "w", encoding="utf-8") as fh:
@@ -220,10 +235,13 @@ def normalise(text):
         proc = subprocess.run([nix, "--parse", tmp], capture_output=True, text=True, timeout=30)
         if proc.returncode != 0:
             msg = (proc.stderr or "").replace(tmp, "configuration.nix").strip()
+            dup = _ALREADY_DEFINED.search(msg)
+            if dup:
+                return text, False, None, dup.group(1)
             raise NixSyntaxError(msg[:600] or "nix could not parse this file")
-        return proc.stdout, True, tmpdir
+        return proc.stdout, True, tmpdir, None
     except subprocess.TimeoutExpired:
-        return text, False, None
+        return text, False, None, None
     finally:
         os.unlink(tmp)
         os.rmdir(tmpdir)
@@ -530,8 +548,8 @@ def sort_list_expr(expr):
 
 
 def read_config(text):
-    """Main entry point. Returns (entries, used_nix, notes)."""
-    src, used_nix, tmpdir = normalise(text)
+    """Main entry point. Returns (entries, used_nix, notes, duplicate)."""
+    src, used_nix, tmpdir, duplicate = normalise(text)
     body = _module_body(src)
     entries, notes = [], []
     stray = False
@@ -555,10 +573,20 @@ def read_config(text):
             "source": restore_paths(tidy(value)),
             "structural": segments[0] in MODULE_KEYS,
         })
+    if duplicate:
+        # The form holds one card per attribute, and the file held two. Nix
+        # itself has no answer for which wins — it refuses the file — so the
+        # last one written is taken, the way a reader going down the page
+        # would, and the notice tells them to look at that card. Leaving both
+        # would hand back a file as unbuildable as the one that came in.
+        seen = {}
+        for e in entries:
+            seen[e["path"]] = e
+        entries = list(seen.values())
     if stray:
         notes.append("A relative path pointed outside the file's own directory and "
                      "could not be restored — check any ../ paths by hand.")
-    if not used_nix:
+    if not used_nix and not duplicate:
         notes.append("nix-instantiate was not available, so the file was read directly. "
                      "Unusual syntax may have been missed.")
-    return entries, used_nix, notes
+    return entries, used_nix, notes, duplicate

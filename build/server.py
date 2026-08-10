@@ -473,7 +473,7 @@ def _why_unknown(segments):
 
 
 def import_config(text):
-    entries, used_nix, notes = read_config(text)
+    entries, used_nix, notes, duplicate = read_config(text)
     matched, expression, unknown, structure = [], [], [], []
     by_option = {}
 
@@ -557,7 +557,8 @@ def import_config(text):
         matched.append(entry)
 
     return {"matched": matched, "expression": expression, "unknown": unknown,
-            "structure": structure, "used_nix": used_nix, "notes": notes}
+            "structure": structure, "used_nix": used_nix, "notes": notes,
+            "duplicate": duplicate}
 
 
 # --------------------------------------------------------------------- render

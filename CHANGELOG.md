@@ -9,6 +9,25 @@ option counts.
 
 ## English
 
+### build 2026-08-11t
+
+- **Fixed: the broken file could not be read back in.** A duplicate attribute
+  is a *parse* error in Nix — `nix-instantiate --parse` refuses the file — so
+  the importer, which asks Nix to read it, gave up and said only "could not
+  read that file". The rest of the file was the user's settings, and refusing
+  it left nowhere to recover them from.
+- **That one error now falls back to reading the file directly**, and the
+  import summary names the attribute that was doubled, in both languages.
+  Nothing else falls back: a real syntax error still stops the import, because
+  guessing at a broken file is how a generated file goes quietly wrong.
+- **Reading it in also resolves it.** The form holds one card per attribute, so
+  the two definitions collapse to one — the later of the two, the way a reader
+  going down the page would take it — and the file that comes back out builds.
+  Confirmed by evaluating it as a NixOS system.
+- **Correction to build 2026-08-11r's note**: it said Check syntax could not
+  catch the duplicate. It can. The failure is in the parser, not in the
+  evaluation, so `Check syntax` would have reported it before the rebuild did.
+
 ### build 2026-08-11r
 
 Two from a real machine, one crash and one leftover.
@@ -17,9 +36,8 @@ Two from a real machine, one crash and one leftover.
   defined`.** The unit reaches the module in two shapes — an attribute set when
   a preset writes it, one card per leaf when a file is read back in — and
   picking a compositor after an import produced both at once. Nix reads that as
-  the same attribute twice. **Check syntax could not catch it**: the file
-  parses, and it is the evaluation that fails. Either shape is now recognised
-  by name, and writing one clears the other.
+  the same attribute twice. Either shape is now recognised by name, and writing
+  one clears the other.
 - **Fixed: the previous desktop's packages stayed behind.** Switching from niri
   to GNOME left noctalia-shell, xwayland-satellite and foot installed. They go
   now, and the status bar says which — but only the ones the new desktop does
@@ -999,11 +1017,18 @@ three of these six showed up in only one of the two.
 
 ## 日本語
 
+### build 2026-08-11t
+
+- **修正: 壊れたファイルを読み戻せませんでした。** 属性の二重定義は Nix では**構文エラー**で、`nix-instantiate --parse` がファイルごと拒否します。取り込みは Nix に読ませる仕組みなので、そこで諦めて「そのファイルを読めませんでした」としか言えませんでした。ファイルの残りは利用者の設定であり、拒否することは**復旧手段を断つこと**でした。
+- **このエラーに限って、Nix を使わず直接読む**ようにしました。取り込みサマリには、二重になっていた属性名を**英日併記**で出します。他のエラーでは従来どおり中止します。壊れたファイルを推測で読むことが、生成物が静かに誤る原因だからです。
+- **読み込むこと自体が修復になります。** フォームは1属性につき1枚しか持てないので、2つの定義は1つに畳まれます(上から読んでいった人が取るのと同じく、後のほうを採ります)。出てくるファイルはビルドできます。NixOS システムとして評価して確認しました。
+- **build 2026-08-11r の記述を訂正します。** 「Check syntax では捕まえられない」と書きましたが、**捕まえられます。** 失敗するのは評価ではなくパーサなので、rebuild より先に Check syntax が指摘できました。
+
 ### build 2026-08-11r
 
 実機からの報告2件。クラッシュ1つと、消え残り1つです。
 
-- **修正: `attribute 'systemd.user.services.noctalia-shell.after' already defined`。** このユニットは module に**2つの形**で入ります。プリセットが書くと属性セット1枚、ファイルから読み戻すと**leaf ごとに1枚**です。取り込みの後にコンポジタを選ぶと、両方が同時に出ていました。Nix はこれを同じ属性の二重定義として扱います。**Check syntax では捕まえられません。** ファイルの構文は正しく、失敗するのは評価だからです。どちらの形も名前で認識し、一方を書くときに他方を消すようにしました。
+- **修正: `attribute 'systemd.user.services.noctalia-shell.after' already defined`。** このユニットは module に**2つの形**で入ります。プリセットが書くと属性セット1枚、ファイルから読み戻すと**leaf ごとに1枚**です。取り込みの後にコンポジタを選ぶと、両方が同時に出ていました。Nix はこれを同じ属性の二重定義として扱います。どちらの形も名前で認識し、一方を書くときに他方を消すようにしました。
 - **修正: 前のデスクトップのパッケージが残っていました。** niri から GNOME に切り替えても noctalia-shell・xwayland-satellite・foot が入ったままでした。外すようにし、何を外したかはステータス欄に出します。ただし**新しいデスクトップも必要とするものは残します**。Hyprland と niri を行き来しても foot は消えません。
 - **追加: 別のカードの内側で定義されている場合に警告します。** あるパスが別のパスの下にある状態は、どのオプションでも同じクラッシュになるので、rebuild が言う前に `doRender` が言います。
 

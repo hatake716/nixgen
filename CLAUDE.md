@@ -448,14 +448,23 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   out of a file it arrives **flattened**, one card per leaf
   (`systemd.user.services.noctalia-shell.after`, …), because that is what the
   importer does with an attribute set. Both in one file is `attribute … already
-  defined` at `nixos-rebuild`, and **Check syntax cannot see it** — the file
-  parses. So `autostartEntries` matches either shape by name, `addAutostart`
+  defined` — and it is the *parser* that says so, not the evaluator, so
+  `nix-instantiate --parse` refuses the whole file. So `autostartEntries`
+  matches either shape by name, `addAutostart`
   clears the leaves before writing the card, and `dropAutostart` takes both
   out. **It matches on the name, never on the text of the unit**: a unit that
   has been through a file and back is not character-for-character the same, and
   that mismatch is what let the stale copy survive and then collide. The
   general case is caught in `doRender` — a path that is a prefix of another
   path is that same crash, whatever option it is on.
+- **A duplicate attribute is a parse error, so refusing the file refuses the
+  settings with it.** `normalise` gives up on anything Nix will not parse,
+  which is right — except for `attribute … already defined`, where the file is
+  otherwise sound and nixgen is the one tool that can resolve it. That case
+  falls back to the direct reader, `read_config` collapses the repeated path to
+  its last definition (Nix has no answer for which wins; it refuses the file),
+  and the summary names the attribute. **Nothing else falls back**: guessing at
+  a broken file is how a generated file goes quietly wrong.
 - **A desktop's packages leave with the desktop.** noctalia-shell,
   xwayland-satellite and foot are put there by a preset, so switching to GNOME
   takes them out again; `PRESET_PACKAGES` is every name any `DESKTOPS` entry
