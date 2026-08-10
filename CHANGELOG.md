@@ -9,6 +9,19 @@ option counts.
 
 ## English
 
+### build 2026-08-11k
+
+- **Switching desktops swaps the display manager out.** NixOS refuses two at
+  once — gdm's module force-disables the others, so a leftover lightdm from the
+  previous desktop was a build error (`conflicting definition values`), proven
+  by evaluating exactly that. Picking a new desktop now removes the greeters
+  that are not its own; sddm takes its Wayland switch with it, and the status
+  bar names what came out.
+- **The desktops themselves both stay**: two sessions on one login screen is
+  legal, and evaluating that state shows both in the session list. Only the
+  paths nixgen's own presets write are ever removed — a greeter enabled by hand
+  under another name is left alone.
+
 ### build 2026-08-11j
 
 - **The input method follows the session now.** fcitx5 has two front ends, and
@@ -876,6 +889,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-11k
+
+- **デスクトップを切り替えると、ディスプレイマネージャが入れ替わるようにしました。** NixOS は DM の2つ同時を受け付けません。gdm のモジュールが他を強制無効化するため、**前のデスクトップの lightdm が残っていると `conflicting definition values` でビルドエラー**でした(まさにその状態を評価して確認)。新しいデスクトップを選ぶと、それ以外のグリーターは module から外れます。sddm は Wayland スイッチも道連れにし、**何を外したかはステータス欄に出ます。**
+- **デスクトップ本体は両方残します。** 1つのログイン画面に2つのセッションは正当で、その状態の評価でセッション一覧に両方が並ぶことも確認しました。外すのは **nixgen のプリセット自身が書くパスだけ**で、手で有効化された別名のグリーターには触れません。
 
 ### build 2026-08-11j
 

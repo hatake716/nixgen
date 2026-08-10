@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-11j';
+const BUILD = '2026-08-11k';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -769,7 +769,7 @@ async function addOption(path) {
    that will move again. Nothing is invented: these are the settings the NixOS
    manual lists, added as ordinary options you can read and change. */
 const DESKTOPS = {
-  gnome: { label: 'GNOME', session: 'gnome', wayland: true,
+  gnome: { label: 'GNOME', session: 'gnome', wayland: true, greeter: 'gdm',
     marker: ['services.desktopManager.gnome.enable',
              'services.xserver.desktopManager.gnome.enable'],
     roles: [
@@ -779,7 +779,7 @@ const DESKTOPS = {
     ['services.desktopManager.gnome.enable',
      'services.xserver.desktopManager.gnome.enable'],
   ] },
-  plasma: { label: 'KDE Plasma', session: 'plasma', wayland: true,
+  plasma: { label: 'KDE Plasma', session: 'plasma', wayland: true, greeter: 'sddm',
     marker: ['services.desktopManager.plasma6.enable',
              'services.desktopManager.plasma5.enable',
              'services.xserver.desktopManager.plasma5.enable'],
@@ -791,7 +791,7 @@ const DESKTOPS = {
      'services.desktopManager.plasma5.enable',
      'services.xserver.desktopManager.plasma5.enable'],
   ] },
-  xfce: { label: 'Xfce', session: 'xfce', wayland: false,
+  xfce: { label: 'Xfce', session: 'xfce', wayland: false, greeter: 'lightdm',
     marker: ['services.desktopManager.xfce.enable',
              'services.xserver.desktopManager.xfce.enable'],
     roles: [
@@ -803,7 +803,7 @@ const DESKTOPS = {
   ] },
   // Cinnamon has not moved out of services.xserver, the way xfce has not.
   // lightdm is the greeter it is normally paired with.
-  cinnamon: { label: 'Cinnamon', session: 'cinnamon', wayland: false,
+  cinnamon: { label: 'Cinnamon', session: 'cinnamon', wayland: false, greeter: 'lightdm',
     marker: ['services.desktopManager.cinnamon.enable',
              'services.xserver.desktopManager.cinnamon.enable'],
     roles: [
@@ -818,7 +818,7 @@ const DESKTOPS = {
      for a desktop that does not use it builds an X server nothing runs. It
      brings its own greeter, which is why sddm and lightdm are not offered
      either. */
-  cosmic: { label: 'COSMIC', wayland: true,
+  cosmic: { label: 'COSMIC', wayland: true, greeter: 'cosmic-greeter',
     marker: ['services.desktopManager.cosmic.enable'],
     roles: [
     ['services.displayManager.cosmic-greeter.enable'],
@@ -826,7 +826,7 @@ const DESKTOPS = {
   ] },
   // LXQt is X11 and, like xfce and cinnamon, never left services.xserver.
   // sddm is the greeter its own documentation pairs it with.
-  lxqt: { label: 'LXQt', session: 'lxqt', wayland: false,
+  lxqt: { label: 'LXQt', session: 'lxqt', wayland: false, greeter: 'sddm',
     marker: ['services.desktopManager.lxqt.enable',
              'services.xserver.desktopManager.lxqt.enable'],
     roles: [
@@ -839,7 +839,7 @@ const DESKTOPS = {
   /* i3 is a window manager rather than a desktop: X, a greeter, and i3 on top
      — and nothing else, because what a tiling setup looks like is the user's
      to write. It comes up with an empty screen and its own first-run wizard. */
-  i3: { label: 'i3', session: 'none+i3', wayland: false,
+  i3: { label: 'i3', session: 'none+i3', wayland: false, greeter: 'lightdm',
     marker: ['services.xserver.windowManager.i3.enable'],
     roles: [
     ['services.xserver.enable'],
@@ -861,7 +861,7 @@ const DESKTOPS = {
      with it, sddm's own config says `DisplayServer=wayland` and the greeter
      runs under weston; without it, `DisplayServer=x11` — an X11 login screen
      in front of a machine that has no X server for anything else. */
-  hyprland: { label: 'Hyprland', session: 'hyprland', wayland: true,
+  hyprland: { label: 'Hyprland', session: 'hyprland', wayland: true, greeter: 'sddm',
     marker: ['programs.hyprland.enable'],
     roles: [
     ['programs.hyprland.enable'],
@@ -888,7 +888,7 @@ const DESKTOPS = {
      nothing in the option catalogue mentions it. Added as an ordinary line in
      environment.systemPackages, which the status bar says and the card shows,
      so it can be taken out like anything else. */
-  niri: { label: 'niri', session: 'niri', wayland: true,
+  niri: { label: 'niri', session: 'niri', wayland: true, greeter: 'sddm',
     marker: ['programs.niri.enable'],
     roles: [
     ['programs.niri.enable'],
@@ -908,7 +908,7 @@ const DESKTOPS = {
              'そのため xwayland-satellite をパッケージとして入れてあります。' +
              'X11 のアプリから見えるようにするには、niri の設定ファイルから' +
              'これを起動してください。' },
-  sway: { label: 'Sway', session: 'sway', wayland: true,
+  sway: { label: 'Sway', session: 'sway', wayland: true, greeter: 'sddm',
     marker: ['programs.sway.enable'],
     roles: [
     ['programs.sway.enable'],
@@ -955,6 +955,40 @@ async function addWithValue(paths, value) {
   return path;
 }
 
+/* Every display manager a preset can put in the module. NixOS refuses two at
+   once — gdm's module force-disables the others, so a leftover lightdm from
+   the previous desktop is `conflicting definition values` at build time,
+   proven by evaluating exactly that. Switching desktops therefore removes the
+   greeters that are not the new desktop's, and sddm takes its wayland switch
+   with it. Only these paths are ever touched; a greeter somebody added by
+   hand under another name is not nixgen's to remove. */
+const GREETERS = {
+  gdm: ['services.displayManager.gdm.enable',
+        'services.xserver.displayManager.gdm.enable'],
+  sddm: ['services.displayManager.sddm.enable',
+         'services.xserver.displayManager.sddm.enable',
+         'services.displayManager.sddm.wayland.enable'],
+  lightdm: ['services.displayManager.lightdm.enable',
+            'services.xserver.displayManager.lightdm.enable'],
+  'cosmic-greeter': ['services.displayManager.cosmic-greeter.enable'],
+};
+
+function dropOtherGreeters(keep) {
+  const dropped = [];
+  for (const [name, paths] of Object.entries(GREETERS)) {
+    if (name === keep) continue;
+    for (const p of paths) {
+      for (const [key, e] of [...state.selected]) {
+        if (resolvePath(e) === p) {
+          state.selected.delete(key);
+          dropped.push(p);
+        }
+      }
+    }
+  }
+  return dropped;
+}
+
 /* The desktop the module holds, read from the module rather than remembered:
    the shared roles (the X server, sddm, defaultSession) cannot tell desktops
    apart, so each entry names the option that is its own. */
@@ -987,6 +1021,7 @@ async function syncImFrontend(added) {
 async function addDesktop(key) {
   const d = DESKTOPS[key];
   if (!d) return;
+  const dropped = dropOtherGreeters(d.greeter);
   const added = [], missing = [];
   for (const candidates of d.roles) {
     const used = await addWithValue(candidates, true);
@@ -1037,12 +1072,18 @@ async function addDesktop(key) {
       ? ` ${pkgs.join(', ')} went into environment.systemPackages with it.` : '')
       + (imSynced
       ? ` The input method's Wayland frontend now matches this session` +
-        ` (${d.wayland ? 'on' : 'off'}).` : '');
+        ` (${d.wayland ? 'on' : 'off'}).` : '')
+      + (dropped.length
+      ? ` The previous desktop's display manager came out ` +
+        `(${dropped.join(', ')}) — NixOS refuses two at once.` : '');
     const extraJa = (pkgs.length
       ? `あわせて ${pkgs.join('、')} を environment.systemPackages に入れました。` : '')
       + (imSynced
       ? `入力メソッドの Wayland フロントエンドも、このセッションに合わせて` +
-        `${d.wayland ? '有効' : '無効'}にしました。` : '');
+        `${d.wayland ? '有効' : '無効'}にしました。` : '')
+      + (dropped.length
+      ? `前のデスクトップのディスプレイマネージャ(${dropped.join('、')})は` +
+        `外しました。NixOS は2つ同時を受け付けません。` : '');
     setStatus(say(
       `${d.label}: ${added.length} settings added. Change or remove any of ` +
       `them like the rest.` + extra + (d.note ? ' ' + d.note : ''),

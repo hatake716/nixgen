@@ -455,6 +455,14 @@ setting (nothing in the option catalogue mentions it), so it goes into
 `environment.systemPackages` as an ordinary line you can delete, and the status
 bar names it when it goes in.
 
+**Switching desktops swaps the display manager out too.** NixOS refuses two
+at once — gdm's module force-disables the others, so a leftover lightdm from
+the previous desktop is a build error, proven by evaluating exactly that.
+Picking a new desktop removes the greeters that are not its own (sddm takes
+its Wayland switch with it), and the status bar names what came out. The
+desktops themselves both stay: two sessions on one login screen is legal, and
+the session list showed both when that state was evaluated.
+
 **The login screen pre-selects the desktop you picked.** Each preset also
 sets `services.displayManager.defaultSession` — `gnome`, `xfce`, `none+i3` and
 so on. The names were read out of evaluated systems, not guessed, because NixOS

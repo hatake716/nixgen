@@ -425,6 +425,14 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   and each carries `noctalia-shell` as a package. Where a preset stops short of
   a role, `note`/`note_ja` says so in the status bar rather than the gap being
   filled with a guess.
+- **Only one greeter survives a desktop switch, and only nixgen's own paths are
+  touched.** Two display managers is `conflicting definition values` at build
+  time (gdm force-disables the rest — evaluated to prove it), so `addDesktop`
+  drops the `GREETERS` paths that are not the new desktop's, sddm taking its
+  wayland switch along. The desktop cards themselves stay: two desktops is two
+  sessions on one login screen, which is legal and was evaluated
+  (`sessionNames` lists both). A greeter someone enabled by hand under a path
+  not in `GREETERS` is not nixgen's to remove.
 - **The session names in `DESKTOPS` came out of evaluated systems, and NixOS
   checks them.** Every desktop preset sets
   `services.displayManager.defaultSession`; the names (`gnome`, `plasma`,
