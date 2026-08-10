@@ -15,6 +15,7 @@ paths that were emitted, so the UI can flag the ones generated.nix also sets.
 
 import re
 
+from nixgen_core import render_lines
 from releases import UNSTABLE, is_revision
 
 SYSTEMS = ["x86_64-linux", "aarch64-linux"]
@@ -66,11 +67,34 @@ def _flag(value, default=True):
 
 # --------------------------------------------------------------------- blocks
 
-def _configuration(host, user, system, state, opts):
+def _carried(entries, imports):
+    """What an imported configuration.nix said, on its way into the one this
+    writes.
+
+    The settings the Setup tab has fields for were taken out before this: they
+    are rewritten from those fields, and carrying them as well would define the
+    same attribute twice in one file. What is left is everything nixgen has no
+    field for, rendered by the same renderer the module uses so the quoting
+    rules are the same ones.
+
+    Plain definitions, not `lib.mkDefault`: they are the values that were
+    already running on the machine, and a default is not what they were.
+    """
+    if not entries:
+        return "", []
+    lines = render_lines(entries)
+    paths = [e.get("path") or ".".join(e.get("segments") or []) for e in entries]
+    head = ("\n  # Carried over from the configuration.nix you read in. nixgen has\n"
+            "  # no field for these, so they are copied through as they were.\n")
+    return head + lines, [p for p in paths if p]
+
+
+def _configuration(host, user, system, state, opts, carried="", extra_imports=()):
     boot = opts["bootloader"]
     out = []
     defines = []
 
+    more = "".join(f"\n    {p}" for p in extra_imports)
     out.append(f'''# configuration.nix — the hand-written half of your system.
 # Everything nixgen manages lives in ./generated.nix.
 #
@@ -82,7 +106,7 @@ def _configuration(host, user, system, state, opts):
 {{
   imports = [
     ./hardware-configuration.nix
-    ./generated.nix
+    ./generated.nix{more}
   ];
 
   # Every definition below uses lib.mkDefault, so anything you also set in
@@ -137,10 +161,11 @@ def _configuration(host, user, system, state, opts):
   # unless you have read the release notes — it exists to keep stateful data
   # readable across upgrades.
   system.stateVersion = lib.mkDefault "{state}";
-}}
 ''')
     defines.append("system.stateVersion")
 
+    out.append(carried)
+    out.append("}\n")
     return "".join(out), defines
 
 
@@ -251,7 +276,14 @@ def starter_files(host, user, system, channel, **kw):
     state = _safe(kw.get("state_version"),
                   _channel_version(channel, kw.get("release")), _STATE_VERSION)
 
-    configuration, defines = _configuration(host, user, system, state, opts)
+    carried, carried_paths = _carried(kw.get("carried") or [],
+                                      kw.get("imports") or [])
+    configuration, defines = _configuration(host, user, system, state, opts,
+                                            carried, kw.get("imports") or [])
+    # The red "also in configuration.nix" markers read this list, so a carried
+    # line has to be on it: adding the same option under Options afterwards
+    # would otherwise define it in both files with nothing said.
+    defines += carried_paths
     channel = channel or "nixos-26.05"
     pin, ref = _pin(channel, kw.get("revision"),
                     _flag(kw.get("from_index"), False),

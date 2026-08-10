@@ -577,6 +577,36 @@ def render(payload):
     return render_module(entries, payload.get("channel", "nixos"), stamp)
 
 
+def starter_from(fields):
+    """The two starter files, from the Setup tab's fields.
+
+    `carried` and `imports` are what an imported configuration.nix could not
+    put in a field — they go into the configuration.nix this writes, rather
+    than into the module, so that reading a file in and looking at
+    configuration.nix show the same thing.
+    """
+    get = lambda k, d=None: fields.get(k, d)
+    channel = (get("channel") if releases.is_channel(get("channel"))
+               else get_meta().get("channel", "nixos-26.05"))
+    pin = get("pin", "branch")
+    rev, from_index = (None, False) if pin == "branch" else revision_for(channel)
+    carried = get("carried") or []
+    imports = [i for i in (get("imports") or []) if isinstance(i, str)]
+    return starter_files(
+        get("host"), get("user"), get("system"), channel,
+        revision=rev, from_index=from_index, pin=pin,
+        release=meta_for(channel).get("release"),
+        bootloader=get("bootloader"),
+        grub_device=get("grub_device"),
+        networkmanager=get("networkmanager"),
+        make_user=get("make_user"),
+        groups=get("groups"),
+        flakes=get("flakes"),
+        state_version=get("state_version"),
+        carried=carried if isinstance(carried, list) else [],
+        imports=imports)
+
+
 def validate(text):
     """Syntax-check with the real Nix parser when it is on PATH."""
     nix = shutil.which("nix-instantiate")
@@ -866,25 +896,11 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/api/reindex/status":
             return self._json(releases.status)
         if u.path == "/api/starter":
-            channel = (one("channel") if releases.is_channel(one("channel"))
-                       else get_meta().get("channel", "nixos-26.05"))
-            # Asking for the branch means no commit is needed, so do not go
-            # looking for one — that lookup can reach the network. It is also
-            # the default, so the common request never touches the network.
-            pin = one("pin", "branch")
-            rev, from_index = ((None, False) if pin == "branch"
-                               else revision_for(channel))
-            return self._json(starter_files(
-                one("host"), one("user"), one("system"), channel,
-                revision=rev, from_index=from_index, pin=pin,
-                release=meta_for(channel).get("release"),
-                bootloader=one("bootloader"),
-                grub_device=one("grub_device"),
-                networkmanager=one("networkmanager"),
-                make_user=one("make_user"),
-                groups=one("groups"),
-                flakes=one("flakes"),
-                state_version=one("state_version")))
+            # Asking for the branch means no commit is needed, so
+            # `starter_from` does not go looking for one — that lookup can
+            # reach the network, and the branch is the default, so the common
+            # request never touches it.
+            return self._json(starter_from({k: v[0] for k, v in qs.items()}))
         if u.path == "/api/packages":
             # Bounded because it names every row it wants: the curated lists
             # are a handful each, and nothing else should be asking.
@@ -964,6 +980,11 @@ class Handler(BaseHTTPRequestHandler):
                 removed.append(entry["channel"])
                 freed += entry["bytes"]
             return self._json({"removed": removed, "bytes": freed})
+        if u.path == "/api/starter":
+            # The same answer as the GET, plus what an imported
+            # configuration.nix left over. Those are entries and there can be
+            # a hundred of them, which is not something to put in a URL.
+            return self._json(starter_from(payload))
         if u.path == "/api/validate":
             return self._json(validate(payload.get("text", "")))
         if u.path == "/api/bundle":

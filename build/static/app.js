@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-10x';
+const BUILD = '2026-08-10z';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -85,6 +85,14 @@ const state = {
   file: 'generated.nix', // which file the output pane is showing
   starter: {},           // configuration.nix / flake.nix, from /api/starter
   starterDefines: new Set(), // option paths the starter configuration.nix sets
+  /* What an imported configuration.nix said that no field on the Setup tab
+     holds. It goes into the configuration.nix that tab writes rather than into
+     the module: reading a file in and then looking at configuration.nix should
+     show the same settings, which is the whole point of there being two
+     imports. `carried` is entries for the renderer; `carriedImports` are the
+     paths its own `imports` named, minus the two the starter writes. */
+  carried: [],
+  carriedImports: [],
   releases: [],          // channels that publish option data, unstable last
   indexed: null,         // the channel the search index was built from
   built: [],             // channels already indexed on this machine
@@ -532,7 +540,15 @@ async function loadStarter() {
     channel: $('#s-release').value,
     pin: $('#s-pin').value,
   });
-  state.starter = await fetch('/api/starter?' + q).then(r => r.json());
+  state.starter = await fetch('/api/starter', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      ...Object.fromEntries(q),
+      carried: state.carried,
+      imports: state.carriedImports,
+    }),
+  }).then(r => r.json());
   state.starterDefines = new Set(state.starter.defines || []);
   // Both notes name what flake.nix ended up with, which is only known once the
   // server has answered.
@@ -2113,8 +2129,19 @@ function fillSetupFrom(incoming) {
   return used;
 }
 
+/* Two buttons, one reader. Which file was picked decides where its contents
+   land: a configuration.nix is the machine's own file, so it fills the Setup
+   tab and the rest of it is carried into the configuration.nix that tab
+   writes; a generated.nix is a module, so it becomes cards. Sending a module
+   through the first route would bury settings in a file nixgen only half
+   writes, and sending a configuration.nix through the second is what used to
+   happen — it worked, but it put your file in the wrong one of the two. */
 $('#btn-import').addEventListener('click', () => $('#file').click());
-$('#file').addEventListener('change', async ev => {
+$('#btn-import-gen').addEventListener('click', () => $('#file-gen').click());
+$('#file').addEventListener('change', ev => readInto(ev, 'configuration'));
+$('#file-gen').addEventListener('change', ev => readInto(ev, 'module'));
+
+async function readInto(ev, into) {
   const f = ev.target.files[0];
   if (!f) return;
   ev.target.value = '';
@@ -2178,11 +2205,111 @@ $('#file').addEventListener('change', async ev => {
      what was there rather than joining it. Compared by the path each card
      renders to, not by its key: import files a repeat under a suffixed key, so
      the keys can differ while the attribute is the same. */
-  // The machine's own details go to the Setup tab, which is where the starter
-  // files write them, and out of the module rather than into both.
+  /* A module goes into the module, and nothing else happens: its settings are
+     the ones nixgen manages, and the Setup tab has no business being rewritten
+     by them. */
+  if (into === 'module') return intoModule(f, r, incoming, []);
+
+  /* A configuration.nix is the machine's own file. The fields on the Setup tab
+     take what they hold, and everything else is carried into the
+     configuration.nix that tab writes — the module is left alone. `imports` is
+     the exception: the starter writes its own, so the paths are merged into
+     that list rather than carried as a line that would define it twice. */
   const toSetup = fillSetupFrom(incoming);
   const moved = new Set(toSetup);
-  const kept = incoming.filter(x => !moved.has(resolvePath(x.entry)));
+  const rest = incoming.filter(x => !moved.has(resolvePath(x.entry)));
+
+  const ownImports = ['./hardware-configuration.nix', './generated.nix'];
+  const extraImports = [];
+  const carried = [];
+  for (const x of rest) {
+    if (resolvePath(x.entry) === 'imports') {
+      splitNixList(String(x.entry.value).replace(/^[^[]*\[/, '').replace(/\][^\]]*$/, ''))
+        .filter(p => p && !ownImports.includes(p))
+        .forEach(p => extraImports.push(p));
+      continue;
+    }
+    carried.push({
+      path: resolvePath(x.entry),
+      segments: x.entry.segments || segmentsFor(x.entry),
+      type: x.entry.type,
+      value: x.entry.value,
+      note: x.entry.note,
+    });
+  }
+  state.carried = carried;
+  state.carriedImports = extraImports;
+  state.lastTouched = null;
+  if (toSetup.length) syncSetupVisibility();
+  await loadStarter();
+  showFile('configuration.nix');
+
+  const notes = [];
+  notes.push({ cls: 'ok',
+    title: `Read ${r.matched.length} settings from ${f.name}`,
+    title_ja: `${f.name} から${r.matched.length}件の設定を読み込みました`,
+    body: 'They are in configuration.nix on the right, not in the module: ' +
+          'this is your machine\'s own file, and that is the one the Setup tab ' +
+          'writes. The module is for what you add under Options and Packages.',
+    body_ja: 'いずれも右の configuration.nix に入っています。module ではありません。' +
+             'これはこのマシン自身のファイルで、それを書くのは Setup タブだから' +
+             'です。module は Options と Packages で足すもののための場所です。' });
+  if (toSetup.length) {
+    notes.push({ cls: 'ok',
+      title: `${toSetup.length} became fields on the Setup tab`,
+      title_ja: `${toSetup.length}件が Setup タブの入力欄になりました`,
+      list: toSetup,
+      body: 'The host name, the user, the boot loader and the rest are written ' +
+            'from those fields, so change them there.',
+      body_ja: 'ホスト名・ユーザー・ブートローダーなどは、その入力欄から' +
+               '書き出されます。変更はそちらで行ってください。' });
+  }
+  if (carried.length) {
+    notes.push({ cls: 'ok',
+      title: `${carried.length} carried into configuration.nix as they were`,
+      title_ja: `${carried.length}件を configuration.nix にそのまま写しました`,
+      list: carried.map(c => c.path),
+      body: 'nixgen has no field for these, so they are copied through ' +
+            'unchanged, under a comment saying where they came from.',
+      body_ja: 'これらには nixgen に対応する入力欄が無いので、どこから来たかを' +
+               '書いたコメントの下に、そのまま写してあります。' });
+  }
+  if (extraImports.length) {
+    notes.push({ cls: 'ok',
+      title: `${extraImports.length} import(s) merged into the imports list`,
+      title_ja: `imports の行を${extraImports.length}件、取り込みました`,
+      list: extraImports,
+      body: 'Keep this configuration.nix in the same directory as the file you ' +
+            'read in, so those relative paths still resolve.',
+      body_ja: '相対パスが解決できるよう、この configuration.nix は読み込んだ' +
+               'ファイルと同じディレクトリに置いてください。' });
+  }
+  (r.notes || []).forEach(n => notes.push({ cls: 'warn',
+    title: 'Adjusted while reading', title_ja: '読み込みの際に調整した点',
+    body: n }));
+  if (r.unknown.length) {
+    notes.push({ cls: 'warn',
+      title: `${r.unknown.length} of them are not options in this release`,
+      title_ja: `そのうち${r.unknown.length}件は、このリリースに無い項目です`,
+      list: r.unknown.map(x => `${x.path} — ${x.why}`),
+      body: 'Carried through so nothing is lost — check each one, since ' +
+            'nixos-rebuild will reject an option that no longer exists.',
+      body_ja: '何も失わないよう写してありますが、1件ずつ確認してください。' +
+               '無くなった項目は nixos-rebuild が拒否します。' });
+  }
+  showNotice(notes);
+  setStatus(say(
+    `${f.name}: ${r.matched.length} settings read into configuration.nix.`,
+    `${f.name}: ${r.matched.length}件の設定を configuration.nix に読み込みました。`),
+    'ok');
+  return;
+}
+
+/* The module route: what it used to do for every file, and still the right
+   thing for one nixgen wrote. */
+async function intoModule(f, r, incoming, toSetup) {
+  const kept = incoming;
+  const moved = new Set(toSetup);
 
   const arriving = new Set(kept.map(x => resolvePath(x.entry)));
   const replaced = [];
@@ -2274,7 +2401,7 @@ $('#file').addEventListener('change', async ev => {
   runSearch();
   setStatus(say(`Imported ${r.matched.length} settings.`,
                 `${r.matched.length}件の設定を読み込みました。`), 'ok');
-});
+}
 
 function showNotice(items) {
   const box = $('#notice');

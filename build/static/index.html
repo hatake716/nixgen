@@ -16,8 +16,13 @@
     <div class="channel notranslate" id="channel" translate="no">…</div>
     <div class="counts" id="counts"></div>
     <div class="actions">
+      <!-- Two imports, because there are two files. A configuration.nix is
+           the machine's own and lands in the one the Setup tab writes; a
+           generated.nix is a module and lands in the module. -->
       <button class="btn" id="btn-import">Import configuration.nix</button>
       <input type="file" id="file" accept=".nix" hidden>
+      <button class="btn" id="btn-import-gen">Import generated.nix</button>
+      <input type="file" id="file-gen" accept=".nix" hidden>
       <button class="btn" id="btn-check">Check syntax</button>
       <button class="btn" id="btn-copy">Copy</button>
       <!-- The same archive the `all three` tab hands over, reachable without
@@ -282,10 +287,13 @@
               half you write by hand, and <code>flake.nix</code>, the way in to
               the whole system.
               <b>Already have a <code>configuration.nix</code>?</b> Press
-              <b class="w">Import configuration.nix</b> first — your settings
-              come back as fields you can edit, and the ones on this tab (the
-              host name, the user, the boot loader) are filled in from your
-              file — then carry on here.
+              <b class="w">Import configuration.nix</b> first. The fields on
+              this tab are filled in from it, and everything else in it is
+              carried into the <code>configuration.nix</code> shown on the
+              right — that file is yours, so that is where it goes. A
+              <code>generated.nix</code> from an earlier session comes back
+              through <b class="w">Import generated.nix</b> instead, into the
+              module.
               <!-- ASCII rather than box drawing: the mono stack falls back to
                    a proportional face for those glyphs on some machines, and a
                    tree that does not line up is worse than no tree. -->
@@ -326,10 +334,10 @@
             <p><b>Closing the tab loses the form.</b> Nothing is kept between
               visits, so the file is the save: download
               <code>generated.nix</code>, and <b class="w">Import
-              configuration.nix</b> brings those settings back as they were.
-              The <b class="w">Setup</b> fields come back only from a file that
-              sets them — a <code>configuration.nix</code> does, a
-              <code>generated.nix</code> usually does not.</p>
+              generated.nix</b> brings those settings back as they were.
+              <b class="w">Import configuration.nix</b> is the other half: it
+              fills the <b class="w">Setup</b> fields and writes the rest into
+              the <code>configuration.nix</code> on the right.</p>
             <p>You can go back to a tab at any time — the order above is where
               to start, not a door that shuts behind you.
               <a href="https://hatake716.github.io/nixgen/" target="_blank"
@@ -348,7 +356,7 @@
             <p class="eyebrow">使い方</p>
             <p class="lede">nixgen は新しいファイルを作ります。今あるファイルは読むだけで、書き換えることはありません。<b>タブの並びが、そのまま進める順序です。Setup → Options → Packages、そして確認して受け取ります。</b></p>
             <ol>
-              <li><b>まず <b class="w">Setup</b> から。</b>ホスト名、ユーザー、チャンネル、ブートローダーを決めます。インストール直後に足りない2つのファイルは、ここで用意されます。手で書く側の <code>configuration.nix</code> と、システム全体の入口になる <code>flake.nix</code> です。<b>すでに <code>configuration.nix</code> がある場合は</b>、先に <b class="w">Import configuration.nix</b> を押してください。今の設定が編集できる入力欄として戻り、このタブの項目(ホスト名・ユーザー・ブートローダーなど)も<b>読み込んだファイルから埋まります</b>。そのままここから続けてください。
+              <li><b>まず <b class="w">Setup</b> から。</b>ホスト名、ユーザー、チャンネル、ブートローダーを決めます。インストール直後に足りない2つのファイルは、ここで用意されます。手で書く側の <code>configuration.nix</code> と、システム全体の入口になる <code>flake.nix</code> です。<b>すでに <code>configuration.nix</code> がある場合は</b>、先に <b class="w">Import configuration.nix</b> を押してください。このタブの項目が読み込んだファイルから埋まり、<b>それ以外の設定は右の <code>configuration.nix</code> にそのまま入ります</b>。あのファイルはあなたのものなので、そこへ入れます。前回作った <code>generated.nix</code> を戻したいときは、<b class="w">Import generated.nix</b> のほうを使ってください。module に入ります。
                 <pre class="tree">/etc/nixos/
 |-- flake.nix                   Setup から
 |-- configuration.nix           Setup から
@@ -362,7 +370,7 @@
             </ol>
             <p class="warnbox"><b>System update は、手順4と5を代わりに行います。ただし、設定がすべて済んでいることが前提です。</b>書庫をダウンロードし、<code>/etc/nixos</code> の3ファイルを上書きしてマシンを再構築する<b>コマンドを1つ</b>渡します。各段階の前に確認を求めます。<b>設定とソフトウェアをひととおり終え、<b class="w">Check syntax</b> を通してから</b>実行してください。<b>このマシンが起動に使う設定を置き換えます。</b>置き換えられたファイルは新しいものの隣に残り、<code>hardware-configuration.nix</code> には一切触れません。</p>
             <div class="after">
-              <p><b>タブを閉じると、入力した内容は消えます。</b>何も保存していないので、保存にあたるのはファイルです。<code>generated.nix</code> をダウンロードしておけば、<b class="w">Import configuration.nix</b> で元のとおりに戻せます。<b class="w">Setup</b> の入力欄が戻るのは、その値を書いてあるファイルを読んだときだけです。<code>configuration.nix</code> には書いてありますが、<code>generated.nix</code> にはたいてい書いてありません。</p>
+              <p><b>タブを閉じると、入力した内容は消えます。</b>何も保存していないので、保存にあたるのはファイルです。<code>generated.nix</code> をダウンロードしておけば、<b class="w">Import generated.nix</b> で元のとおりに戻せます。<b class="w">Import configuration.nix</b> のほうはもう半分で、<b class="w">Setup</b> の入力欄を埋め、残りを右の <code>configuration.nix</code> に書き出します。</p>
               <p>タブはいつでも戻れます。上の順序は<b>どこから始めるか</b>の話で、一度離れたら戻れないわけではありません。<a href="https://hatake716.github.io/nixgen/" target="_blank" rel="noreferrer">詳しい説明</a>。</p>
             </div>
           </div>

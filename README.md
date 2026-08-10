@@ -307,32 +307,28 @@ out, so the file stays as short as what you actually asked for.
 
 ### Setup — reading in the configuration.nix you already have
 
-Press **Import configuration.nix** and pick your file. Your current settings
-appear in the form. **The file you choose is only ever read, never written to.**
+Press **Import configuration.nix** and pick your file. **The file you choose is
+only ever read, never written to.**
 
-**The machine's own details go to the Setup tab.** The host name, the user
-account and its groups, the architecture, the boot loader (and the GRUB disk),
-NetworkManager, whether flakes are on, and `system.stateVersion` — those are
-fields on that tab, and the starter `configuration.nix` is what writes them. So
-they move there rather than being written into the module as well; the summary
-lists which ones did. Everything else stays in the module.
+**It lands in `configuration.nix`, not in the module.** That file is your
+machine's own, and the one the Setup tab writes — so that is where your
+settings go:
 
-The rest lands in one of four groups. All four end up in the output, so nothing
-is lost:
-
-| Group | What it means |
+| What was in your file | Where it goes |
 |---|---|
-| **Filled into the form** | Turned into an editable field. Most settings land here |
-| **Verbatim — module structure** | Lines like `imports`. Not settings as such, but removing them would stop your other files from being read, so they are copied across |
-| **Verbatim — an expression** | Things like `lib.mkIf ...`, where the value depends on a condition. A form cannot express that, so it is copied exactly as written |
-| **Verbatim — not in this release** | Settings that were removed or renamed when NixOS moved on |
+| Host name, user and groups, architecture, boot loader, NetworkManager, flakes, `system.stateVersion` | fields on the **Setup** tab, which write those lines |
+| `imports` | merged into the imports list of the `configuration.nix` nixgen writes |
+| everything else | copied into that same file, unchanged, under a comment saying where it came from |
 
-**Copied lines are shown in a different colour** and carry a `# verbatim` note
-at the end, so you can still spot them after downloading.
+The module (`generated.nix`) is left alone: it is for what you add under
+**Options** and **Packages** afterwards. If you add an option there that your
+file also set, the line turns red and the status bar says which — the same
+warning as for anything the Setup tab writes.
 
-Watch the fourth group especially. **A setting that no longer exists will be
-rejected by `nixos-rebuild`.** Keeping it and highlighting it is the point —
-so you notice.
+**A `generated.nix` from an earlier session goes back the other way.** Press
+**Import generated.nix**: its settings become cards in the module, which is
+where they came from. That is the round trip for "closing the tab loses the
+form" — download `generated.nix`, read it back later.
 
 ### When the same setting appears in both files
 

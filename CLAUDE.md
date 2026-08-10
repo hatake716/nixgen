@@ -119,6 +119,16 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   (module structure), verbatim (an expression), verbatim (not in this release).
   Nothing is discarded. If a fifth case appears, add a group rather than dropping
   it.
+- **There are two imports, and which button was pressed decides where the file
+  lands.** A `configuration.nix` is the machine's own file: the Setup fields
+  take what they hold, its `imports` are merged into the list the starter
+  writes, and everything else is carried into that same `configuration.nix`
+  through `render_lines` — the module is untouched. A `generated.nix` is a
+  module and becomes cards. Reading a configuration.nix into the module is what
+  this used to do; it worked, and it put somebody's own file in the wrong one
+  of the two. **Carried paths join `defines`**, so adding one of them under
+  Options afterwards trips the same red marker as a starter line rather than
+  defining it twice in silence.
 - **The machine's own details go to the Setup tab, and go there instead.**
   `fillSetupFrom` in `app.js` takes the host name, the user and its groups, the
   architecture, the boot loader and its GRUB disk, NetworkManager, flakes and

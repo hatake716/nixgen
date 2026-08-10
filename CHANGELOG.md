@@ -9,6 +9,22 @@ option counts.
 
 ## English
 
+### build 2026-08-10z
+
+- **There are two imports now, one per file.** **Import configuration.nix**
+  reads your machine's own file into the `configuration.nix` nixgen writes —
+  the Setup fields take what they hold, the `imports` list is merged, and
+  everything else is copied into that same file under a comment saying where it
+  came from. The module is left alone.
+- **Import generated.nix** is the other direction: a module read back into the
+  module, which is where it came from. That is the round trip for a form lost
+  by closing the tab.
+- Before this, reading a `configuration.nix` filled the *module* with it —
+  which worked, and put your file in the wrong one of the two.
+- Carried lines are on the list the red "also in configuration.nix" markers
+  read, so adding one of them under **Options** afterwards says so rather than
+  quietly defining it twice.
+
 ### build 2026-08-10x
 
 - **A System update button**, last in the header and the only one that changes
@@ -737,6 +753,13 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10z
+
+- **取り込みが2つになりました。ファイルごとに1つです。** **Import configuration.nix** は、このマシン自身のファイルを、nixgen が書く `configuration.nix` に読み込みます。Setup の入力欄が持てるものはそちらへ、`imports` は統合し、**それ以外はすべて同じファイルに、出どころを書いたコメント付きでそのまま写します。** module には触れません。
+- **Import generated.nix** は逆向きです。module を module に読み戻します。もともとそこから出てきたものだからです。タブを閉じて失った入力内容は、この往復で戻せます。
+- これまでは `configuration.nix` を読むと**module のほうに**入っていました。動いてはいましたが、**2つあるファイルのうち間違ったほう**に入れていたことになります。
+- 写した行は、赤い「configuration.nix にもあります」の判定対象に入れてあります。あとから **Options** で同じ項目を足すと、黙って二重定義になるのではなく、その旨が出ます。
 
 ### build 2026-08-10x
 
