@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-11m';
+const BUILD = '2026-08-11n';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -2166,18 +2166,34 @@ async function doRender() {
      this is the catch-all. Enabled with no `type`/`enabled` makes the module
      push a null package into environment.systemPackages, and the build dies
      with `not of type 'package'`, far from the cause. */
+  /* A `type` that is there but says nothing counts as absent. It is a
+     `null or one of …`, so the form holds it as `{ __null: true }` and it
+     renders as `type = null;` — which reads like a decision and is not one.
+     Checking only that the entry exists let exactly that through: enable on,
+     type null, and the module pushes a null package. Reported from a real
+     machine after the first fix, which is why the check is on the value. */
+  const imChosen = p => {
+    const e = findEntry(p);
+    if (!e) return false;
+    const v = e.value;
+    if (v === null || v === undefined) return false;
+    if (typeof v === 'object' && v.__null) return false;
+    return String(typeof v === 'object' ? (v.v ?? '') : v).trim() !== '';
+  };
   if (findEntry('i18n.inputMethod.enable') &&
-      !findEntry('i18n.inputMethod.type') &&
-      !findEntry('i18n.inputMethod.enabled')) {
+      !imChosen('i18n.inputMethod.type') &&
+      !imChosen('i18n.inputMethod.enabled')) {
     notes.push(say(
-      'i18n.inputMethod.enable is on but no input method is chosen. Add ' +
-      'i18n.inputMethod.type (fcitx5, ibus, …), or the build fails with ' +
-      '"not of type \'package\'" — enabling it without a type puts a null ' +
-      'into environment.systemPackages.',
+      'i18n.inputMethod.enable is on but no input method is chosen — ' +
+      'i18n.inputMethod.type is missing or null. Set it (fcitx5, ibus, …), or ' +
+      'the build fails with "not of type \'package\'": with no type the module ' +
+      'puts a null into environment.systemPackages. Picking a language under ' +
+      'Options sets both together.',
       'i18n.inputMethod.enable が有効ですが、入力メソッドが選ばれていません。' +
-      'i18n.inputMethod.type(fcitx5、ibus など)を足してください。無いと ' +
-      'environment.systemPackages に null が入り、"not of type \'package\'" で' +
-      'ビルドが失敗します。'));
+      'i18n.inputMethod.type が無いか null です。値(fcitx5、ibus など)を設定して' +
+      'ください。type が無いとモジュールが environment.systemPackages に null を' +
+      '入れ、"not of type \'package\'" でビルドが失敗します。Options タブで言語を' +
+      '選べば、両方が同時に設定されます。'));
   }
   if (notes.length) setStatus(notes.join('\n'), 'todo');
   else if ($('#status').classList.contains('todo')) setStatus('');

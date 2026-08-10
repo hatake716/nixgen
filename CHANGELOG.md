@@ -9,6 +9,18 @@ option counts.
 
 ## English
 
+### build 2026-08-11n
+
+- **Fixed the same crash arriving a third way: `i18n.inputMethod.type = null;`.**
+  The option is `null or one of …`, so a file can carry it as an explicit
+  null — a line that looks like a decision on the page and is not one. The
+  guard added two builds ago asked whether the entry existed, not what it held,
+  so a carried-in null walked past it and `nixos-rebuild` failed exactly as
+  before. Reported from a real machine, and reproduced by importing such a file.
+- The check is on the value now, and the message names both cases (missing or
+  null) since somebody looking at their file will see a `type` line and
+  reasonably think it is set. Picking a language still fixes it in place.
+
 ### build 2026-08-11m
 
 - **The generated file says which nixgen wrote it.** The header now carries the
@@ -920,6 +932,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-11n
+
+- **同じクラッシュの3つめの経路 `i18n.inputMethod.type = null;` を修正しました。** このオプションは `null or one of …` なので、ファイルは **type を明示的な null として持ち運べます**。画面上は決定が書かれているように見えて、実際には何も選んでいない行です。2つ前のビルドで入れた判定は「その項目が**あるか**」を見ていて「**何を持っているか**」を見ていなかったため、読み込まれた null はすり抜け、`nixos-rebuild` は以前とまったく同じように失敗しました。実機からの報告で、そうしたファイルを取り込んで再現しました。
+- 判定を**値**に対して行うようにし、メッセージも「無い場合」と「null の場合」の両方を挙げるようにしました。自分のファイルを見た人には `type` の行が見えていて、設定済みだと考えるのが自然だからです。言語を選び直せば、その場で直ります。
 
 ### build 2026-08-11m
 

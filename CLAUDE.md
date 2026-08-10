@@ -364,6 +364,13 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   input-method crash was a fixed bug running from a cached copy, and telling
   that apart took evaluating both shapes against the reporter's own revision —
   the header is what makes it one glance instead.
+- **A nullable option that is present and null has said nothing, and a check
+  that asks only whether it exists will read it as an answer.**
+  `i18n.inputMethod.type` is `null or one of …`, so the form holds it as
+  `{ __null: true }` and it renders as `type = null;` — which looks like a
+  decision on the page and is not one. The `enable`-without-a-type guard
+  checked `findEntry`, so a carried-in null walked straight past it and the
+  build failed exactly as before. Guards on nullable options go on the value.
 - **The input method is enabled and chosen as one unit, never `enable` alone.**
   `i18n.inputMethod` has two interfaces — new (`enable = true` + `type =
   "fcitx5"`) and old (`enabled = "fcitx5"`). The module reads `type` to pick
@@ -587,6 +594,7 @@ once in ways nothing else caught.
 | half a dropdown label is missing | a closed select drops what does not fit, and what did not fit was the Japanese |
 | a preset row appears on every tab | the tab switch hid rows by id, and a new row was not on the list |
 | build dies with `not of type 'package'` | `i18n.inputMethod.enable` was written without `type`, pushing a null into systemPackages |
+| the same crash again, from a file that has a `type` line | the line was `type = null;`, and the guard tested that the entry existed rather than what it held |
 | importing while the Setup tab is open throws | the repaint painted `kind=setup` results — options — with the package painter |
 | the console fills with 404s on a package list | an `<img>` per row asked for icons the server had already said nothing about |
 | the downloaded file is one edit behind the screen | rendering is debounced, and nothing waited for it |
