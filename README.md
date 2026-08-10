@@ -487,9 +487,11 @@ and names the `hyprland-uwsm` session. The unit **names its own PATH**. A NixOS 
 start anything it lists; the three compositors do not agree on what they put in
 the user manager, so the PATH is written out rather than inherited.
 
-**Hyprland and niri also get `foot`** —
-neither ships a terminal, so their default keybinding would otherwise open
-nothing. Sway already brings foot and wmenu, and i3 brings xterm and dmenu.
+**Hyprland and niri each get a terminal** — neither ships one, so their
+default keybinding would otherwise open nothing. They get different ones
+because their default configs ask for different ones: **Hyprland names `kitty`
+outright**, niri is happy with `foot`. Sway already brings foot and wmenu, and
+i3 brings xterm and dmenu.
 
 None of the three ships a greeter, so **sddm goes in with them, in Wayland
 mode** — the machine boots to a login screen with the compositor in the session

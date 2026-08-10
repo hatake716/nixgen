@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-11t';
+const BUILD = '2026-08-11u';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -878,14 +878,14 @@ const DESKTOPS = {
     ['services.displayManager.sddm.wayland.enable'],
   ],
     autostart: 'noctalia-shell',
-    packages: ['noctalia-shell', 'foot'],
+    packages: ['noctalia-shell', 'kitty'],
     note: 'sddm goes in with it, in Wayland mode, so the machine boots to a ' +
           'login screen, and XWayland is switched on for X11 applications. ' +
           'UWSM is on and the session is hyprland-uwsm: that is what starts ' +
           'graphical-session.target, which the noctalia unit is bound to. ' +
-          'foot is the terminal — Hyprland ships none, and the default ' +
-          'keybinding opens one. Delete any of them if you start from a text ' +
-          'console or use greetd instead.',
+          'kitty is the terminal — Hyprland ships none, and its default ' +
+          'keybinding asks for kitty by name. Delete any of them if you start ' +
+          'from a text console or use greetd instead.',
     note_ja: 'ログイン画面として sddm を Wayland モードで入れてあります。' +
              '起動するとログイン画面が出て、セッション一覧に Hyprland が' +
              '並びます。X11 のアプリ用に XWayland も有効にしました。これは' +
@@ -893,9 +893,10 @@ const DESKTOPS = {
              '分かるように明示しています。UWSM を有効にし、セッションは ' +
              'hyprland-uwsm にしました。graphical-session.target を張るのが ' +
              'UWSM で、noctalia の user service はその target に紐づくためです。' +
-             '端末は foot です。Hyprland は端末を1つも持たないので、既定の' +
-             'キー割り当てで開く先がありません。テキストコンソールから起動する' +
-             '場合や greetd を使う場合は、該当のカードを削除してください。' },
+             '端末は kitty です。Hyprland は端末を1つも持たず、既定のキー' +
+             '割り当てが名指しで kitty を開こうとするためです。テキスト' +
+             'コンソールから起動する場合や greetd を使う場合は、該当の' +
+             'カードを削除してください。' },
   /* A compositor is a compositor and nothing else — no panel, no launcher, no
      notifications — so all three Wayland ones bring noctalia-shell, which is
      the piece that puts those on top. It is a package rather than a setting:
@@ -1134,8 +1135,10 @@ function dropAutostart(keep) {
    visible half.
 
    Only names a `DESKTOPS` preset puts there are candidates, and only when the
-   desktop being chosen does not want them too: foot belongs to Hyprland and
-   niri both, so going between those two must not take it out and put it back.
+   desktop being chosen does not want them too — noctalia-shell belongs to all
+   three compositors, so going between them must not take it out and put it
+   back. The terminals differ: niri's default config is happy with foot, and
+   Hyprland's asks for kitty by name, which is why each names its own.
    A name the user typed into the card themselves is indistinguishable from
    one a preset wrote, so the status bar says what went — the same courtesy the
    greeters get. */
