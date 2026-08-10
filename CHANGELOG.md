@@ -9,6 +9,19 @@ option counts.
 
 ## English
 
+### build 2026-08-10u
+
+- **Picking niri installs `noctalia-shell` with it.** niri is a compositor and
+  nothing else — no panel, no launcher, no notifications — and noctalia is what
+  puts those on top. It is a package rather than a setting, since nothing in
+  the option catalogue mentions it, so it lands in
+  `environment.systemPackages` as a line you can see and delete.
+- The name is looked up in the package index first, like everything in the app
+  categories: on a channel without it, nothing is written rather than a line
+  that fails at `nixos-rebuild`.
+- Evaluated as an actual NixOS system: `niri-26.04` as the session,
+  `noctalia-shell-4.7.6` in the system packages.
+
 ### build 2026-08-10t
 
 - **A Shell dropdown**, between Kernel and Desktop: bash, zsh or fish.
@@ -678,6 +691,12 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-10u
+
+- **niri を選ぶと `noctalia-shell` も一緒に入ります。** niri はコンポジタそのものだけで、**パネルもランチャーも通知もありません。** noctalia はその上に載せる部分です。設定ではなく**パッケージ**(オプションのカタログには何もありません)なので、`environment.systemPackages` に**目に見える1行**として入り、削除もできます。
+- 名前は**先にパッケージ索引で照合**します。アプリのカテゴリと同じ方式です。これが無いチャンネルでは、`nixos-rebuild` で失敗する行を書くのではなく**何も書きません。**
+- **実際の NixOS システムとして評価**しました。セッションは `niri-26.04`、システムのパッケージに `noctalia-shell-4.7.6` が入ります。
 
 ### build 2026-08-10t
 

@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-10t';
+const BUILD = '2026-08-10u';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -830,9 +830,16 @@ const DESKTOPS = {
              'ログインして Hyprland を実行するか、Options タブで' +
              'services.displayManager.sddm.enable(wayland を有効に)や greetd を' +
              '足してください。' },
+  /* niri is a compositor and nothing else — no panel, no launcher, no
+     notifications. noctalia-shell is the piece that puts those on top of it,
+     and it is a package rather than a setting: nothing in the option
+     catalogue mentions it. Added as an ordinary line in
+     environment.systemPackages, which the status bar says and the card shows,
+     so it can be taken out like anything else. */
   niri: { label: 'niri', roles: [
     ['programs.niri.enable'],
   ],
+    packages: ['noctalia-shell'],
     note: 'niri brings no greeter: log in on a text console and run niri, or ' +
           'add one — services.displayManager.sddm.enable with its wayland ' +
           'option, or greetd — under Options. X11 applications need ' +
@@ -886,6 +893,20 @@ async function addDesktop(key) {
     const used = await addWithValue(candidates, true);
     used ? added.push(used) : missing.push(candidates[0]);
   }
+  /* A desktop that needs a package as well as its settings. Looked up rather
+     than written, the way the app categories are: a name this channel does not
+     have is absent from the answer and therefore from the file, instead of
+     arriving as a line that fails at nixos-rebuild. */
+  const pkgs = [];
+  if (d.packages && d.packages.length) {
+    const url = '/api/packages?attrs=' + encodeURIComponent(d.packages.join(','));
+    const { results } = await fetch(url).then(r => r.json());
+    for (const row of results || []) {
+      await addPackage(row.attr, row.unfree);
+      pkgs.push(row.attr);
+    }
+    d.packages.filter(a => !pkgs.includes(a)).forEach(a => missing.push(a));
+  }
   renderEditor();
   pushRender();
   if (missing.length) {
@@ -895,11 +916,15 @@ async function addDesktop(key) {
       `${d.label}: ${added.length}件を追加しましたが、このリリースには ` +
       `${missing.join('、')} がありません。適用する前に結果を確認してください。`), 'bad');
   } else {
+    const extra = pkgs.length
+      ? ` ${pkgs.join(', ')} went into environment.systemPackages with it.` : '';
+    const extraJa = pkgs.length
+      ? `あわせて ${pkgs.join('、')} を environment.systemPackages に入れました。` : '';
     setStatus(say(
       `${d.label}: ${added.length} settings added. Change or remove any of ` +
-      `them like the rest.` + (d.note ? ' ' + d.note : ''),
+      `them like the rest.` + extra + (d.note ? ' ' + d.note : ''),
       `${d.label}: ${added.length}件の設定を追加しました。他の項目と同じように、` +
-      `変更も削除もできます。` + (d.note_ja ? d.note_ja : '')), 'ok');
+      `変更も削除もできます。` + extraJa + (d.note_ja ? d.note_ja : '')), 'ok');
   }
 }
 

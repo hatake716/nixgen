@@ -381,6 +381,15 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   ordinary option cards rather than writing into the starter file — the starter
   has no catalogue to check against, and a preset nobody can see or edit is the
   wrong shape for this tool.
+- **A desktop preset may need a package, and it is looked up like any other.**
+  niri is the only one so far: it is a compositor and nothing else, so
+  `packages: ['noctalia-shell']` puts the panel, launcher and notifications on
+  top. Nothing in the option catalogue mentions noctalia, which is why it is a
+  package rather than a role — and it goes through `/api/packages?attrs=`
+  first, so a channel without it gets nothing written rather than a line that
+  fails at `nixos-rebuild`. The status bar names what went into
+  `environment.systemPackages` alongside the settings; installing something
+  without saying so is the one thing this preset must not do.
 - **A window manager is not a desktop, and a compositor is not either.**
   `DESKTOPS` holds ten, in three shapes: X plus a greeter plus the desktop
   (GNOME, Plasma, Xfce, Cinnamon, LXQt), the same three with a window manager
