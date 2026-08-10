@@ -353,7 +353,7 @@ bash には `pkgs.bash` ではなく **`pkgs.bashInteractive`** を指定しま�
 
 **noctalia-shell はセッションと一緒に起動します。** コンポジタはパネルもランチャーも持たないのでプリセットが1つ入れますが、**誰も起動しないシェルはストアに置かれているだけ**なので、`graphical-session.target` に紐づけた user service も一緒に書きます。3つともこの target に到達します。sway は既定設定が `sway-session.target` を起動し、その target がこれに `bindsTo` しています。niri は自前の systemd ユニットを同梱しています。Hyprland は UWSM 経由で到達するので、プリセットが `withUWSM` を有効にし、セッション名も `hyprland-uwsm` にしています。このユニットは **PATH を自分で書きます。** NixOS の user service には `PATH=coreutils:findutils:…` だけが与えられるため、シェルは立ち上がっても**一覧に出したアプリを起動できません**。3つのコンポジタは user manager に入れる内容が揃っていないので、継承ではなく明示しています。
 
-**Hyprland と niri には `foot` も入れます。** どちらも端末を1つも持たず、既定のキー割り当てで開く先が無いためです。sway は foot と wmenu を、i3 は xterm と dmenu を既に持っています。
+**Hyprland と niri には端末も入れます。** どちらも端末を1つも持たず、既定のキー割り当てで開く先が無いためです。**入れる端末は別々**です。既定設定が求めるものが違うためで、**Hyprland は `kitty` を名指しします**。niri は `foot` で動きます。sway は foot と wmenu を、i3 は xterm と dmenu を既に持っています。
 
 3つともログイン画面を持たないので、**sddm を Wayland モードで一緒に入れます。** 起動するとログイン画面が出て、セッション一覧にそのコンポジタが並びます。効いているのは `services.displayManager.sddm.wayland.enable` のほうです。**両方の設定ファイルをビルドして比べました。** 有効なら sddm の設定は `DisplayServer=wayland` になり、ログイン画面は weston の上で動きます。無効だと `DisplayServer=x11` で、**他に何もXを使わないマシンの前にX11のログイン画面だけが立つ**ことになります。テキストコンソールから起動する場合や `greetd` を使う場合は、この2枚のカードを削除してください。
 

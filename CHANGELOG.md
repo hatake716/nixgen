@@ -9,6 +9,15 @@ option counts.
 
 ## English
 
+### build 2026-08-11u
+
+- **Hyprland takes `kitty` rather than `foot`.** Its default config asks for
+  kitty by name, so the terminal keybinding did nothing on a machine that had
+  foot instead — found by running it, since the package ships no config file to
+  read it out of. niri keeps foot, which works there.
+- Switching between the two swaps the terminal and keeps noctalia-shell, since
+  the cleanup only removes what the incoming desktop does not also want.
+
 ### build 2026-08-11t
 
 - **Fixed: the broken file could not be read back in.** A duplicate attribute
@@ -1016,6 +1025,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-11u
+
+- **Hyprland に入れる端末を `foot` から `kitty` に変えました。** Hyprland の既定設定は **kitty を名指し**するため、foot が入っているマシンでは端末のキー割り当てが何も開きませんでした(パッケージには読み取れる設定ファイルが同梱されていないので、実際に動かして分かったことです)。niri は foot のままです。そちらでは動いています。
+- この2つを行き来すると**端末だけが入れ替わり**、noctalia-shell は残ります。掃除は「新しいデスクトップも必要とするもの」は外さないためです。
 
 ### build 2026-08-11t
 

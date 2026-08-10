@@ -499,9 +499,12 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
 - **A terminal is part of "it works", and two of the ten ship none.** The
   module defaults were read out of evaluated systems: sway brings foot and
   wmenu, i3 brings xterm and dmenu, **Hyprland and niri bring nothing** — so
-  their default keybinding opens nothing and the desktop looks broken. Both
-  get `foot`, the one sway already uses. Check this for a new compositor
-  rather than assuming its module is furnished.
+  their default keybinding opens nothing and the desktop looks broken. They get
+  **different** terminals, because a default config names the one it wants:
+  Hyprland's asks for `kitty` by name (found by running it — the package ships
+  no config file to grep), niri works with `foot`. Check both halves for a new
+  compositor: whether its module furnishes a terminal, and which one its own
+  default config calls for.
 - **A window manager is not a desktop, and a compositor is not either.**
   `DESKTOPS` holds ten, in three shapes: X plus a greeter plus the desktop
   (GNOME, Plasma, Xfce, Cinnamon, LXQt), the same three with a window manager
