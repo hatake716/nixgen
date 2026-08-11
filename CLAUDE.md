@@ -1018,9 +1018,17 @@ harnesses cannot notice.
   and every flake reference names the branch
   (`github:hatake716/nixgen/development`), because a page whose commands
   install something other than what the page describes is worse than no page.
-  **Those four command sites and the note must not travel to `main` in a
-  merge** — check `git grep -n 'nixgen/development' README.md README.ja.md`
-  after merging and take them back out. `docs/index.html` is deliberately left
+  **None of that may travel to `main` in a merge** — the check is
+  `git grep -n 'nixgen/development' README.md README.ja.md` after merging,
+  which must return nothing; the grep is the authority, not a count of sites,
+  because the sites have already multiplied once. Two of them are prose, not
+  commands — the branch note and the upgrade/remove paragraph — and were
+  *reworded* on `main` rather than stripped, so on `main` they read as
+  main-native text (the CHANGELOG intro and the `v1.0.0-dev.1` heading intro
+  got the same treatment). The first merge did this by hand; later merges
+  keep `main`'s wording automatically as long as `development` does not edit
+  those same lines, which is exactly when the grep will catch it.
+  `docs/index.html` is deliberately left
   alone: GitHub Pages serves the homepage from `main`, so a branch-specific
   command there would be published to everybody.
 - Figures appear in several files and drift. Current: **24,557 options**,
