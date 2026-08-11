@@ -394,7 +394,7 @@ Intel には VAAPI ドライバも入ります。これが無いと動画のハ�
 
 `services.xserver.videoDrivers` を設定するのは NVIDIA だけです。既定は `modesetting` で、現行カーネルの AMD と Intel ではそれが正解だからです。
 
-**NVIDIAのドライバは unfree です。** 選ぶとその旨を表示し続けます。`nixpkgs.config.allowUnfree = true;` を設定しないと**ビルドが拒否されます。**
+**NVIDIA のドライバは unfree なので、選ぶと `nixpkgs.config.allowUnfree = true;` も一緒に入ります。** この行が無いとビルドはファイルを拒否します。AMD や Intel に切り替えると NVIDIA のカード一式は外れますが、`allowUnfree` のカードは**他に必要とするものが無いときだけ**外れます。vscode や Steam なども unfree なので、パッケージ一覧にあればカードは残り、どれが理由かをステータス欄が名指しします。
 
 ### Options — 言語を選ぶ
 

@@ -607,8 +607,12 @@ proprietary kernel module, which works on every card the driver supports.
 `modesetting`, and on any current kernel that is the right answer for AMD and
 Intel.
 
-**The NVIDIA driver is unfree.** Picking it says so and keeps saying so — set
-`nixpkgs.config.allowUnfree = true;` or the build refuses.
+**The NVIDIA driver is unfree, so picking it sets
+`nixpkgs.config.allowUnfree = true;` with it** — without that line the build
+refuses the file. Switching to AMD or Intel takes the NVIDIA cards out again,
+and the `allowUnfree` card with them **only when nothing else needs it**:
+vscode, Steam and their like are unfree too, and if one is in your package
+list the card stays and the status bar names which.
 
 ### Options — picking a language
 

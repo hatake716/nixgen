@@ -409,6 +409,18 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   gets a VAAPI driver because decoding does not work without one, AMD needs
   nothing beyond mesa, and `hardware.nvidia.open = false` is set rather than
   left computed — `true` is wrong on anything before Turing.
+- **NVIDIA brings `allowUnfree` with it, and takes it away carefully.** The
+  driver is unfree, so the preset writes `nixpkgs.config.allowUnfree = true`
+  as a flat card — the one output that could not build as generated, now can,
+  which was evaluated. Switching GPU drops the previous card's pieces
+  (`hardware.nvidia.*`, `videoDrivers = ["nvidia"]`, intel's VAAPI extra) but
+  **only when the value is exactly what the preset wrote**, and the comparison
+  must unwrap nullables first: `hardware.nvidia.open` is stored as
+  `{__null:false, v:false}`, and comparing that to `false` left the card alive
+  through every switch. `allowUnfree` leaves only when `state.unfree` finds
+  nothing still listed — vscode or Steam in the list keeps it, named in the
+  status bar. Both unfree notes in `doRender` stand down when the rendered
+  text already sets the switch.
 - **A warning that must survive belongs in `doRender`, not in the preset that
   raised it.** The NVIDIA driver is unfree and the existing reminder cannot see
   it, since that one reads `environment.systemPackages` and this arrives

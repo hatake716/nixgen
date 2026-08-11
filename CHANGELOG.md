@@ -9,6 +9,22 @@ option counts.
 
 ## English
 
+### build 2026-08-12g
+
+- **Picking NVIDIA sets `nixpkgs.config.allowUnfree = true` with it.** The
+  driver is unfree, and the preset's output was the one file that refused to
+  build as generated — it builds now, evaluated as a real system. The old
+  warning stands down once the switch is actually in the file.
+- **Switching GPU cleans up after the previous one.** NVIDIA -> AMD used to
+  keep `hardware.nvidia.*` and `videoDrivers = ["nvidia"]` — an NVIDIA
+  configuration wearing an AMD label. Only values the preset wrote are
+  removed, and the comparison unwraps nullables first, because
+  `hardware.nvidia.open = false` is stored wrapped, never matched plain
+  `false`, and survived every switch.
+- **`allowUnfree` leaves only when nothing else needs it.** vscode, Steam and
+  their like are unfree too; a listed one keeps the card, and the status bar
+  names which.
+
 ### Verification pass, 2026-08-12
 
 A full sweep ahead of calling this stable. **Nothing needed fixing** — the
@@ -1188,6 +1204,12 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-12g
+
+- **NVIDIA を選ぶと `nixpkgs.config.allowUnfree = true` も一緒に入ります。** ドライバが unfree のため、このプリセットの出力は**生成そのままではビルドできない唯一のもの**でした。いまは通ります(実システムとして評価済み)。スイッチが実際にファイルへ入ると、従来の警告は引っ込みます。
+- **GPU を切り替えると、前の設定を掃除するようにしました。** これまで NVIDIA → AMD にしても `hardware.nvidia.*` と `videoDrivers = ["nvidia"]` が残り、**AMD の顔をした NVIDIA 構成**ができていました。外すのはプリセット自身が書いた値だけです。比較の際は nullable のラッパーを剥がします — `hardware.nvidia.open = false` は素の `false` と一致せず、どの切り替えでも生き残っていました。
+- **`allowUnfree` が外れるのは、他に必要とするものが無いときだけです。** vscode や Steam なども unfree なので、一覧に残っていればカードは残り、どれが理由かをステータス欄が名指しします。
 
 ### 検証パス、2026-08-12
 
