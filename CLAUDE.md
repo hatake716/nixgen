@@ -919,7 +919,7 @@ harnesses cannot notice.
   and `cp --backup=numbered` leaves the replaced files as `.~1~` beside the new
   ones. `hardware-configuration.nix` is not in the archive and is never named.
 - **The command upgrades itself to the exact file, and the upgrade is
-  read-only.** (development only, for now.) The searching loop takes the
+  read-only.** The searching loop takes the
   first directory holding the name, so a stale same-named archive wins over
   the fresh download — and when the browser dodges the collision by saving
   `name (1).tar.gz`, the loop cannot see the fresh file at all and unpacks

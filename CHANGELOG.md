@@ -18,8 +18,8 @@ reached it yet.
 
 ## v1.0.0-dev.3 — 2026-08-12
 
-On `development`, ahead of `main`. Everything between this heading and
-`v1.0.0-rc.2.1` is what it adds.
+Landed on `development` first, merged into `main` since. Everything between
+this heading and `v1.0.0-rc.2.1` is what it added.
 
 ### build 2026-08-12q
 
@@ -1585,7 +1585,7 @@ three of these six showed up in only one of the two.
 
 ## v1.0.0-dev.3 — 2026-08-12
 
-`development` ブランチの版で、`main` より先行しています。この見出しから `v1.0.0-rc.2.1` までが、この版で加わった内容です。
+`development` ブランチに先に入り、その後 `main` に統合された内容です。この見出しから `v1.0.0-rc.2.1` までが、この版で加わった内容です。
 
 ### build 2026-08-12q
 
