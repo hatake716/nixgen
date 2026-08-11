@@ -16,6 +16,15 @@ it is part of `main` now.
 
 ## English
 
+## v1.0.0-rc.2.2 — 2026-08-12
+
+`v1.0.0-rc.2.1` plus one improvement to System update: the command it hands
+over now names the archive that was actually downloaded, rather than
+searching the likely folders and taking the first hit — which could unpack a
+same-named archive from an earlier day, or miss the fresh one entirely when
+the browser saved it as `name (1).tar.gz`. The details are under
+`v1.0.0-dev.3` below, which is exactly what this tag adds.
+
 ## v1.0.0-dev.3 — 2026-08-12
 
 Landed on `development` first, merged into `main` since. Everything between
@@ -1582,6 +1591,10 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+## v1.0.0-rc.2.2 — 2026-08-12
+
+`v1.0.0-rc.2.1` に、System update の改善を1つ加えた版です。渡されるコマンドが、**実際にダウンロードされた書庫を直接指定する**ようになりました。これまではありそうなフォルダを探して最初の一致を使っていたため、以前の同じ名前の書庫を展開してしまったり、ブラウザが `name (1).tar.gz` の名前で保存した場合に新しいほうを見つけられなかったりする可能性がありました。詳細はすぐ下の `v1.0.0-dev.3` にあり、このタグで加わるのはちょうどその内容です。
 
 ## v1.0.0-dev.3 — 2026-08-12
 
