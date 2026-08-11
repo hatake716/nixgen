@@ -113,7 +113,10 @@ nix eval --json '...config.environment.sessionVariables' --apply 'v: v.XKB_DEFAU
 
 1. **二形状衝突** — 同じ設定が「attrs ブロック」「フラット行」「取り込みで平坦化された leaf」の
    複数形で共存すると `attribute … already defined`(**パーサ**が拒否するので Check syntax で捕まる)。
-   これまで3変種。プリセットが attrs オプションに書くときは**フラット行**+`dropFromAncestors` が現行の答え。
+   これまで4変種。プリセットが attrs オプションに書くときは**フラット行**+`dropFromAncestors` が現行の答え。
+   第4変種(2026-08-12o で修正)は取り込み側: 置換がパスの完全一致比較だったため、
+   インポータの畳み込み/平坦化で形が変わった同じ葉をすり抜けた。プリセット入りのフォームに
+   自分の generated.nix を読み戻すと再現した。`intoModule` がキー単位で双方向に突き合わせるのが現行の答え。
 2. **nullable のラッパー** — フォーム内部では `{__null:false, v:…}`。存在チェックや素の値比較は
    **必ずすり抜ける**(type=null 事件、GPU 掃除のカード残留)。ガードも比較も**値**に対して書く。
 3. **同名別ビルド** — `pkgs.sway` と module が入れる sway は別物(isNixOS パッチ差)。

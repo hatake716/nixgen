@@ -576,6 +576,19 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   which both `setRawCard` and `dropRawCard` run. The fixed case is the
   machine's own flow: import a file carrying the flat line, switch desktops,
   re-pick the language.
+- **The import must reconcile shapes, not only exact paths.** "Import replaces
+  what it lands on" was compared by rendered path alone, and the importer
+  changes shape on the way in — a flat line folds into an attrs card, an
+  attribute set flattens into leaves — so importing nixgen's own
+  `generated.nix` into the session that produced it left the preset's flat
+  `XKB_DEFAULT_LAYOUT` card beside the file's folded block: the fourth
+  variation of the two-shapes collision, found by running the eleven-point
+  sweep on a form that already held the presets. `intoModule` now runs the
+  same key-wise pass in both directions before placing arrivals — each
+  arriving card's key is dropped from ancestor attrs cards
+  (`dropFromAncestors`), and an arriving attrs card drops the flat cards for
+  the keys it holds. Keys the arriving card does not hold are left alone,
+  because nesting on different keys is ordinary Nix.
 - **What a preset writes under an attrs option is a flat line, not a block.**
   An attrs card (`environment.etc = { … }`) sitting beside a flattened copy of
   itself — which is exactly what Import generated.nix produces — is `attribute
@@ -816,6 +829,7 @@ once in ways nothing else caught.
 | the console fills with 404s on a package list | an `<img>` per row asked for icons the server had already said nothing about |
 | the downloaded file is one edit behind the screen | rendering is debounced, and nothing waited for it |
 | `attribute … already defined` after reading a file in | import joined the form instead of replacing what it landed on |
+| the same error from importing nixgen's own generated.nix back in | the replace step compared exact rendered paths, and the importer changes shape — a flat line folds into an attrs card, a set flattens into leaves — so one leaf lived in two cards |
 | the first screen is blank and says nothing | one failed fetch ended the boot sequence before the Setup pane was shown |
 
 ---

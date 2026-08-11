@@ -9,6 +9,28 @@ option counts.
 
 ## English
 
+### build 2026-08-12o
+
+- **Fixed: an import could leave one leaf defined in two shapes, and the file
+  refused to parse.** The importer changes shape on the way in — a flat line
+  in the file folds into an attrs card on its parent option, an attribute set
+  flattens into one card per leaf — while the replace-on-import sweep compared
+  exact rendered paths, so the file's card and the form's card could hold the
+  same attribute under different paths and both survive. Importing nixgen's
+  own `generated.nix` back into the session that produced it was enough: the
+  language preset's flat `environment.sessionVariables.XKB_DEFAULT_LAYOUT`
+  card stayed beside the file's folded block, Check syntax reported
+  `attribute … already defined`, and re-picking the desktop healed only the
+  unit and etc halves. The fourth variation of the two-shape collision.
+- The reconciliation is now by key, in both directions, the way
+  `dropFromAncestors` already did it for the presets: an arriving card clears
+  its own key out of ancestor attrs cards, and an arriving attrs card clears
+  the flat cards for the keys it holds. Nesting on *different* keys is
+  ordinary Nix and is left alone — `nix.settings = { experimental-features =
+  …; }` beside `nix.settings.cores` still parses and still survives an
+  import, which was re-verified along with the full eleven-point browser
+  sweep on this build.
+
 ### Documentation, 2026-08-12c
 
 - **Added `DEBUGGING.md`**: a handover for whoever debugs next. How the
@@ -1327,6 +1349,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-12o
+
+- **修正: 取り込みで1つの葉が2つの形で定義され、ファイルが解析不能になることがありました。** インポータは読み込みの過程で形を変えます — ファイル内のフラット行は親オプションの attrs カードに畳み込まれ、属性セットは葉ごとのカードに平坦化されます。一方、取り込み時の置換はレンダリングパスの**完全一致**で比較していたため、ファイル側のカードとフォーム側のカードが同じ属性を別のパスで持ち、両方が生き残れました。nixgen 自身の `generated.nix` を、それを作ったセッションに読み戻すだけで再現します: 言語プリセットが書いたフラットな `environment.sessionVariables.XKB_DEFAULT_LAYOUT` カードがファイル由来の畳み込みブロックの隣に残り、Check syntax は `attribute … already defined` を報告し、デスクトップの選び直しで治るのはユニットと etc の側だけでした。二形状衝突の**第4変種**です。
+- 突き合わせは**キー単位・双方向**になりました。プリセットで既に使っていた `dropFromAncestors` と同じやり方です: 届いたカードは自分のキーを祖先の attrs カードから消し、届いた attrs カードは自分が持つキーのフラットカードを消します。**異なる**キーの入れ子は普通の Nix なのでそのまま残します — `nix.settings = { experimental-features = …; }` と `nix.settings.cores` の同居は今も解析でき、取り込みも生き延びます。このビルドでブラウザ検査11項目の全走とあわせて再検証済みです。
 
 ### ドキュメント、2026-08-12c
 

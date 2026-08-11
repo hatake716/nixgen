@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-12n';
+const BUILD = '2026-08-12o';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -3170,7 +3170,39 @@ async function intoModule(f, r, incoming, toSetup, opts = {}) {
     state.selected.delete(key);
     if (arriving.has(path)) replaced.push(path);
   }
+  /* Same leaf, different shape. A flat line in the file folds into an attrs
+     card on its parent option, and an attribute set in the file flattens into
+     one card per leaf — so the file's card and the form's card can render the
+     same attribute under different paths, and the exact-path sweep above walks
+     past both. The two shapes then define one leaf twice and Nix refuses the
+     file, which is how importing nixgen's own output used to break the form
+     it came from. Reconcile by key, both directions: the arriving card's own
+     key is cleared out of ancestor attrs cards, and an arriving attrs card
+     clears the flat cards for the keys it holds. Nesting on *different* keys
+     is ordinary Nix and is left alone. */
+  for (const x of kept) {
+    const segs = x.entry.segments || segmentsFor(x.entry);
+    if (dropFromAncestors(segs)) replaced.push(segs.join('.'));
+    let v = x.entry.value;
+    if (v && typeof v === 'object' && !Array.isArray(v) && '__null' in v) {
+      v = v.__null ? null : v.v;
+    }
+    if (v && typeof v === 'object' && !Array.isArray(v)) {
+      const base = segs.join('.');
+      for (const k of Object.keys(v)) {
+        for (const [key2, e2] of [...state.selected]) {
+          const q = resolvePath(e2);
+          if (q === base + '.' + k || q.startsWith(base + '.' + k + '.')) {
+            state.selected.delete(key2);
+            replaced.push(q);
+          }
+        }
+      }
+    }
+  }
   for (const x of kept) state.selected.set(freeKey(x.path), x.entry);
+  // One leaf can be replaced through more than one route above; say it once.
+  const replacedOnce = [...new Set(replaced)];
   state.lastTouched = null;
 
   const notes = [];
@@ -3231,11 +3263,11 @@ async function intoModule(f, r, incoming, toSetup, opts = {}) {
                '失われたものはありません。module から外したのは、そのままだと' +
                '2つのファイルに同じ設定が入るからです。' });
   }
-  if (replaced.length) {
+  if (replacedOnce.length) {
     notes.push({ cls: 'warn',
-      title: `${replaced.length} setting(s) already in the form were replaced`,
-      title_ja: `フォームにあった${replaced.length}件を置き換えました`,
-      list: replaced,
+      title: `${replacedOnce.length} setting(s) already in the form were replaced`,
+      title_ja: `フォームにあった${replacedOnce.length}件を置き換えました`,
+      list: replacedOnce,
       body: 'The file you just read is what they say now. Two cards for one ' +
             'attribute cannot both be written — NixOS refuses a file that ' +
             'defines the same one twice.',
