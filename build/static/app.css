@@ -543,3 +543,13 @@ pre.nix .clash { border-left: 2px solid #a34545; margin-left: -2px; padding-left
 .btn:focus-visible, .tab:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 2px;
 }
+
+/* The Setup notes carry an appended Japanese line (static ones as a .ja span,
+   dynamic ones as a \n from jaLine) — both render as their own line. */
+.setupform .note .ja { display: block; margin-top: 3px; }
+/* Only the notes that app.js writes need \n rendered; the static ones are
+   wrapped in the HTML source, and pre-line would turn that wrapping into
+   hard breaks mid-sentence. */
+#s-release-note, #s-pin-note, #s-unused, #s-release-progress,
+.setupform .warn { white-space: pre-line; }
+.setupform .btn { white-space: normal; text-align: left; }

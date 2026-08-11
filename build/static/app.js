@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-12i';
+const BUILD = '2026-08-12j';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -265,6 +265,11 @@ async function loadReleases() {
    use — it grows by one file, about 37 MB, for each channel that has ever
    been picked and has since dropped off. Nothing else would ever remove them,
    and until now nothing said they were there. */
+/* The dynamic Setup notes carry both languages the way the status bar does:
+   the Japanese is one appended line (white-space: pre-line renders the \n),
+   composed as a whole sentence rather than mirrored fragment by fragment. */
+function jaLine(node, text) { node.append('\n' + text); }
+
 function syncUnused() {
   const note = $('#s-unused');
   const btn = $('#btn-prune');
@@ -282,8 +287,10 @@ function syncUnused() {
   });
   note.append(`, taking ${mb} MB. Nothing here can select ${many ? 'them' : 'it'} ` +
               `any more, and rebuilding is all it takes to get ${many ? 'them' : 'it'} back.`);
+  jaLine(note, `${many ? list.length + '個の' : ''}索引が残っています(計${mb} MB)。` +
+               `もうここから選ぶことはできず、必要になれば再構築で戻せます。`);
   btn.hidden = false;
-  btn.textContent = `Remove ${many ? 'them' : 'it'} (${mb} MB)`;
+  btn.textContent = `Remove ${many ? 'them' : 'it'} (${mb} MB) — 削除する`;
 }
 
 $('#btn-prune').addEventListener('click', async () => {
@@ -355,17 +362,22 @@ function syncPin() {
       : 'flake.lock still pins your first build, so it can be repeated. But the ' +
         'branch moves on, and a setting you picked here may not be in what you ' +
         'build later.');
+    jaLine(note, daily
+      ? 'flake.lock は初回ビルドを固定しますが、unstable は明日には別のツリーです。左のオプションとビルド結果は数日でずれます。両者を一致させるのはコミット指定のほうです。'
+      : 'flake.lock は初回ビルドを固定するので再現できます。ただしブランチは進むため、ここで選んだ設定が後のビルドに無いことがあります。');
     return;
   }
   if (state.starter.revision) {
     note.className = 'note';
     note.append('What you were offered and what you build are the same tree. ' +
                 'This is the safer of the two.');
+    jaLine(note, '提示されたオプションとビルドされるものが同じツリーになります。2つのうち安全なのはこちらです。');
     return;
   }
   note.className = 'warn';
   note.append('No commit was available, so flake.nix names the branch instead. ' +
               'Building the index for this release records one.');
+  jaLine(note, 'コミットが取得できなかったため、flake.nix はブランチを指します。このリリースの索引を作るとコミットが記録されます。');
 }
 
 /* The flake follows one channel; the options you are picking from come from the
@@ -395,8 +407,14 @@ function syncRelease() {
         ? ' Unstable has moved since; rebuild before trusting the list.'
         : ' Worth rebuilding.');
     }
+    jaLine(note, `左のオプション一覧はこのチャンネルから作られています。` +
+      (state.ageDays == null ? '' :
+        `一覧の公開は${state.ageDays === 0 ? '今日' : state.ageDays === 1 ? '昨日' : state.ageDays + '日前'}です。`) +
+      (state.stale ? (want === state.unstable
+        ? 'その後 unstable は動いています。作り直してから信用してください。'
+        : '作り直す価値があります。') : ''));
     btn.hidden = !state.stale;
-    btn.textContent = `Rebuild the ${want} index`;
+    btn.textContent = `Rebuild the ${want} index — 索引を作り直す`;
     return;
   }
   note.className = 'note';
@@ -405,10 +423,11 @@ function syncRelease() {
   note.append(', but the options on the left are still from ');
   note.append(ident(state.indexed));
   note.append('.');
+  jaLine(note, `左のオプション一覧はまだ ${state.indexed} のものです。`);
   btn.hidden = false;
   btn.textContent = ready
-    ? `Switch the options to ${want}`
-    : `Build the ${want} index (a few minutes)`;
+    ? `Switch the options to ${want} — 一覧を切り替える`
+    : `Build the ${want} index (a few minutes) — 索引を作る(数分)`;
 }
 
 $('#s-release').addEventListener('change', () => {
@@ -495,7 +514,8 @@ function checkName(id, fallback) {
   input.classList.toggle('bad', !ok);
   warn.hidden = ok;
   if (!ok) warn.textContent =
-    `Letters, digits, - and _ only, starting with a letter. Using "${fallback}" for now.`;
+    `Letters, digits, - and _ only, starting with a letter. Using "${fallback}" for now.\n` +
+    `使えるのは英字・数字・-・_ で、先頭は英字です。いまは "${fallback}" を使っています。`;
   return ok;
 }
 
@@ -517,7 +537,8 @@ function checkStateVersion() {
   const ok = /^\d\d\.\d\d$/.test(input.value.trim());
   input.classList.toggle('bad', !ok);
   warn.hidden = ok;
-  if (!ok) warn.textContent = 'Two digits, a dot, two digits — 26.05. Falling back for now.';
+  if (!ok) warn.textContent = 'Two digits, a dot, two digits — 26.05. Falling back for now.\n' +
+    '数字2桁・ドット・数字2桁の形式です(例: 26.05)。いまは既定値を使っています。';
 }
 
 async function loadStarter() {

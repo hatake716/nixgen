@@ -9,6 +9,19 @@ option counts.
 
 ## English
 
+### build 2026-08-12j
+
+- **Everything the Setup tab says is bilingual now.** The intro, every field
+  label (stacked, the way the preset rows are), the three checkboxes, the
+  notes under Groups, GRUB, `system.stateVersion` and `lib.mkDefault`, the two
+  rebuild-command headings — and the dynamic messages too: the channel and
+  pin notes in all their variants, the leftover-index note, the host, user and
+  stateVersion warnings, and the rebuild/switch/build button labels.
+- One rendering rule came out of it: only the notes app.js writes render
+  `\n` as a line break. The static ones are wrapped in the HTML source, and
+  applying `pre-line` to them turned that wrapping into hard breaks
+  mid-sentence.
+
 ### build 2026-08-12i
 
 A design pass: the same monochrome identity, with the order of work worn by
@@ -1246,6 +1259,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-12j
+
+- **Setup タブの文言をすべて日英併記にしました。** 冒頭の説明、各入力欄のラベル(プリセット行と同じ二段表記)、チェックボックス3つ、Groups・GRUB・`system.stateVersion`・`lib.mkDefault` の注記、rebuild コマンドの見出し2つ — さらに**動的なメッセージも**: チャンネルと参照先の注記の全パターン、残った索引の案内、ホスト名・ユーザー名・stateVersion の警告、そして「索引を作り直す/一覧を切り替える/索引を作る」のボタンラベルです。
+- 途中で描画の規則がひとつ確定しました。`\n` を改行として描くのは **app.js が書く動的な注記だけ**です。静的な注記は HTML ソース内で折り返されており、そこに `pre-line` を当てると**ソースの折返しが文の途中の改行として出てしまいます**。
 
 ### build 2026-08-12i
 
