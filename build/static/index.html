@@ -145,6 +145,34 @@
           </select>
           <button class="mini" id="btn-lang">Add</button>
         </div>
+        <!-- Under Language, and separate from it on purpose: a language is
+             not a place. This one row decides where the machine is, which in
+             NixOS is one setting — time.timeZone is already Region/City. -->
+        <div class="presetline" id="regionline">
+          <span>Region</span>
+          <select id="s-region" class="notranslate" translate="no">
+            <option value="">choose… — 選ぶ</option>
+            <option value="Asia/Tokyo">Japan — 日本</option>
+            <option value="Asia/Seoul">Korea — 韓国</option>
+            <option value="Asia/Shanghai">China — 中国</option>
+            <option value="Asia/Taipei">Taiwan — 台湾</option>
+            <option value="Asia/Singapore">Singapore — シンガポール</option>
+            <option value="Asia/Kolkata">India — インド</option>
+            <option value="Australia/Sydney">Sydney — シドニー</option>
+            <option value="Pacific/Auckland">New Zealand — ニュージーランド</option>
+            <option value="Europe/London">UK — イギリス</option>
+            <option value="Europe/Paris">France — フランス</option>
+            <option value="Europe/Berlin">Germany — ドイツ</option>
+            <option value="Europe/Madrid">Spain — スペイン</option>
+            <option value="America/New_York">US East — アメリカ東部</option>
+            <option value="America/Chicago">US Central — アメリカ中部</option>
+            <option value="America/Denver">US Mountain — アメリカ山岳部</option>
+            <option value="America/Los_Angeles">US West — アメリカ西部</option>
+            <option value="America/Sao_Paulo">Brazil — ブラジル</option>
+            <option value="UTC">UTC — 協定世界時</option>
+          </select>
+          <button class="mini" id="btn-region">Add</button>
+        </div>
         <!-- Nothing to choose here, so no dropdown: Flatpak is on or it is
              not. It is more than one setting, though, which is why it is a
              row rather than something to find in the search. -->

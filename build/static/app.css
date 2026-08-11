@@ -135,6 +135,13 @@ main {
    itself and every name fits. */
 #appsline { flex-wrap: wrap; }
 #appsline select { flex-basis: 100%; }
+/* Region has the same problem and one difference: it does have an Add button,
+   so the select takes the whole of a second line and the button stays on the
+   first. Place names carry their own Japanese — "US Mountain — アメリカ山岳部"
+   needs 238px where the shared box gives 208 — and a closed select drops what
+   does not fit, which here would be the half a Japanese reader is using. */
+#regionline { flex-wrap: wrap; }
+#regionline > span:first-child { flex-basis: 100%; }
 .presethint { margin: 5px 0 0; font-size: 10.5px; color: var(--ink-faint); }
 
 .row {

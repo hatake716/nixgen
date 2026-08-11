@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-12d';
+const BUILD = '2026-08-12f';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -1573,6 +1573,53 @@ const LANGUAGES = {
         im: 'fcitx5', addons: ['fcitx5-rime'] },
 };
 
+/* Where the machine is, which the language deliberately does not decide: a
+   language is not a place, so `time.timeZone` was left out of the language
+   preset and is its own row. Every name here was checked against the zoneinfo
+   database in the store rather than typed from memory — a wrong one is
+   accepted by the form and only shows up as a clock that is silently wrong.
+
+   `time.timeZone` is `null or string without spaces`, so the form holds it as
+   a nullable and the value is a plain string. The list is short on purpose,
+   like every other preset: the search box reaches the other ~600. */
+const REGIONS = {
+  'Asia/Tokyo':          'Japan — 日本',
+  'Asia/Seoul':          'Korea — 韓国',
+  'Asia/Shanghai':       'China — 中国',
+  'Asia/Taipei':         'Taiwan — 台湾',
+  'Asia/Singapore':      'Singapore — シンガポール',
+  'Asia/Kolkata':        'India — インド',
+  'Australia/Sydney':    'Sydney — シドニー',
+  'Pacific/Auckland':    'New Zealand — ニュージーランド',
+  'Europe/London':       'UK — イギリス',
+  'Europe/Paris':        'France — フランス',
+  'Europe/Berlin':       'Germany — ドイツ',
+  'Europe/Madrid':       'Spain — スペイン',
+  'America/New_York':    'US East — アメリカ東部',
+  'America/Chicago':     'US Central — アメリカ中部',
+  'America/Denver':      'US Mountain — アメリカ山岳部',
+  'America/Los_Angeles': 'US West — アメリカ西部',
+  'America/Sao_Paulo':   'Brazil — ブラジル',
+  'UTC':                 'UTC — 協定世界時',
+};
+
+async function addRegion(zone) {
+  if (!REGIONS[zone]) return;
+  const used = await addWithValue(['time.timeZone'], zone);
+  renderEditor();
+  pushRender();
+  if (!used) {
+    return setStatus(say(
+      `This release has no time.timeZone.`,
+      `このリリースには time.timeZone がありません。`), 'bad');
+  }
+  setStatus(say(
+    `Time zone set to ${zone}. The clock and anything that stamps a time ` +
+    `follow it; your language and keyboard are set separately.`,
+    `タイムゾーンを ${zone} にしました。時計や時刻を記録するものはこれに従います。` +
+    `言語とキーボードは別に設定します。`), 'ok');
+}
+
 async function addLanguage(key) {
   const L = LANGUAGES[key];
   if (!L) return;
@@ -1713,6 +1760,11 @@ $('#btn-flatpak').addEventListener('click', addFlatpak);
 $('#btn-lang').addEventListener('click', () => {
   const key = $('#s-lang').value;
   if (key) addLanguage(key);
+});
+
+$('#btn-region').addEventListener('click', () => {
+  const zone = $('#s-region').value;
+  if (zone) addRegion(zone);
 });
 
 /* Graphics. `hardware.graphics.enable` is the part every card needs, and
