@@ -9,6 +9,17 @@ option counts.
 
 ## English
 
+### build 2026-08-12k
+
+- **The Architecture field is fixed to `x86_64-linux` and hidden** — one less
+  decision, and the answer is the same for practically every PC.
+- Hidden, not removed: the select stays wired, and **importing a
+  `configuration.nix` that carries another architecture brings the field back**
+  with that value, so a machine's real architecture is never carried
+  invisibly. Verified both ways: a fresh page hides the row and the flake says
+  `x86_64-linux`; importing an `aarch64-linux` file shows the row and the
+  flake follows.
+
 ### build 2026-08-12j
 
 - **Everything the Setup tab says is bilingual now.** The intro, every field
@@ -1259,6 +1270,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-12k
+
+- **Architecture の欄を `x86_64-linux` に固定し、非表示にしました。** 決めることが1つ減ります。ほぼすべてのPCで答えは同じだからです。
+- **削除ではなく非表示です。** 配線は残してあり、**別のアーキテクチャを持つ `configuration.nix` を取り込むと、その値と一緒に欄が再表示されます**。マシンの実際のアーキテクチャが見えないまま持ち回られることはありません。両方向を検証済みです: 新規ページでは欄が隠れて flake は `x86_64-linux` を指し、`aarch64-linux` のファイルを取り込むと欄が現れて flake も追従します。
 
 ### build 2026-08-12j
 

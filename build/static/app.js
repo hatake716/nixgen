@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-12j';
+const BUILD = '2026-08-12k';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -2900,6 +2900,10 @@ function fillSetupFrom(incoming) {
     const bare = (/^\s*"([^"]*)"\s*$/.exec(v) || [])[1] ?? v.trim();
     if (![...$('#s-system').options].some(o => o.value === bare)) return false;
     $('#s-system').value = bare;
+    // The row is hidden because the answer is x86_64 for practically every
+    // PC — but a file that says otherwise makes it visible again, so the
+    // machine's real architecture is never carried invisibly.
+    if (bare !== 'x86_64-linux') $('#s-system-wrap').hidden = false;
   });
 
   // Whichever boot loader is switched on, with the lines the starter writes

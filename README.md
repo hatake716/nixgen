@@ -349,7 +349,7 @@ Everything in them is editable from the screen:
 | Main user | Your everyday account. Untick to leave user setup out entirely |
 | nixpkgs channel | The current numbered release, one of the two before it, or `nixos-unstable`. Whatever you pick, everything comes from it |
 | What `flake.nix` points at | The release branch by default, so updates arrive. Or the exact commit the option list was read at, so what you build has the options you were offered and nothing else |
-| Architecture | `x86_64-linux` for an ordinary PC |
+| Architecture | Fixed to `x86_64-linux` and hidden — the answer for practically every PC. Importing a `configuration.nix` that says otherwise brings the field back with that value |
 | Boot loader | systemd-boot for a UEFI machine, GRUB for an older BIOS one (it will ask which disk) |
 | NetworkManager | Manages network connections. Unticking removes the line |
 | Flakes | The feature you switched on in step 1 |

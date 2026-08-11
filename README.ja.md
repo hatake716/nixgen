@@ -261,7 +261,7 @@ sudo nixos-rebuild switch --flake /etc/nixos#ホスト名
 | Main user | 普段使うアカウント名。チェックを外せば、ユーザーの設定ごと省けます |
 | nixpkgs channel | 最新の安定版、その前2つ、`nixos-unstable` のいずれか。**選んだチャンネルから、すべてが来ます** |
 | What `flake.nix` points at | 既定は**ブランチ**で、更新が順に届きます。もう一方は**コミット**で、画面に出ていたオプションと、実際にビルドされるものが必ず一致します |
-| Architecture | 普通のパソコンなら `x86_64-linux` です |
+| Architecture | `x86_64-linux` に固定し、欄ごと非表示にしています。ほぼすべてのPCでこれが答えだからです。別のアーキテクチャを持つ `configuration.nix` を取り込むと、その値と一緒に欄が再表示されます |
 | Boot loader | UEFIの機械なら systemd-boot、古いBIOSの機械ならGRUB(ディスク名を聞かれます) |
 | NetworkManager | ネットワーク接続の管理ソフト。外すと該当の行が消えます |
 | Flakes | ステップ1で有効にしたあの機能です |

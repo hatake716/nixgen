@@ -239,7 +239,14 @@
           <p class="warn" id="s-host-warn" hidden></p>
           <label><span class="plabel">Main user<i>メインユーザー</i></span><input type="text" id="s-user" value="user" spellcheck="false"></label>
           <p class="warn" id="s-user-warn" hidden></p>
-          <label><span class="plabel">Architecture<i>アーキテクチャ</i></span>
+          <!-- Fixed to x86_64-linux and hidden: one less thing to decide, and
+               the answer is the same for practically every PC. The row is
+               hidden rather than removed, and both options stay in the DOM,
+               because an imported configuration.nix can carry
+               nixpkgs.hostPlatform — fillSetupFrom still needs somewhere to
+               put it, and when it is not x86_64 the row comes back so the
+               machine's real architecture is never invisible. -->
+          <label id="s-system-wrap" hidden><span class="plabel">Architecture<i>アーキテクチャ</i></span>
             <select id="s-system" class="notranslate" translate="no">
               <option value="x86_64-linux">x86_64-linux</option>
               <option value="aarch64-linux">aarch64-linux</option>
