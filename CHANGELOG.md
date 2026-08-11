@@ -9,18 +9,27 @@ snapshot and doubles as a flake ref.
 
 **This is the `development` branch**, so its tags are `-dev`:
 `nix run github:hatake716/nixgen/v1.0.0-dev.1`. The stable line is on `main`
-(`v1.0.0-rc.1`), and what is under a `-dev` heading below has not reached it
-yet.
+(`v1.0.0-rc.2`), and anything above the newest `-rc` heading below has not
+reached it yet.
 
 ---
 
 ## English
 
+## v1.0.0-rc.2 — 2026-08-12
+
+The second release candidate: `v1.0.0-rc.1` plus everything under the
+`v1.0.0-dev.1` heading below, which landed on `development` first and has been
+merged. In one line: nixgen is an application now — installed once, it sits in
+the application menu, and its icon opens a maximised window of its own. The
+README's steps 2 and 2a now name the two ways of starting it — from a command,
+from an icon — and the homepage says the icon way exists.
+
 ## v1.0.0-dev.1 — 2026-08-12
 
-On `development`, ahead of `main`. Everything between this heading and
-`v1.0.0-rc.1` is what it adds; below that is the release candidate it grew
-from.
+Landed on `development` first, merged into `main` since. Everything between
+this heading and `v1.0.0-rc.1` is what it added; below that is the release
+candidate it grew from.
 
 ### Packaging, 2026-08-12e
 
@@ -1497,9 +1506,13 @@ three of these six showed up in only one of the two.
 
 ## 日本語
 
+## v1.0.0-rc.2 — 2026-08-12
+
+2つめのリリース候補です。`v1.0.0-rc.1` に、下の `v1.0.0-dev.1` 見出しの内容(先に `development` に入り、統合済みのもの)をすべて加えたものです。一言でいえば、nixgen がアプリケーションになりました — 一度インストールすればアプリメニューに並び、アイコンから専用のウィンドウが最大化で開きます。README のステップ2と2aは起動の2通り(コマンドから・アイコンから)を名乗るようになり、ホームページにもアイコンからの起動を記載しました。
+
 ## v1.0.0-dev.1 — 2026-08-12
 
-`development` ブランチの版で、`main` より先行しています。この見出しから `v1.0.0-rc.1` までが、この版で加わった内容です。その下は、元になったリリース候補です。
+`development` ブランチに先に入り、その後 `main` に統合された内容です。この見出しから `v1.0.0-rc.1` までが、この版で加わった内容です。その下は、元になったリリース候補です。
 
 ### パッケージング、2026-08-12e
 
