@@ -372,7 +372,7 @@ settings go:
 |---|---|
 | Host name, user and groups, architecture, boot loader, NetworkManager, flakes, `system.stateVersion` | fields on the **Setup** tab, which write those lines |
 | `imports` | merged into the imports list of the `configuration.nix` nixgen writes |
-| everything else | copied into that same file, unchanged, under a comment saying where it came from |
+| everything else | **cards in the module**, where you can change them like anything else. An option this release does not have, or an expression a form cannot hold, arrives as a card you can read but not edit |
 
 The module (`generated.nix`) is left alone: it is for what you add under
 **Options** and **Packages** afterwards. If you add an option there that your
