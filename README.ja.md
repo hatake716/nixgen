@@ -1,6 +1,9 @@
 # nixgen
 
-<img src="docs/logo.png" alt="nixgen" width="360">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/logo-white.png">
+  <img src="docs/logo.png" alt="nixgen" width="360">
+</picture>
 
 **インストール直後から、使えるマシンまで。オプション名を1つも知らないまま。** 設定項目24,557個とソフトウェア144,245個を検索し、型に応じたウィジェットで値を入れると、**マシンに何も起きないうちに中身を読める**設定ファイルが出てきます。
 

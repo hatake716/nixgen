@@ -648,6 +648,16 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   boot sequence unhides the Setup pane at its end, so one failed fetch used to
   leave a blank column and no message; a failed render used to leave the last
   file that worked on screen and downloadable. Both now say what happened.
+- **The README logo is theme-aware, because GitHub's dark theme swallows the
+  black one.** The artwork is black line art whose shape lives entirely in the
+  alpha channel (the grey channel is 0 everywhere), so on `#0d1117` it is
+  nearly invisible — checked by compositing it. `docs/logo-white.png` is the
+  same alpha over a white canvas, and both READMEs pick between them with
+  `<picture>` + `prefers-color-scheme`, which GitHub honours. **Do not simply
+  swap in the white one**: it disappears on the light theme instead. Rebuild
+  it from `docs/logo.png` if the artwork changes — `-negate` is the wrong tool
+  (it inverts alpha too, and reads back mid-grey); extract the alpha and
+  composite it over white, then check the two shapes are pixel-identical.
 - **Two levels of detail, and which one goes where was measured.**
   `docs/logo.png` is the artwork — trimmed, transparent, 9.6 KB — and it is
   used where there is room: the homepage hero, the top of both READMEs, and

@@ -11,6 +11,10 @@ option counts.
 
 ### Documentation, 2026-08-12
 
+- **The README logo follows the reader's theme.** The artwork is black line
+  art, so GitHub's dark theme swallowed it. A white copy now ships beside it
+  and `<picture>` picks between them — white on dark, black on light, rather
+  than trading one invisible case for the other.
 - **The first reason names the desktops**: GNOME, KDE Plasma, Xfce, Cinnamon,
   COSMIC, LXQt, i3, and the two Wayland compositors that arrive with a shell
   already on them — Sway + noctalia and niri + noctalia. Checked against the
@@ -1160,6 +1164,7 @@ three of these six showed up in only one of the two.
 
 ### ドキュメント、2026-08-12
 
+- **README のロゴが、読む人のテーマに追従するようになりました。** 原画は黒の線画なので、**GitHub のダークテーマでは沈んで見えません**でした。白版を並べて置き、`<picture>` で切り替えます。ダークでは白、ライトでは黒です。**白に差し替えるだけでは、今度はライトテーマで消えます。**
 - **1つめの理由に、選べるデスクトップを名前で入れました。** GNOME・KDE Plasma・Xfce・Cinnamon・COSMIC・LXQt・i3、そしてシェルが最初から載った状態で出てくる Wayland コンポジタ2つ、Sway + noctalia と niri + noctalia です。**アプリのプルダウンと突き合わせて検査**しているので、提供していないものをページが名乗ることはありません。
 - **ホームページと両方の README が、3つの理由から始まるようにしました。** 読む人が実際に判断する順序に合わせています。初回ログインから使えるデスクトップ、通しで整う日本語環境、そして**あなたが実行するまでマシンには何も起きない**こと。
 - ホームページの見出しは **「インストール直後から、使えるマシンまで。」** です。3つの理由はヒーローの直下に、地色を変えた独立した帯として置きました。**ページ内で最も目立つ節**です。

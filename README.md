@@ -1,6 +1,9 @@
 # nixgen
 
-<img src="docs/logo.png" alt="nixgen" width="360">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/logo-white.png">
+  <img src="docs/logo.png" alt="nixgen" width="360">
+</picture>
 
 **From a fresh install to a machine you can use — without knowing a single
 option name.** Search all 24,557 settings and 144,245 packages, fill in values
