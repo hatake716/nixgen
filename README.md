@@ -171,7 +171,7 @@ nix run --refresh github:hatake716/nixgen/development
 
 The build id in the header tells you which one you are on.
 
-### Step 2a — Put it in the application menu (optional)
+### Step 2a — Put it in the application menu (experimental)
 
 `nix run` starts it for as long as the terminal is open. If you would rather
 click an icon, install it once:
