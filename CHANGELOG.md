@@ -16,6 +16,42 @@ reached it yet.
 
 ## English
 
+## v1.0.0-dev.3 — 2026-08-12
+
+On `development`, ahead of `main`. Everything between this heading and
+`v1.0.0-rc.2.1` is what it adds.
+
+### build 2026-08-12q
+
+- **System update now finds where the archive actually landed, and the
+  command names that exact file.** The handed-over command used to search
+  the likely download folders and take the first hit, which has two holes:
+  a same-named archive from an earlier day wins over the fresh download,
+  and when the browser dodges the collision by saving `name (1).tar.gz`,
+  the search cannot see the fresh file at all and unpacks the stale one.
+  After the download the app asks the server — same machine, same user —
+  where a file matching the bundle's own name landed since the click,
+  duplicate-name spellings included, newest first. Found, the dialog
+  upgrades the command in place to name that file and says where it was
+  saved; not found (a browser saving somewhere unusual), the searching
+  command stands unchanged. Detection adds precision and is never waited
+  for.
+- **The privileged half did not move.** The new endpoint is read-only and
+  takes a host name and a time, never a path — the archive name is
+  recomputed on the server and looked for only in a fixed list of download
+  directories, the XDG configuration first, which is where a localised
+  ダウンロード is actually recorded. The command still runs in your
+  terminal with the same two confirmations, the backups, and no single
+  quote inside; a found path is interpolated only when it cannot break out
+  of its double quotes, and anything stranger keeps the searching command.
+- Checked end to end against the running app: the dialog opens with the
+  searching command immediately, upgrades to the exact path when the file
+  is saved into the real download folder (`~/ダウンロード` on the machine
+  this was written on), keeps the searching command when the file goes
+  somewhere else, and the unprivileged half of the exact command was
+  executed as written — Japanese path, fish paste and all. The eleven-point
+  sweep passes on top.
+
 ## v1.0.0-rc.2.1 — 2026-08-12
 
 `v1.0.0-rc.2` plus one important fix, tagged without waiting for the next
@@ -1546,6 +1582,16 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+## v1.0.0-dev.3 — 2026-08-12
+
+`development` ブランチの版で、`main` より先行しています。この見出しから `v1.0.0-rc.2.1` までが、この版で加わった内容です。
+
+### build 2026-08-12q
+
+- **System update が書庫の実際の保存先を検知し、コマンドがそのファイルを直接指定するようになりました。** 渡すコマンドはこれまで、ありそうなダウンロードフォルダを順に探して最初の一致を使っていました。これには穴が2つあります。以前の同名書庫が新しいダウンロードに勝ってしまうこと。そしてブラウザが衝突を避けて `name (1).tar.gz` の名前で保存すると、探索は新しいファイルを見つけられず**古いほうを展開してしまう**ことです。ダウンロード後、アプリはサーバー(同じマシン・同じユーザーで動いています)に「クリック以降に書庫の名前で保存されたファイルはどこか」を尋ねます。重複時の別名も対象で、最新のものが勝ちます。見つかればダイアログ内のコマンドがその場で**実ファイル直指定**に差し替わり、保存先も表示します。見つからなければ(ブラウザが特殊な場所に保存した場合)、従来の探索コマンドがそのまま残ります。検知は精度の上乗せで、待たされることはありません。
+- **特権側は動いていません。** 追加したエンドポイントは読み取り専用で、受け取るのはホスト名と時刻だけ — **パスは一切受け取りません**。書庫名はサーバー側で再計算し、探すのは固定のダウンロードディレクトリ一覧の中だけです(最初に見るのは XDG 設定で、ローカライズされた「ダウンロード」という名前が実際に記録されている場所です)。コマンドは今までどおりあなたのターミナルで動き、2回の確認・バックアップ・内部にシングルクォート無し、もそのままです。見つかったパスは、二重引用符から抜け出せない文字だけで出来ているときにのみ埋め込み、少しでも怪しければ探索コマンドのままにします。
+- 動いているアプリに対して通しで検証しました。ダイアログは即座に探索コマンドで開き、実際のダウンロードフォルダ(この開発機では `~/ダウンロード`)に保存されるとコマンドが実パス指定に差し替わり、別の場所に保存された場合は探索コマンドのまま残ります。差し替え後コマンドの非特権部分は日本語パスのまま実行して動作を確認し、fish への貼り付けも通しました。仕上げに11項目のスイープも全て通っています。
 
 ## v1.0.0-rc.2.1 — 2026-08-12
 

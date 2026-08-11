@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-12p';
+const BUILD = '2026-08-12q';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -3504,6 +3504,43 @@ function updateCommand() {
   ].join('; ') + "'";
 }
 
+/* The same command, pointed at the exact file the server just watched the
+   browser write. The searching loop above takes the FIRST directory holding
+   the name, so a stale same-named archive can win over the fresh download —
+   and when the browser renames the fresh one to `name (1).tar.gz`, the loop
+   cannot see it at all and unpacks last week's file. Naming the found file
+   closes both holes. The path is interpolated into the command, so it is
+   used only when it cannot break out of the double quotes it sits in (and
+   the whole command still contains no single quote); anything stranger
+   returns null and the searching command stands. */
+function updateCommandAt(dir, file) {
+  const path = dir + '/' + file;
+  if (!/^[^'"\\$`]+$/.test(path)) return null;
+  const n = bundleName();
+  const rebuild = $('#s-flakes').checked
+    ? `sudo nixos-rebuild switch --flake /etc/nixos#${n}`
+    : 'sudo nixos-rebuild switch';
+  return 'bash -c ' + "'" + [
+    'set -e',
+    `a="${path}"`,
+    `[ -f "$a" ] || { echo "${file} is no longer there — press System update ` +
+      'again"; exit 1; }',
+    't=$(mktemp -d)',
+    'tar -xzf "$a" -C "$t"',
+    'echo',
+    'echo "These three will overwrite the ones in /etc/nixos ' +
+      '(the old ones are kept as .~1~):"',
+    `ls -1 "$t/${n}"`,
+    'read -r -p "Copy them in? [y/N] " r',
+    '[ "$r" = y ] || exit 1',
+    `sudo cp --backup=numbered -v "$t/${n}"/configuration.nix ` +
+      `"$t/${n}"/flake.nix "$t/${n}"/generated.nix /etc/nixos/`,
+    'read -r -p "Rebuild the system now? [y/N] " r',
+    '[ "$r" = y ] || exit 1',
+    rebuild,
+  ].join('; ') + "'";
+}
+
 /* Three confirmations, as asked for: one here before the download, and two
    inside the command — before it overwrites /etc/nixos, and before it
    rebuilds. The privileged half is a command you run rather than something
@@ -3533,27 +3570,68 @@ async function systemUpdate() {
   }, 'Download — ダウンロード');
   if (!ok) return;
 
+  const since = Date.now() / 1000 - 2;
   await downloadBundle();
   if (renderStale) return;
 
-  const cmd = updateCommand();
+  /* The browser is writing the archive right now, and the server — same
+     machine, same user — can see where it lands. Detection upgrades the
+     command in place from "search the likely folders" to the exact file
+     this click produced; it is never waited for, so the dialog is usable
+     from the first moment and simply gets more precise. The pre is under
+     the data-keep guard, so its stored text moves with it — updating one
+     without the other hands the old command back to the observer. */
+  let cmd = updateCommand();
+  let refs = null;
+  let stopped = false;
+  (async () => {
+    for (let i = 0; i < 20 && !stopped; i++) {
+      try {
+        const r = await fetch('/api/locate-bundle?host=' +
+          encodeURIComponent(bundleName()) + '&since=' + since)
+          .then(x => x.json());
+        if (r && r.found) {
+          const exact = updateCommandAt(r.dir, r.file);
+          if (exact && refs && !stopped) {
+            cmd = exact;
+            refs.pre.dataset.keep = cmd;
+            refs.pre.textContent = cmd;
+            refs.en.textContent = 'Saved as ' + r.dir + '/' + r.file + ' — the ' +
+              'command names that exact file, so a same-named archive from an ' +
+              'earlier download cannot be picked up by mistake. It asks twice: ' +
+              'once before copying into /etc/nixos, once before the rebuild.';
+            refs.ja.textContent = r.dir + '/' + r.file + ' に保存されたのを' +
+              '確認しました。コマンドはこのファイルを直接指定するので、以前の' +
+              '同名の書庫を拾う心配はありません。/etc/nixos へコピーする前と、' +
+              '再構築の前に、それぞれ確認を求めます。';
+          }
+          return;
+        }
+      } catch { /* keep polling; the searching command stands either way */ }
+      await new Promise(t => setTimeout(t, 700));
+    }
+  })();
+
   const copied = await ask(body => {
     body.appendChild(el('h3', null, 'Now run this in a terminal'));
     body.appendChild(el('h3', 'ja', '続きはターミナルで、このコマンドを実行してください'));
-    line(body, null, 'It finds the archive in your download folder whatever that ' +
-                     'folder is called, unpacks it, and asks twice: once before ' +
-                     'copying into /etc/nixos, once before the rebuild.');
-    line(body, 'ja', 'ダウンロード先のフォルダ名が Downloads でも ダウンロード でも' +
+    const en = line(body, null, 'It finds the archive in your download folder ' +
+                     'whatever that folder is called, unpacks it, and asks twice: ' +
+                     'once before copying into /etc/nixos, once before the rebuild.');
+    const ja = line(body, 'ja', 'ダウンロード先のフォルダ名が Downloads でも ダウンロード でも' +
                      '見つけます。展開したあと、/etc/nixos へコピーする前と、' +
                      '再構築の前に、それぞれ確認を求めます。');
-    body.appendChild(keep(el('pre', 'cmd', cmd)));
+    const pre = keep(el('pre', 'cmd', cmd));
+    body.appendChild(pre);
     line(body, null, 'sudo will ask for your password. The files it replaces are ' +
                      'kept beside the new ones as configuration.nix.~1~ and so on, ' +
                      'and hardware-configuration.nix is not touched.');
     line(body, 'ja', 'sudo がパスワードを尋ねます。置き換えられたファイルは ' +
                      'configuration.nix.~1~ のような名前で隣に残り、' +
                      'hardware-configuration.nix には触れません。');
+    refs = { pre, en, ja };
   }, 'Copy the command — コマンドをコピー');
+  stopped = true;
   if (!copied) return;
 
   try {

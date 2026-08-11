@@ -918,6 +918,25 @@ harnesses cannot notice.
   answers `$HOME` when it is not installed and the folder may be `ダウンロード`;
   and `cp --backup=numbered` leaves the replaced files as `.~1~` beside the new
   ones. `hardware-configuration.nix` is not in the archive and is never named.
+- **The command upgrades itself to the exact file, and the upgrade is
+  read-only.** (development only, for now.) The searching loop takes the
+  first directory holding the name, so a stale same-named archive wins over
+  the fresh download — and when the browser dodges the collision by saving
+  `name (1).tar.gz`, the loop cannot see the fresh file at all and unpacks
+  last week's. So after the download the client polls `/api/locate-bundle`,
+  which recomputes the archive name from the host (a name and a time in the
+  request, never a path — the icon endpoint's no-joining rule), scans a
+  fixed list of download directories (the XDG config first, which is where a
+  localised ダウンロード is actually recorded), and returns the newest match
+  written since the click, duplicate-name spellings included. Found, the
+  dialog swaps the command in place for one naming that file and says where
+  it was saved; not found, the searching command stands — detection is an
+  upgrade, never a dependency, so the dialog is usable from the first
+  moment. The interpolated path is used only when it cannot break out of its
+  double quotes (no `'` `"` `\` `$` backtick); anything stranger keeps the
+  searching command. The pre sits under `data-keep`, so the swap updates the
+  stored text together with the visible one — one without the other and the
+  observer hands the old command back.
 - **`Check syntax` is `nix-instantiate --parse` and nothing more.** It cannot
   judge types. Every piece of copy that mentions it says so, because a user who
   thinks it validates will skip `dry-build`.
