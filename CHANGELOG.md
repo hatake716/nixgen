@@ -16,6 +16,39 @@ it is part of `main` now.
 
 ## English
 
+## v1.0.0-dev.2 — 2026-08-12
+
+Landed on `development` first, merged into `main` since — a fix important
+enough not to wait for the next candidate. Everything between this heading
+and `v1.0.0-rc.2` is what it adds.
+
+### build 2026-08-12p
+
+- **Picking AMD or Intel no longer removes `nixpkgs.config.allowUnfree`.**
+  Reported from a real machine: the graphics preset used to take the switch
+  out "when nothing else needs it", and its needs-it check only knew the
+  packages the UI itself had added — so with an imported Steam in the list,
+  the AMD click removed the one line that let the file build. **Nothing
+  removes the card automatically any more.** Deleting it is the user's
+  decision alone.
+- **The switch now goes in by itself, wherever it is needed.** Every render
+  scans the file for package names and NVIDIA settings, and asks the index —
+  which has known all along which packages are unfree — about any name it
+  has not seen before. If something unfree is in the file and the switch is
+  not, the card is added and the status bar says why, naming the packages.
+  That covers every route in: a package clicked in the search results, a
+  `generated.nix` or `configuration.nix` read back in, a name typed into a
+  verbatim card, an imported NVIDIA module. It stands down when the switch
+  is already set anywhere — in the module, or in the configuration.nix half
+  of an import. And a card deleted while something unfree is still listed
+  comes back on the next render, because a file that names an unfree package
+  without the switch is one `nixos-rebuild` refuses outright.
+- Verified against the running app, not by reading the code:
+  NVIDIA→AMD→Intel keeps the card through every switch, steam from the
+  search box and steam from an import each bring it in, a file that already
+  sets it gets no second definition, an imported `hardware.nvidia.*` brings
+  it in, and firefox alone does not — plus the eleven-point sweep on top.
+
 ## v1.0.0-rc.2 — 2026-08-12
 
 The second release candidate: `v1.0.0-rc.1` plus everything under the
@@ -1505,6 +1538,16 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+## v1.0.0-dev.2 — 2026-08-12
+
+`development` に先に入り、`main` にも統合済みです — 次の候補版を待たせない重要度の修正のためです。この見出しから `v1.0.0-rc.2` までが、この版で加わった内容です。
+
+### build 2026-08-12p
+
+- **AMD や Intel を選んでも `nixpkgs.config.allowUnfree` が外れなくなりました。** 実機からの報告です。グラフィックスのプリセットは「他に必要とするものが無ければ」スイッチを外していましたが、その判定は **UI 自身が追加したパッケージしか知りません**でした。import で入った Steam がリストにあっても、AMD のクリックがビルドを通す唯一の行を消してしまいます。**自動で外す処理そのものを無くしました。** カードの削除はユーザーだけの操作です。
+- **スイッチは、必要になった場所で自動的に入ります。** 毎回のレンダリングでファイル中のパッケージ名と NVIDIA 設定を走査し、見たことのない名前は索引に問い合わせます(どのパッケージが unfree かは、索引がずっと知っていました)。unfree なものがファイルにあり、スイッチが無ければカードを追加し、ステータスバーが**どのパッケージのためか**を名指しします。これで入ってくる全経路をカバーします — 検索結果のクリック、`generated.nix` / `configuration.nix` の取り込み、verbatim カードへの手書き、NVIDIA モジュールの import。スイッチが既にどこかで設定されていれば(モジュール内でも、取り込みの configuration.nix 側でも)何もしません。unfree なものが残ったままカードを消すと、次のレンダリングで戻ります。スイッチ無しで unfree を名指しするファイルは、`nixos-rebuild` が門前払いするものだからです。
+- コードを読んでではなく、動いているアプリに対して検証しました: NVIDIA→AMD→Intel と切り替えてもカードは残り、検索からの steam も import からの steam もカードを連れてきて、設定済みのファイルには2つめが入らず、import された `hardware.nvidia.*` でも入り、firefox 単独では入りません。仕上げに11項目のスイープも全て通っています。
 
 ## v1.0.0-rc.2 — 2026-08-12
 
