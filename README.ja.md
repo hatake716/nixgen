@@ -143,6 +143,8 @@ nix profile upgrade nixgen
 nix profile remove nixgen
 ```
 
+**この2つにブランチ名を付けないのは、書き忘れではありません。** この2つが取る引数は flake の参照ではなく、**プロファイルに登録された項目の名前**で、それは `nixgen` です。`nix profile upgrade nixgen/development` は**何にも一致せず、黙って何もしません**(削除も同様です)。ブランチはインストール時に記録済みで、`nix profile list` の *Original flake URL* に出ます。更新はその参照を辿るので、`development` から入れた項目は**最新の `development`** に更新されます。
+
 ### ステップ3 — ブラウザで設定を組み立てる
 
 画面の中央に**5つの手順**が出ています。これがタブを使う順序です。初回の具体的な流れはこうなります。

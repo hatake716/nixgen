@@ -208,6 +208,13 @@ nix profile upgrade nixgen
 nix profile remove nixgen
 ```
 
+**No branch on these two, and that is not an oversight.** They take the name
+of the entry in your profile — which is `nixgen` — not a flake reference.
+`nix profile upgrade nixgen/development` matches nothing and silently does
+nothing. The branch is already recorded when you install: `nix profile list`
+shows it as the *Original flake URL*, and upgrading follows it, so an entry
+installed from `development` upgrades to the newest `development`.
+
 ### Step 3 — Build your configuration in the browser
 
 The middle of the screen lists five steps, and they are the order the tabs are
