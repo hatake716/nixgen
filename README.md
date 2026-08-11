@@ -10,6 +10,15 @@ option name.** Search all 24,557 settings and 144,245 packages, fill in values
 with widgets that know the type, and get a configuration file you can read
 before anything on your machine changes.
 
+> [!NOTE]
+> **You are reading the `development` branch — the experimental one.** Every
+> command below names it (`github:hatake716/nixgen/development`), so what you
+> install is what this page describes. Stable is
+> [`main`](https://github.com/hatake716/nixgen/tree/main), which is what the
+> plain `github:hatake716/nixgen` resolves to; its README leaves the branch
+> off. Work lands here first and moves to `main` once it has held up, so
+> anything on this page may be newer than what `main` will do.
+
 ![nixgen](docs/screenshot.png)
 
 ### Three reasons
@@ -128,10 +137,10 @@ sudo nixos-rebuild switch
 
 Run `nix flake --help` again. Help text means it worked.
 
-### Step 2 — Start it
+### Step 2 — Start it (from a command)
 
 ```bash
-nix run github:hatake716/nixgen
+nix run github:hatake716/nixgen/development
 ```
 
 **That is the whole thing.** No download, no install step. Nix collects what it
@@ -157,10 +166,78 @@ an hour, so a run started soon after an update can still be the previous
 version. Force a re-check:
 
 ```bash
-nix run --refresh github:hatake716/nixgen
+nix run --refresh github:hatake716/nixgen/development
 ```
 
 The build id in the header tells you which one you are on.
+
+### Step 2a — Put it in the application menu (start it from an icon)
+
+`nix run` starts it for as long as the terminal is open. If you would rather
+click an icon, install it once:
+
+```bash
+nix profile install github:hatake716/nixgen/development
+```
+
+**nixgen then appears in your application menu, under System.** Starting it
+from there opens a maximised window of its own — no tabs, no address bar,
+just the page. There is no terminal to keep open, and nothing else to type.
+
+Four things are worth knowing about the menu entry:
+
+- **The window needs a Chromium-family browser** — Chromium, Chrome, Brave,
+  Edge or Vivaldi, whichever is already installed. On a machine with only
+  Firefox it opens an ordinary browser tab instead, which works the same; the
+  window is the nicer of the two, not the working one.
+- **Closing the window does not stop it.** The server keeps running. That
+  is usually what you want, and clicking the icon again brings the page back
+  rather than complaining — but if you want it stopped, stop it from the
+  terminal you started it in, or log out.
+- **The first launch still takes about five minutes**, because the database has
+  to be built. Started from the menu there is no terminal to print progress to,
+  so it puts up a desktop notification instead and opens the browser when it is
+  ready. If you would rather watch it happen, run `nixgen` once in a terminal
+  first.
+- **An icon pinned to a dock or panel can go on launching the old version
+  after an upgrade.** This is not specific to nixgen — it happens to anything
+  installed with Nix. A dock stores the launcher as an absolute path, and the
+  menu entry it copies from is a symlink into the Nix store, so what gets
+  stored is the store path. Store paths never change, which is the point of
+  them: upgrading writes a *new* one and leaves the pinned file exactly as it
+  was, so the icon keeps starting the version it was pinned to, forever. This
+  was found with Plank, whose `~/.config/plank/dock1/launchers/nixgen.dockitem`
+  held `file:///nix/store/…-nixgen.desktop/…`; the same shape applies to GNOME
+  favourites and KDE panel pins. **Remove the icon and add it again after an
+  upgrade** and it picks up the new one. To tell this apart from anything else,
+  compare what the dock holds against what the profile now points at:
+
+  ```bash
+  grep Launcher ~/.config/plank/dock1/launchers/nixgen.dockitem
+  readlink ~/.nix-profile/share/applications/nixgen.desktop
+  ```
+
+  Two different store paths means the icon is stale. The application menu
+  itself is fine — it reads the profile, so it always has the current one.
+
+There is no way to do this step from a GUI, and that is not an oversight on
+nixgen's part: NixOS has no graphical package installer at all. Neither GNOME
+Software nor KDE Discover manages system packages here. The command above is
+the last one this tool needs — everything after it is the browser.
+
+To update it later, or remove it:
+
+```bash
+nix profile upgrade nixgen
+nix profile remove nixgen
+```
+
+**No branch on these two, and that is not an oversight.** They take the name
+of the entry in your profile — which is `nixgen` — not a flake reference.
+`nix profile upgrade nixgen/development` matches nothing and silently does
+nothing. The branch is already recorded when you install: `nix profile list`
+shows it as the *Original flake URL*, and upgrading follows it, so an entry
+installed from `development` upgrades to the newest `development`.
 
 ### Step 3 — Build your configuration in the browser
 
@@ -785,7 +862,7 @@ contents of the generated file stay in English — a translated
 ### Command-line options
 
 ```bash
-nixgen                       # same as nix run github:hatake716/nixgen
+nixgen                       # same as nix run github:hatake716/nixgen/development
 nixgen --port 9000           # use a different port
 nixgen --no-browser          # do not open a browser
 ```

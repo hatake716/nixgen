@@ -4,13 +4,95 @@
 
 Two identifiers, with different jobs. **The build id** (`2026-08-12o`) is in
 the app header and in every file nixgen writes, and it changes whenever the app
-does — it answers "which build wrote this". **The release tag** (`v1.0.0-rc.1`)
-names a snapshot worth using, and doubles as a flake ref:
-`nix run github:hatake716/nixgen/v1.0.0-rc.1`.
+does — it answers "which build wrote this". **The version tag** names a
+snapshot and doubles as a flake ref.
+
+**This is the `development` branch**, so its tags are `-dev`:
+`nix run github:hatake716/nixgen/v1.0.0-dev.1`. The stable line is on `main`
+(`v1.0.0-rc.1`), and what is under a `-dev` heading below has not reached it
+yet.
 
 ---
 
 ## English
+
+## v1.0.0-dev.1 — 2026-08-12
+
+On `development`, ahead of `main`. Everything between this heading and
+`v1.0.0-rc.1` is what it adds; below that is the release candidate it grew
+from.
+
+### Packaging, 2026-08-12e
+
+- **nixgen has a desktop entry now**, so `nix profile install
+  github:hatake716/nixgen` is the last command it needs: after that it is in
+  the application menu under System, and starting it from there opens the
+  browser by itself. The icons are generated at build time by `tools/mark.py`,
+  which keeps that file the only place the mark comes from — the same reason
+  the two pages paste its output rather than fetching a copy. They carry a
+  white ground, because an application menu shows one file and cannot pick per
+  theme the way the README's logo does; line art with a transparent ground
+  would be invisible on a dark panel.
+- **The artwork is numbers now, so the icon can be the artwork.**
+  `docs/logo.png` is a raster and could only be used where there was room —
+  the app header and the favicon have always shown a simplified flake instead.
+  It is traced into path data in `tools/mark.py`, so the original drawing can
+  be rendered at any size, and the icon at 64px and up is that drawing rather
+  than an approximation of it. **Tracing changes the format, not the amount of
+  detail**: rendered at 32 and 48 the artwork is still not identifiably a
+  snowflake, so those sizes keep the flake. Both were rendered at 32, 48 and
+  64 to decide where the line falls. GTK was checked rather than assumed — it
+  prefers an exact-size icon directory over `scalable`, which is what keeps
+  the artwork out of a 24px panel slot.
+- **The first command cannot be removed, and that is not nixgen's to fix.**
+  NixOS has no graphical package installer at all — neither GNOME Software nor
+  KDE Discover manages system packages here. Nor does this make the tool
+  GUI-only end to end: `System update` still hands over one command rather than
+  rebuilding for you, deliberately, because the server has no authentication.
+  What it removes is every command *between* those two.
+- **A second launch opens the nixgen already running instead of refusing.**
+  Closing the browser tab leaves the server up, so with an icon to click that
+  is the ordinary case rather than a development mishap, and a refusal printed
+  to a terminal nobody opened reads as the icon being broken. It asks
+  `/api/meta` before opening anything: a busy port can hold something else
+  entirely, and sending a browser at an unrelated local service is worse than
+  the message it replaces. That case, and `--no-browser`, still refuse — with
+  the reason each of them actually has. **The build id in the header is still
+  what says which copy answered**, which is the one thing this must not paper
+  over.
+- **The first run says something without a terminal to say it in.** Building
+  the index takes about five minutes, and started from the menu the progress
+  line goes nowhere, so it puts up a desktop notification instead. Best effort:
+  it needs a session bus to reach anybody, and a failure there does not stop
+  the launch.
+- **Started from the icon, it gets a window of its own** — no tab strip, no
+  address bar, no back and forward. It is an application in the menu, so
+  arriving as one tab among twenty in a browser session already open reads as
+  a website rather than as the thing that was just clicked, and the browser's
+  own chrome offers nothing the page uses. The desktop entry passes `--app`;
+  a terminal launch does not, and keeps the ordinary browser, where a tab is
+  what you asked for. Nothing was added to the closure for this — the flag is
+  Chromium's and its relatives all spell it the same way, so it is whatever is
+  already on the machine or nothing, and nothing means the previous behaviour.
+  **Firefox is left off that list on purpose**: its nearest equivalent is
+  `--kiosk`, which is true fullscreen with no window controls, and a window
+  somebody cannot find their way out of is a worse answer than a tab. What
+  this gives is an ordinary window with ordinary controls; F11 makes it
+  fullscreen if that is what you want.
+- **That window opens maximised.** The app is three columns beside one
+  another and the default size a browser gives an app window is narrow enough
+  to stack them, which is the wrong first impression of a tool whose whole
+  layout is "the form here, the file there". Maximised, not fullscreen: the
+  title bar and its buttons stay, so it can be put back to a smaller size the
+  ordinary way.
+- **An icon pinned to a dock keeps launching the version it was pinned to**,
+  and the README says so now. Not a nixgen bug and not fixable from here: a
+  dock stores the launcher's absolute path, the menu entry is a symlink into
+  the store, so a store path is what gets stored — and those never change, so
+  an upgrade writes a new one and the pinned file goes on pointing at the old.
+  Found on a real machine with Plank, where it looked exactly like `--app`
+  having no effect. Remove the icon and add it again; the application menu
+  itself is fine, since it reads the profile.
 
 ## v1.0.0-rc.1 — 2026-08-12
 
@@ -52,6 +134,7 @@ overrides what nixgen writes. `Check syntax` runs the Nix parser and cannot
 judge types — `dry-build` before you switch.
 
 ---
+
 
 ### Tools, 2026-08-12d
 
@@ -1414,6 +1497,21 @@ three of these six showed up in only one of the two.
 
 ## 日本語
 
+## v1.0.0-dev.1 — 2026-08-12
+
+`development` ブランチの版で、`main` より先行しています。この見出しから `v1.0.0-rc.1` までが、この版で加わった内容です。その下は、元になったリリース候補です。
+
+### パッケージング、2026-08-12e
+
+- **デスクトップエントリを追加しました。** これで `nix profile install github:hatake716/nixgen` がこのツールに必要な最後のコマンドになります。以降はアプリメニューの「システム」に並び、そこから起動すればブラウザが自動で開きます。アイコンはビルド時に `tools/mark.py` が生成するので、**マークの出どころはそのファイル1つのまま**です(2つのページが出力を貼り付けているのと同じ理由)。いずれも白地を持たせてあります。アプリメニューが表示するファイルは1つで、README のロゴのようにテーマごとに選び分けられないためです — 背景が透明な線画では、暗いパネルで見えなくなります。
+- **原案のアートワークを数値にしたので、アイコンを原案そのものにできました。** `docs/logo.png` はラスタ画像で、余白のある場所でしか使えませんでした — アプリのヘッダとファビコンが簡略版のフレークを使ってきたのはそのためです。これを `tools/mark.py` の中にパスデータとして起こしたので、**元の描画をどのサイズでも描けます**。64px 以上のアイコンは、近似ではなく原案そのものです。ただし**変換で変わるのは形式であって密度ではありません**: 32px と 48px では原案は依然として雪の結晶と判別できないので、そのサイズはフレークのままにしました。線引きは、両方を 32・48・64 でレンダリングして決めています。GTK の挙動も推測せず確認しました — 完全一致するサイズのディレクトリが `scalable` より優先されるので、24px のパネル枠に原案が入ることはありません。
+- **最初の1コマンドは無くせません。そしてそれは nixgen 側で直せる話ではありません。** NixOS には**GUIによるパッケージ導入手段がそもそも存在しません** — GNOME Software も KDE Discover も、ここではシステムのパッケージを扱わないからです。また、これで全工程がGUIだけになるわけでもありません: `System update` は今も**意図して**コマンドを1つ渡すだけで、代わりにリビルドはしません(サーバーに認証が無いためです)。今回無くなったのは、その**2つの間にあった**コマンドのすべてです。
+- **2回目の起動は、拒否せずに既に動いている nixgen を開きます。** ブラウザのタブを閉じてもサーバーは残るので、クリックするアイコンがある以上これは開発中の事故ではなく**通常の操作**です。誰も開いていないターミナルに向かって拒否のメッセージを出せば、アイコンが壊れているようにしか見えません。開く前に `/api/meta` で確認します: 使用中のポートには全く別のものが居ることもあり、無関係なローカルサービスへブラウザを送るのは、置き換えようとしたメッセージより悪いからです。その場合と `--no-browser` の場合は従来どおり拒否します — ただし**それぞれ実際の理由**を述べるようにしました。**どちらのコピーが応答したかは、今もヘッダのビルド番号が答えます**。そこだけは覆い隠してはならない一点です。
+- **初回起動が、伝える先のターミナルが無くても伝えるようになりました。** 索引の構築には5分ほどかかりますが、メニューから起動した場合その進捗行はどこにも出ません。代わりにデスクトップ通知を出します。届けるにはセッションバスが必要なので、これはベストエフォートで、失敗しても起動は止めません。
+- **アイコンから起動したときは、専用のウィンドウで開きます** — タブバーもアドレスバーも、戻る・進むもありません。メニューに並んでいる以上これはアプリケーションであり、既に開いているブラウザの20個目のタブとして現れれば、いま押したものではなく**ウェブサイトに見えます**。ブラウザ側の枠は、このページが使うものを何一つ提供していません。デスクトップエントリが `--app` を渡します。ターミナルからの起動には付かないので、従来どおりの通常ブラウザのままです(そこではタブこそが求めたものだからです)。**このために追加した依存はありません** — このフラグは Chromium 系のもので、いずれも綴りが同じなので、**マシンに既にあるものを使うか、何もしないか**のどちらかです。何もない場合は従来の動作になります。**Firefox は意図して外しています**: 一番近いのは `--kiosk` で、これはウィンドウ枠の無い本物の全画面です。**出口の見つからないウィンドウは、タブより悪い答え**です。ここで得られるのは通常のウィンドウ操作を備えた普通のウィンドウで、全画面にしたければ F11 で切り替わります。
+- **このウィンドウは最大化した状態で開きます。** このアプリは3つの列を横に並べる作りですが、ブラウザがアプリウィンドウに与える既定のサイズは、それらが縦に積み上がってしまう程度の幅しかありません。「左に入力、右にファイル」という構成のツールの第一印象としては誤りです。**全画面ではなく最大化**です。タイトルバーとそのボタンは残るので、通常の操作で好きな大きさに戻せます。
+- **ドックに登録したアイコンは、登録した時点の版を起動し続けます。** README に明記しました。nixgen の不具合ではなく、こちら側では直せません: ドックはランチャーを絶対パスで保存し、メニュー項目はストアへの symlink なので、**保存されるのはストアパス**です。ストアパスは変わらないので、更新は新しいものを作るだけで、登録済みのファイルは古いほうを指したままになります。実機で Plank を使っていて見つかりました — 症状は `--app` が全く効いていないのと**見分けがつきません**。アイコンを削除して登録し直せば直ります。アプリメニュー自体はプロファイルを読むので問題ありません。
+
 ## v1.0.0-rc.1 — 2026-08-12
 
 最初のリリース候補です。この見出しの下にあるものが、この候補に含まれる内容です。さらに下の build 見出しは、ここに至るまでの履歴です。
@@ -1433,6 +1531,7 @@ three of these six showed up in only one of the two.
 **既知の制限。** NixOS 専用。Hyprland は非表示です(自動生成される設定が nixgen の書くものを上書きするため)。`Check syntax` は Nix のパーサであって**型は判定できません** — 切り替える前に `dry-build` を。
 
 ---
+
 
 ### ツール、2026-08-12d
 

@@ -734,6 +734,37 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   in step and no request to fail. **The palette follows the mark**: it is black
   on white, so `--accent` is ink rather than blue, and anything that used blue
   to mean "matched" or "selected" uses a tinted ground instead.
+- **The artwork exists as numbers now, and that is what `--logo` is.**
+  `docs/logo.png` is a raster, so it could only ever be used where there was
+  room; `LOGO_PATH` in `mark.py` is the same drawing traced out of it with
+  potrace, so it can be rendered at any size. The command that produced it is
+  in the comment above it and `docs/logo.png` is its only source — do not
+  hand-edit the path data. **It is one `d` on purpose**: potrace fills
+  outlines rather than stroking them, so which regions are holes is carried by
+  the winding of the subpaths in order, and splitting them apart changes the
+  drawing. Note what this does **not** fix: tracing changes the format, not
+  the amount of detail, so the artwork is still mush when it is small.
+- **The application icon is two renditions, and the split was measured.**
+  `mark.py --icon` is the traced artwork on a rounded white tile and
+  `--icon-small` is the plain flake on the same tile; `flake.nix` renders the
+  first at 64, 128 and 256 and the second at 16 through 48, plus the artwork
+  as the `scalable` SVG. **Rendering both at 32, 48 and 64 is what decided
+  it** — at 48 the artwork is not identifiably a snowflake, and the flake is,
+  which is the same finding that keeps `docs/logo.png` out of the 22px header.
+  A theme is allowed to disagree per size; that is what the size directories
+  are for. **GTK was checked rather than assumed**: it prefers an exact-size
+  directory over `scalable`, which is what keeps the artwork out of a 24px
+  panel slot — verify with `Gtk.IconTheme.lookup_icon` against the built
+  output if the set of sizes changes. An icon cannot pick per theme the way
+  the README's logo does with `<picture>`, because an application menu shows
+  one file, and line art on a transparent ground is invisible on a dark panel,
+  so both renditions carry the ground. The flake's stroke is 4.6 against the
+  header's 3.4: below that the arms go thin at 32px, above it the core
+  hexagon fills in and the middle turns to a blob.
+- **Sized PNGs are not belt-and-braces, they are how the split is expressed.**
+  One SVG cannot be two drawings, so shipping only `scalable` would mean one
+  rendition at every size, and it would be the wrong one at the sizes a panel
+  and a menu actually ask for.
 - No browser storage. State lives in `state` in `app.js`.
 
 > 上記はいずれも「見た目は正しいのに後で壊れる」類の落とし穴です。触る前に一読してください。
@@ -876,6 +907,30 @@ harnesses cannot notice.
 - **`Check syntax` is `nix-instantiate --parse` and nothing more.** It cannot
   judge types. Every piece of copy that mentions it says so, because a user who
   thinks it validates will skip `dry-build`.
+- **`--app` is an application window, not a kiosk, and the desktop entry is
+  the only thing that passes it.** From the menu this is an application, so
+  `open_app_window` starts a Chromium-family browser with `--app=<url>`: no
+  tab strip, no address bar, no back and forward, but **ordinary window
+  controls** — F11 is the user's to press. **`--start-maximized` goes with
+  it, and it is maximised rather than fullscreen**: the app is three columns
+  beside one another and the default app window is narrow enough to stack
+  them, but `--start-fullscreen` takes the frame away and leaves the same
+  trap as `--kiosk`. Verify it by the window's own state rather than by its
+  size — `xprop _NET_WM_STATE` must show `MAXIMIZED_HORZ` and
+  `MAXIMIZED_VERT` and no `FULLSCREEN`. **Comparing width against the X
+  screen proves nothing on a multi-head machine**: 1920×1019 looked like a
+  failure beside a 2784×1536 screen and was a correctly maximised window on
+  the 1920×1080 head. Three parts of that are
+  deliberate. It falls through to `webbrowser.open` when no such browser is
+  installed, so nothing is added to the closure and a machine without one
+  behaves exactly as before. **Firefox is not on `_APP_BROWSERS`**: its
+  nearest equivalent is `--kiosk`, true fullscreen with no way out, and
+  trapping somebody is worse than a tab. And a terminal launch gets no
+  `--app`, because there a tab is what was asked for. The child is started
+  detached with its output discarded — a browser writing to this process's
+  stdout would bury the line saying where nixgen is. `startupNotify` stays
+  false either way: the window belongs to the browser, not to this process,
+  so the desktop cannot match a notification to it.
 - **Unstable is a channel like any other, and picking it makes everything
   unstable** — options, packages, `flake.nix`, `system.stateVersion`. What
   unblocked it was pinning the flake to the indexed snapshot and showing how old
@@ -926,6 +981,30 @@ harnesses cannot notice.
   that set. Keep all three — each one alone looks sufficient.
 - **Setup is the first tab and the one the app opens on.** On a fresh install
   those files are needed before anything else.
+- **The desktop entry removes every command except the first and the last, and
+  those two stay for different reasons.** `nix profile install` cannot go:
+  **NixOS has no graphical package installer at all** — GNOME Software and
+  Discover are Flatpak front ends here and do not manage system packages, so
+  no amount of packaging reaches a GUI-only install. `System update` cannot go
+  either, and that one is a choice rather than a limit — the server has no
+  authentication, so it hands over a command instead of rebuilding. Everything
+  between them is now a click. Do not "finish the job" by adding a privileged
+  endpoint; that is the same door, from the other side.
+- **A second launch opens the nixgen already running rather than refusing.**
+  With an icon to click, a busy port is the ordinary case, not a development
+  mishap: closing the tab leaves the server up. A refusal printed to a terminal
+  nobody opened is indistinguishable from a broken icon. It **asks `/api/meta`
+  first** — a busy port can hold anything, and pointing somebody's browser at
+  an unrelated local service is worse than the message it replaces — and that
+  case, plus `--no-browser`, still refuse, each with its own reason. **The
+  build id in the header is still what says which copy answered**, which is
+  the fact this must not paper over; the message says so rather than implying
+  the new one started.
+- **The first-run notification is best effort and stays that way.** Five
+  minutes of index building with no terminal to print to looks like a dead
+  icon, so the wrapper calls `notify-send` when stdout is not a tty. It needs
+  a session bus to reach anyone, so it is `|| true` — a launch must not fail
+  because a notice could not be delivered.
 
 ---
 
@@ -933,6 +1012,17 @@ harnesses cannot notice.
 
 - `CHANGELOG.md` is the only place entries live. English half on top, Japanese
   half below. `README.md`, `README.ja.md` and `docs/index.html` link to it.
+- **Two branches, and the READMEs differ on purpose.** `main` is the stable one
+  and is what a bare `github:hatake716/nixgen` resolves to; `development` is
+  where work lands first. On `development` both READMEs carry a note saying so
+  and every flake reference names the branch
+  (`github:hatake716/nixgen/development`), because a page whose commands
+  install something other than what the page describes is worse than no page.
+  **Those four command sites and the note must not travel to `main` in a
+  merge** — check `git grep -n 'nixgen/development' README.md README.ja.md`
+  after merging and take them back out. `docs/index.html` is deliberately left
+  alone: GitHub Pages serves the homepage from `main`, so a branch-specific
+  command there would be published to everybody.
 - Figures appear in several files and drift. Current: **24,557 options**,
   **144,245 packages**, **88.3% (21,681)** with a real widget, **1,252** distinct
   type strings, **5,082 (21%)** with a placeholder. All for `nixos-26.05` at

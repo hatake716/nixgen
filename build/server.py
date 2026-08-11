@@ -16,6 +16,8 @@ import sys
 import tarfile
 import tempfile
 import threading
+import urllib.error
+import urllib.request
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
@@ -1021,6 +1023,81 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, fh.read(), ctype)
 
 
+# Long enough for a server that is busy answering something else, short enough
+# that a port held by a program which accepts connections and then says nothing
+# does not hang the launch. Asked once, on an error path, never retried.
+RUNNING_TIMEOUT = 2.0
+
+
+def running_nixgen(url):
+    """The meta of a nixgen already answering on `url`, or None for anything
+    else — including nothing at all.
+
+    A busy port is usually nixgen left running from earlier. The desktop entry
+    makes that the ordinary case rather than a development mishap: closing the
+    browser tab leaves the server up, and the next click on the icon lands
+    here. But the port can hold anything, and sending somebody's browser at an
+    unrelated local service is worse than the message they came for, so this
+    asks first. `/api/meta` is the cheapest question that has a nixgen-shaped
+    answer.
+    """
+    try:
+        with urllib.request.urlopen(url + "api/meta", timeout=RUNNING_TIMEOUT) as r:
+            meta = json.loads(r.read().decode("utf-8"))
+    except Exception:
+        return None
+    return meta if isinstance(meta, dict) and "channel" in meta else None
+
+
+# Browsers that can show a page as an application window — no tab strip, no
+# address bar, no back and forward — and the flag that asks for it. Chromium
+# and its relatives all spell it the same way. Nothing is added to the closure
+# for this: whatever is already on the machine is what gets used, and if none
+# of these is there the ordinary browser opens as before. Firefox is not on the
+# list on purpose: its equivalent is `--kiosk`, which is true fullscreen with
+# no window controls, and a window somebody cannot find their way out of is a
+# worse answer than a tab.
+_APP_BROWSERS = ["chromium", "chromium-browser", "google-chrome-stable",
+                 "google-chrome", "brave", "microsoft-edge-stable",
+                 "vivaldi-stable"]
+
+
+def open_app_window(url):
+    """Show `url` as its own window. True if a browser took it."""
+    for exe in _APP_BROWSERS:
+        path = shutil.which(exe)
+        if not path:
+            continue
+        try:
+            # Detached, and with its output discarded: this process is a web
+            # server, and a browser writing to its stdout for the rest of the
+            # session would bury the one line that says where nixgen is.
+            # Maximised, not fullscreen: the app is three columns beside one
+            # another and the default app window is narrow enough to stack
+            # them. `--start-maximized` asks the window manager for the
+            # ordinary maximised state — the title bar and its buttons stay,
+            # so it can be restored — where `--start-fullscreen` would take
+            # the frame away and leave the same trap as `--kiosk`.
+            subprocess.Popen(
+                [path, f"--app={url}", "--start-maximized"],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                start_new_session=True)
+            return True
+        except OSError:
+            continue
+    return False
+
+
+def show(url, app_mode):
+    """Put nixgen on screen, however this machine can."""
+    if app_mode and open_app_window(url):
+        return
+    try:
+        webbrowser.open(url)
+    except Exception:
+        pass
+
+
 def main():
     global DB_PATH
     ap = argparse.ArgumentParser()
@@ -1029,6 +1106,13 @@ def main():
     # Localhost by default on purpose: there is no authentication.
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--no-browser", action="store_true")
+    # Launched from the application menu there is no terminal and no tab
+    # strip to make sense of: the page is the whole app, so it gets a window
+    # of its own. The desktop entry passes this; a terminal launch keeps the
+    # ordinary browser, where a tab is what you expected.
+    ap.add_argument("--app", action="store_true",
+                    help="open in a window of its own, without tabs or an "
+                         "address bar, when a browser here supports it")
     args = ap.parse_args()
 
     DB_PATH = args.db
@@ -1057,14 +1141,36 @@ def main():
     except OSError as exc:
         if exc.errno != errno.EADDRINUSE:
             sys.exit(f"could not listen on {args.host}:{args.port} — {exc}")
-        sys.exit(
-            f"port {args.port} is already in use, so nixgen did not start.\n"
-            f"\n"
-            f"  Often it is nixgen itself, left running from earlier. Open\n"
-            f"  {url} and look at the build id in the header: if it is\n"
-            f"  not the version you expected, that is the old one answering.\n"
-            f"\n"
-            f"  Otherwise use another port:  nixgen --port {args.port + 1}")
+        other = running_nixgen(url)
+        if other is None:
+            sys.exit(
+                f"port {args.port} is already in use, and whatever is on it did\n"
+                f"not answer as nixgen, so nixgen did not start.\n"
+                f"\n"
+                f"  Use another port:  nixgen --port {args.port + 1}")
+        if args.no_browser:
+            sys.exit(
+                f"nixgen is already running on {url} "
+                f"({other.get('channel')}), so this one\n"
+                f"did not start.\n"
+                f"\n"
+                f"  If that is not the version you expected, it is an older copy\n"
+                f"  still running: the build id is in the header. Otherwise use\n"
+                f"  another port:  nixgen --port {args.port + 1}")
+        # A nixgen is already there, so show it rather than refusing. Launched
+        # from the desktop entry there is no terminal to print to and no
+        # ctrl-c to press, so a second click on the icon has to put the app on
+        # screen; refusing silently reads as the icon being broken. The build
+        # id in the header is still what says which copy answered — that is
+        # the one thing this must not paper over.
+        print(f"nixgen is already running on {url} "
+              f"({other.get('channel')}) — opening it rather than starting a "
+              f"second one.")
+        print(f"  If it is not the version you expected, that is an older copy\n"
+              f"  still running: the build id is in the header. Stop it where it\n"
+              f"  was started, or use another port:  nixgen --port {args.port + 1}")
+        show(url, args.app)
+        return
 
     meta = get_meta()
     print(f"nixgen — {meta.get('channel')} · "
@@ -1072,10 +1178,7 @@ def main():
           f"{int(meta.get('package_count', 0)):,} packages")
     print(f"serving {url}   (ctrl-c to stop)")
     if not args.no_browser:
-        try:
-            webbrowser.open(url)
-        except Exception:
-            pass
+        show(url, args.app)
     httpd.serve_forever()
 
 
