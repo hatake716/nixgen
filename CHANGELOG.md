@@ -11,6 +11,10 @@ option counts.
 
 ### Documentation, 2026-08-12
 
+- **The first reason names the desktops**: GNOME, KDE Plasma, Xfce, Cinnamon,
+  COSMIC, LXQt, i3, and the two Wayland compositors that arrive with a shell
+  already on them — Sway + noctalia and niri + noctalia. Checked against the
+  dropdown so the page cannot name one the app does not offer.
 - **The homepage and both READMEs now lead with three reasons**, in the order
   that matches what a reader is actually deciding: a desktop that works on the
   first login, Japanese set up all the way through, and nothing changing on
@@ -1156,6 +1160,7 @@ three of these six showed up in only one of the two.
 
 ### ドキュメント、2026-08-12
 
+- **1つめの理由に、選べるデスクトップを名前で入れました。** GNOME・KDE Plasma・Xfce・Cinnamon・COSMIC・LXQt・i3、そしてシェルが最初から載った状態で出てくる Wayland コンポジタ2つ、Sway + noctalia と niri + noctalia です。**アプリのプルダウンと突き合わせて検査**しているので、提供していないものをページが名乗ることはありません。
 - **ホームページと両方の README が、3つの理由から始まるようにしました。** 読む人が実際に判断する順序に合わせています。初回ログインから使えるデスクトップ、通しで整う日本語環境、そして**あなたが実行するまでマシンには何も起きない**こと。
 - ホームページの見出しは **「インストール直後から、使えるマシンまで。」** です。3つの理由はヒーローの直下に、地色を変えた独立した帯として置きました。**ページ内で最も目立つ節**です。
 - どの理由も、裏にある具体で支えています。シェルがアプリを起動するために要る PATH、どこにも書かれていない Wayland のキーボードレイアウト環境変数、この道具が意図的に持たない特権の口。**オプション数はヒーローに残し、看板にはしません。** あれは nixpkgs の数字で、この道具の成果ではないからです。

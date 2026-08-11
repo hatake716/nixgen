@@ -11,7 +11,10 @@ before anything on your machine changes.
 
 ### Three reasons
 
-**1. A desktop that works on the first login.** Enabling a desktop is one line
+**1. A desktop that works on the first login.** GNOME, KDE Plasma, Xfce,
+Cinnamon, COSMIC, LXQt, i3, and two Wayland compositors that arrive with a
+shell already on them — Sway + noctalia and niri + noctalia. Enabling a
+desktop is one line
 anyone can write. What nobody tells you is the rest: the greeter and its
 Wayland mode, the session name NixOS checks at build time, XWayland, the
 shell's autostart unit and the PATH it needs to launch anything, the terminal

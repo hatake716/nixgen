@@ -128,6 +128,9 @@ section.pitch { background: var(--panel); padding: 52px 0 46px; }
 .three h3 { font-size: 19px; line-height: 1.35; letter-spacing: -.01em;
             margin: 0 0 10px; }
 .three p { font-size: 14px; color: var(--ink-soft); margin: 0; max-width: none; }
+/* The first reason names the desktops in its own paragraph; without this the
+   two paragraphs read as one run. */
+.three p + p { margin-top: 11px; }
 section.pitch .tiny { max-width: 68ch; }
 @media (max-width: 700px) {
   section.pitch { padding: 38px 0 34px; }
@@ -254,6 +257,11 @@ footer a { margin-right: 14px; }
         <p class="num">01</p>
         <h3 class="en">A desktop that works on the first login.</h3>
         <h3 class="ja">初回ログインから使えるデスクトップ。</h3>
+        <p class="en"><b>GNOME, KDE Plasma, Xfce, Cinnamon, COSMIC, LXQt, i3</b>, and
+          two Wayland compositors that arrive with a shell already on them —
+          <b>Sway + noctalia</b> and <b>niri + noctalia</b>. Pick one and it is there at
+          the next login.</p>
+        <p class="ja"><b>GNOME・KDE Plasma・Xfce・Cinnamon・COSMIC・LXQt・i3</b>、そしてシェルが最初から載った状態で出てくる Wayland コンポジタ2つ、<b>Sway + noctalia</b> と <b>niri + noctalia</b>。選べば、次のログインからそこにあります。</p>
         <p class="en">Enabling a desktop is one line anyone can write. What nobody tells
           you is the rest: the greeter and its Wayland mode, the session name NixOS
           checks at build time, XWayland, the shell's autostart unit and the PATH it
