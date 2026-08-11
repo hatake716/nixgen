@@ -782,6 +782,72 @@ def bundle_name(host):
     return clean.strip(".-") or "nixos"
 
 
+def download_dirs():
+    """Where a browser on this machine plausibly saves downloads.
+
+    The XDG configuration is the authority when it exists — it is the one
+    place the localised name (ダウンロード) is actually recorded — and the
+    fallbacks are the same three the shell command has always tried, in the
+    same order.
+    """
+    home = os.path.expanduser("~")
+    dirs = []
+    try:
+        with open(os.path.join(home, ".config", "user-dirs.dirs")) as fh:
+            for ln in fh:
+                m = re.match(r'\s*XDG_DOWNLOAD_DIR\s*=\s*"([^"]*)"', ln)
+                if m:
+                    dirs.append(m.group(1).replace("$HOME", home))
+    except OSError:
+        pass
+    dirs += [os.path.join(home, "Downloads"),
+             os.path.join(home, "ダウンロード"), home]
+    seen, out = set(), []
+    for d in dirs:
+        if d and d not in seen and os.path.isdir(d):
+            seen.add(d)
+            out.append(d)
+    return out
+
+
+def locate_bundle(host, since, dirs=None):
+    """Find the archive the browser just wrote — by name and by time.
+
+    The name is recomputed from the host on this side, so nothing in the
+    request names a path or a file, and the answer can only ever be a file
+    matching the bundle's own pattern inside a fixed list of download
+    directories: the same no-joining rule the icon endpoint follows. The
+    pattern accepts the browser's duplicate names (`desktop (1).tar.gz`,
+    Firefox's `desktop(1).tar.gz`), and the newest match wins, because the
+    question is "the file this click produced" — a same-named archive from
+    last week must lose, which is exactly the file the searching command
+    used to pick up. `since` (seconds, the client's click) keeps last week's
+    file out even when it is the only one there.
+    """
+    stem = bundle_name(host)
+    pat = re.compile(r"^%s( ?\(\d+\))?\.tar\.gz$" % re.escape(stem))
+    best = None
+    for d in (download_dirs() if dirs is None else dirs):
+        try:
+            names = os.listdir(d)
+        except OSError:
+            continue
+        for f in names:
+            if not pat.match(f):
+                continue
+            try:
+                mtime = os.path.getmtime(os.path.join(d, f))
+            except OSError:
+                continue
+            if mtime < since - 5:
+                continue
+            if best is None or mtime > best[2]:
+                best = (d, f, mtime)
+    if best is None:
+        return {"found": False}
+    return {"found": True, "dir": best[0], "file": best[1], "mtime": best[2]}
+
+
 def bundle(payload):
     """The three files as one .tar.gz, for the Download all three button.
 
@@ -928,6 +994,16 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/api/option":
             opt = get_option(one("path", ""))
             return self._json(opt or {"error": "not found"}, 200 if opt else 404)
+        if u.path == "/api/locate-bundle":
+            # Read-only, and it takes a host name and a time, never a path:
+            # System update asks where the archive the browser just wrote
+            # actually landed, so the command it hands over can name the
+            # exact file instead of searching for one.
+            try:
+                since = float(one("since", "0"))
+            except ValueError:
+                since = 0.0
+            return self._json(locate_bundle(one("host", ""), since))
         return self._send(404, b"not found", "text/plain")
 
     def do_POST(self):
