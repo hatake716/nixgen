@@ -729,9 +729,10 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   identical, and two forms because one cannot do both jobs — the full drawing
   with its arcs for the homepage hero, and a cropped, thicker flake for the
   headers and the favicon, since the full one at 22px is a smudge. Change the
-  drawing there and paste both forms back into `build/static/index.html` and
-  `docs/index.html`; nothing loads it at runtime, so there is no file to keep
-  in step and no request to fail. **The palette follows the mark**: it is black
+  drawing there and paste the forms back into `build/static/index.html` and
+  `docs/index.html` — the two forms in both pages, plus the `--icon` tile in
+  the homepage's application section; nothing loads any of them at runtime,
+  so there is no file to keep in step and no request to fail. **The palette follows the mark**: it is black
   on white, so `--accent` is ink rather than blue, and anything that used blue
   to mean "matched" or "selected" uses a tinted ground instead.
 - **The artwork exists as numbers now, and that is what `--logo` is.**
