@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-12f';
+const BUILD = '2026-08-12g';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -1812,10 +1812,66 @@ async function addGpu(key) {
       { paths: ['hardware.nvidia.open'], value: false });
   }
 
+  /* The previous card's pieces leave when the card does, the same rule the
+     desktops follow — without this, NVIDIA -> AMD kept
+     `services.xserver.videoDrivers = ["nvidia"]` and the hardware.nvidia
+     cards, which is still an NVIDIA configuration wearing an AMD label, and
+     with `allowUnfree` gone it stops building outright. Only values this
+     preset wrote are touched: a videoDrivers card holding anything but
+     exactly ["nvidia"] is the user's and stays. */
+  const dropIfOurs = (path, value) => {
+    for (const [key, e] of [...state.selected]) {
+      if (resolvePath(e) !== path) continue;
+      // A nullable option wraps its value ({__null, v}); compare what it
+      // holds, or hardware.nvidia.open = false never matches false and the
+      // card survives every switch — which is how this line got here.
+      let v = e.value;
+      if (v && typeof v === 'object' && !Array.isArray(v) && '__null' in v) {
+        v = v.__null ? null : v.v;
+      }
+      if (value === undefined
+          || JSON.stringify(v) === JSON.stringify(value)) {
+        state.selected.delete(key);
+      }
+    }
+  };
+  if (!g.nvidia) {
+    dropIfOurs('hardware.nvidia.modesetting.enable', true);
+    dropIfOurs('hardware.nvidia.open', false);
+    dropIfOurs('services.xserver.videoDrivers', ['nvidia']);
+  }
+  if (key !== 'intel') {
+    dropIfOurs('hardware.graphics.extraPackages', ['intel-media-driver']);
+  }
+
   const added = [], missing = [];
   for (const step of steps) {
     const used = await addWithValue(step.paths, step.value);
     used ? added.push(used) : missing.push(step.paths[0]);
+  }
+
+  /* The NVIDIA driver is unfree, and a file that names it without
+     `allowUnfree` fails at nixos-rebuild with a refusal three screens long —
+     the one thing this preset produced that could not build as written. So
+     the switch goes in with the driver. A flat card, since `nixpkgs.config`
+     is an attrs option the form has no widget for.
+
+     Switching to AMD or Intel takes it out again ONLY when nothing else
+     needs it: vscode, Steam and their like are unfree too, and the card may
+     be the only thing letting them build. `state.unfree` knows what the UI
+     added; anything it still finds in the list keeps the card, and the
+     status bar says which way it went. */
+  let unfreeCard = null;
+  if (g.nvidia) {
+    unfreeCard = setRawCard(['nixpkgs', 'config', 'allowUnfree'], 'true', 'boolean');
+    added.push(unfreeCard);
+  } else {
+    const stillNeeded = [...state.unfree].filter(a => alreadyListed(a));
+    if (!stillNeeded.length) {
+      if (dropRawCard(['nixpkgs', 'config', 'allowUnfree'])) unfreeCard = 'dropped';
+    } else {
+      unfreeCard = 'kept:' + stillNeeded.join(', ');
+    }
   }
   renderEditor();
   pushRender();
@@ -1828,8 +1884,26 @@ async function addGpu(key) {
       `${g.label}: ${added.length}件を追加しましたが、このリリースには ` +
       `${missing.join('、')} がありません。適用する前に結果を確認してください。`), 'bad');
   } else {
-    setStatus(say(`${g.label}: ${added.length} settings added.`,
-                  `${g.label}: ${added.length}件の設定を追加しました。`), 'ok');
+    const extra =
+      g.nvidia
+        ? ' nixpkgs.config.allowUnfree = true went in with it — the driver ' +
+          'is unfree and the build refuses it otherwise.'
+        : unfreeCard === 'dropped'
+          ? ' allowUnfree came out again: nothing unfree is left in the module.'
+          : unfreeCard && unfreeCard.startsWith('kept:')
+            ? ` allowUnfree stays: ${unfreeCard.slice(5)} still needs it.`
+            : '';
+    const extraJa =
+      g.nvidia
+        ? 'ドライバが unfree のため nixpkgs.config.allowUnfree = true も' +
+          '入れました。無いとビルドが拒否されます。'
+        : unfreeCard === 'dropped'
+          ? 'unfree なものが残っていないので、allowUnfree は外しました。'
+          : unfreeCard && unfreeCard.startsWith('kept:')
+            ? `${unfreeCard.slice(5)} が使うため、allowUnfree は残しています。`
+            : '';
+    setStatus(say(`${g.label}: ${added.length} settings added.${extra}`,
+                  `${g.label}: ${added.length}件の設定を追加しました。${extraJa}`), 'ok');
   }
 }
 
@@ -2625,8 +2699,13 @@ async function doRender() {
       `赤で表示しています。どちらかのファイルから消してください。両方が ` +
       `lib.mkDefault だと NixOS はどちらを採るか決められず、rebuild が失敗します。`));
   }
+  /* Both unfree notes stand down once the module really sets the switch —
+     an instruction to add a line that is already on screen reads as a bug.
+     The check is on the rendered text, so a verbatim or ancestor-card
+     spelling counts too. */
+  const unfreeAllowed = /allowUnfree\s*=\s*true/.test(res.text);
   const unfree = [...state.unfree].filter(a => res.text.includes('pkgs.' + a));
-  if (unfree.length) {
+  if (unfree.length && !unfreeAllowed) {
     notes.push(say(
       `${unfree.join(', ')} ${unfree.length > 1 ? 'are' : 'is'} unfree. ` +
       `Set nixpkgs.config.allowUnfree = true; in your configuration.nix.`,
@@ -2638,7 +2717,7 @@ async function doRender() {
      module. It belongs here rather than in a one-off message from the preset,
      because a note that is regenerated on every render is one that cannot be
      wiped by the next one — which is exactly what happened when it was. */
-  if (/^\s*hardware\.nvidia\./m.test(res.text)) {
+  if (/^\s*hardware\.nvidia\./m.test(res.text) && !unfreeAllowed) {
     notes.push(say(
       `The NVIDIA driver is unfree. Set nixpkgs.config.allowUnfree = true; ` +
       `in your configuration.nix, or the build refuses it.`,
