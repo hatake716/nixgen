@@ -231,24 +231,6 @@ sudo nixos-rebuild switch --flake /etc/nixos#desktop
 Nothing else in your file is touched, and **deleting that one line undoes
 everything** — run `switch` again and you have exactly your old system back.
 
-### Step 5 — Keep nixgen around (optional)
-
-So you can start it by typing `nixgen`:
-
-```bash
-nix profile install github:hatake716/nixgen
-nixgen
-```
-
-**A copy installed this way is pinned** — it stays as it is until you say
-otherwise:
-
-```bash
-nix profile upgrade nixgen
-```
-
-Remove it later with `nix profile remove nixgen`.
-
 ### If something goes wrong
 
 **`experimental Nix feature 'nix-command' is disabled`**

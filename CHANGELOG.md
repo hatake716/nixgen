@@ -9,6 +9,13 @@ option counts.
 
 ## English
 
+### Documentation, 2026-08-12b
+
+- **Dropped the "keep nixgen around" step from both READMEs.** Installing it
+  into a profile is not part of getting a machine working, and it pinned a copy
+  that then had to be upgraded by hand — the cause of a stale build more than
+  once. `nix run github:hatake716/nixgen` stays the one way in.
+
 ### build 2026-08-12g
 
 - **Picking NVIDIA sets `nixpkgs.config.allowUnfree = true` with it.** The
@@ -1204,6 +1211,10 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### ドキュメント、2026-08-12b
+
+- **両方の README から「毎回使うなら(任意)」の手順を削除しました。** プロファイルに入れることはマシンを動かす手順の一部ではなく、しかも**入れたコピーは固定される**ので、手で更新しない限り古いままになります(実際に何度か、古いビルドの原因になりました)。入口は `nix run github:hatake716/nixgen` の1つに揃えます。
 
 ### build 2026-08-12g
 

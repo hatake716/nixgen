@@ -166,23 +166,6 @@ sudo nixos-rebuild switch --flake /etc/nixos#desktop
 
 それ以外には何も触りません。**この1行を消して `switch` し直せば、すべて元に戻ります。**
 
-### ステップ5 — 毎回使うなら(任意)
-
-`nixgen` と打つだけで起動できるようにしておけます。
-
-```bash
-nix profile install github:hatake716/nixgen
-nixgen
-```
-
-**この方法で入れたものは固定されます。** 明示的に指示するまで更新されません。
-
-```bash
-nix profile upgrade nixgen
-```
-
-要らなくなったら `nix profile remove nixgen` で消せます。
-
 ### うまくいかないとき
 
 **`experimental Nix feature 'nix-command' is disabled`**
