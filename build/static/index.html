@@ -25,12 +25,12 @@
       <button class="btn" id="btn-import">Import configuration.nix</button>
       <input type="file" id="file" accept=".nix" hidden>
       <button class="btn" id="btn-check">Check syntax</button>
-      <button class="btn" id="btn-copy">Copy</button>
-      <!-- The same archive the `all three` tab hands over, reachable without
-           going to that tab first. It steps aside while that tab is open,
-           where the button beside it already says the same thing. -->
-      <button class="btn" id="btn-dl-all">Download all three</button>
-      <button class="btn primary" id="btn-dl">Download generated.nix</button>
+      <!-- One download, and it is the one the five steps end on. There used
+           to be a second button beside it that renamed itself to whichever
+           file tab was open — four meanings in one control, and it hid this
+           one whenever the `all three` tab was chosen. Taking a single file
+           now lives next to the tabs that choose it. -->
+      <button class="btn primary" id="btn-dl-all">Download all three</button>
       <!-- The one button that changes the machine, so it is the last one and
            does not look like the others. It hands over a command rather than
            doing the work: nixgen has no authentication, and a local server
@@ -421,6 +421,12 @@
                Download button already follows whichever tab is selected, so
                taking all three is the same gesture as taking one of them. -->
           <button class="tab" role="tab" data-file="all three" aria-selected="false">all three</button>
+          <!-- Both of these act on the file you are looking at, so they sit
+               with the tabs that choose it rather than in the header — and
+               neither needs a changing label. Both stand down on `all three`,
+               where there is no single file to copy or take. -->
+          <button class="mini filedl" id="btn-copy">Copy</button>
+          <button class="mini" id="btn-dl-one">Download this file</button>
         </div>
       </header>
       <div class="pane-body"><pre class="nix notranslate" id="out" translate="no"></pre></div>

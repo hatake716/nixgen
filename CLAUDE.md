@@ -268,6 +268,15 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   do first. Importing is a branch of step one, and checking earned a step of
   its own rather than a footnote under the list. A new step goes in the place
   it is performed, or it is not a step.
+- **A control that renames itself is four controls.** The header used to hold
+  `Download generated.nix`, which became `Download configuration.nix`,
+  `Download flake.nix`, or the archive depending on the file tab — and hid
+  `Download all three` whenever the last one was chosen. Two download buttons
+  playing musical chairs, next to each other. The header now holds one
+  download, the one the five steps end on, and it is the primary button.
+  **Anything that acts on the file being shown belongs in the file tab row**,
+  where the tabs that choose it are: Copy and `Download this file` live there
+  and both stand down on `all three`. Neither needs a changing label.
 - **The archive is a `.tar.gz` inside a directory, and both halves matter.**
   `tar` and `gzip` are in the NixOS default system path and `unzip` is not, so
   a zip would send someone looking for a package before they could read what

@@ -153,7 +153,7 @@ sudo nixos-rebuild switch
 sudo nixos-rebuild switch --flake /etc/nixos#desktop
 ```
 
-**手書きの configuration.nix を使い続ける場合**は、`generated.nix` だけを受け取ります(**Download generated.nix** ボタン)。自分の `configuration.nix` の隣に置き、`imports` に1行足してください。
+**手書きの configuration.nix を使い続ける場合**は、`generated.nix` だけを受け取ります(ファイルタブの隣の **Download this file** ボタン)。自分の `configuration.nix` の隣に置き、`imports` に1行足してください。
 
 ```nix
 {

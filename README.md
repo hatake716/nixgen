@@ -216,7 +216,7 @@ sudo nixos-rebuild switch --flake /etc/nixos#desktop
 ```
 
 **On a machine you already configure by hand**, take only `generated.nix` (the
-**Download generated.nix** button), save it beside your own
+**Download this file** button beside the file tabs), save it beside your own
 `configuration.nix`, and add one line to your `imports` list:
 
 ```nix

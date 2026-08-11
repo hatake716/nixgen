@@ -9,6 +9,21 @@ option counts.
 
 ## English
 
+### build 2026-08-12h
+
+- **The header no longer renames a button as you switch file tabs.** The
+  primary control used to read `Download generated.nix`, then
+  `Download configuration.nix`, then `Download flake.nix`, then the archive —
+  four meanings in one button — and it hid `Download all three` whenever the
+  last tab was chosen. Two download buttons trading places, side by side.
+- **`Download all three` is the one download in the header, and it is
+  primary.** It is what the five steps end on, so it is the button that looks
+  like the way out.
+- **Copy and `Download this file` moved to the file tab row**, beside the tabs
+  that choose the file they act on. Both stand down on `all three`, where
+  there is no single file. Nothing was lost: taking `generated.nix` alone, for
+  a machine you configure by hand, is still one click.
+
 ### Documentation, 2026-08-12b
 
 - **Dropped the "keep nixgen around" step from both READMEs.** Installing it
@@ -1211,6 +1226,12 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-12h
+
+- **ファイルタブを切り替えるたびにヘッダーのボタン名が変わるのをやめました。** 主ボタンは `Download generated.nix` → `Download configuration.nix` → `Download flake.nix` → 書庫、と**1つのボタンで4つの意味**を持ち、しかも最後のタブでは `Download all three` を隠していました。**2つのダウンロードボタンが隣り合って席を入れ替えている**状態でした。
+- **ヘッダーのダウンロードは `Download all three` の1つだけにし、主ボタン(青)にしました。** 5つの手順が最後に押すものなので、**出口に見えるボタン**がそれです。
+- **Copy と `Download this file` は、ファイルタブの行に移しました。** 対象のファイルを選ぶタブの隣です。`all three` では単一ファイルが無いので、どちらも引っ込みます。**失われた経路はありません。** 手書き設定のマシン向けに `generated.nix` だけ取ることも、変わらず1クリックです。
 
 ### ドキュメント、2026-08-12b
 

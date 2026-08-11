@@ -477,3 +477,10 @@ pre.nix .clash { border-left: 2px solid #a34545; margin-left: -2px; padding-left
    that fills the module pane until the first setting is added. */
 #howto .howto-logo { display: block; width: 100%; max-width: 300px; height: auto;
                      margin: 0 0 22px; }
+
+/* Taking the file you are looking at. It lives in the tab row because that is
+   what chooses the file, which is also why it needs no changing label — the
+   header button it replaces renamed itself four ways. */
+.filetabs { align-items: center; }
+.filetabs .mini { padding: 4px 9px; }
+.filetabs .filedl { margin-left: auto; }
