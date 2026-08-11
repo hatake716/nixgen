@@ -181,12 +181,16 @@ nix profile install github:hatake716/nixgen/development
 ```
 
 **nixgen then appears in your application menu, under System.** Starting it
-from there opens the browser by itself — there is no terminal to keep open,
-and nothing else to type.
+from there opens a window of its own — no tabs, no address bar, just the page.
+There is no terminal to keep open, and nothing else to type.
 
-Two things are worth knowing about the menu entry:
+Three things are worth knowing about the menu entry:
 
-- **Closing the browser tab does not stop it.** The server keeps running. That
+- **The window needs a Chromium-family browser** — Chromium, Chrome, Brave,
+  Edge or Vivaldi, whichever is already installed. On a machine with only
+  Firefox it opens an ordinary browser tab instead, which works the same; the
+  window is the nicer of the two, not the working one.
+- **Closing the window does not stop it.** The server keeps running. That
   is usually what you want, and clicking the icon again brings the page back
   rather than complaining — but if you want it stopped, stop it from the
   terminal you started it in, or log out.

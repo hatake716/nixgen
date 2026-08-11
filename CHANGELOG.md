@@ -65,6 +65,20 @@ from.
   line goes nowhere, so it puts up a desktop notification instead. Best effort:
   it needs a session bus to reach anybody, and a failure there does not stop
   the launch.
+- **Started from the icon, it gets a window of its own** — no tab strip, no
+  address bar, no back and forward. It is an application in the menu, so
+  arriving as one tab among twenty in a browser session already open reads as
+  a website rather than as the thing that was just clicked, and the browser's
+  own chrome offers nothing the page uses. The desktop entry passes `--app`;
+  a terminal launch does not, and keeps the ordinary browser, where a tab is
+  what you asked for. Nothing was added to the closure for this — the flag is
+  Chromium's and its relatives all spell it the same way, so it is whatever is
+  already on the machine or nothing, and nothing means the previous behaviour.
+  **Firefox is left off that list on purpose**: its nearest equivalent is
+  `--kiosk`, which is true fullscreen with no window controls, and a window
+  somebody cannot find their way out of is a worse answer than a tab. What
+  this gives is an ordinary window with ordinary controls; F11 makes it
+  fullscreen if that is what you want.
 
 ## v1.0.0-rc.1 — 2026-08-12
 
@@ -1480,6 +1494,7 @@ three of these six showed up in only one of the two.
 - **最初の1コマンドは無くせません。そしてそれは nixgen 側で直せる話ではありません。** NixOS には**GUIによるパッケージ導入手段がそもそも存在しません** — GNOME Software も KDE Discover も、ここではシステムのパッケージを扱わないからです。また、これで全工程がGUIだけになるわけでもありません: `System update` は今も**意図して**コマンドを1つ渡すだけで、代わりにリビルドはしません(サーバーに認証が無いためです)。今回無くなったのは、その**2つの間にあった**コマンドのすべてです。
 - **2回目の起動は、拒否せずに既に動いている nixgen を開きます。** ブラウザのタブを閉じてもサーバーは残るので、クリックするアイコンがある以上これは開発中の事故ではなく**通常の操作**です。誰も開いていないターミナルに向かって拒否のメッセージを出せば、アイコンが壊れているようにしか見えません。開く前に `/api/meta` で確認します: 使用中のポートには全く別のものが居ることもあり、無関係なローカルサービスへブラウザを送るのは、置き換えようとしたメッセージより悪いからです。その場合と `--no-browser` の場合は従来どおり拒否します — ただし**それぞれ実際の理由**を述べるようにしました。**どちらのコピーが応答したかは、今もヘッダのビルド番号が答えます**。そこだけは覆い隠してはならない一点です。
 - **初回起動が、伝える先のターミナルが無くても伝えるようになりました。** 索引の構築には5分ほどかかりますが、メニューから起動した場合その進捗行はどこにも出ません。代わりにデスクトップ通知を出します。届けるにはセッションバスが必要なので、これはベストエフォートで、失敗しても起動は止めません。
+- **アイコンから起動したときは、専用のウィンドウで開きます** — タブバーもアドレスバーも、戻る・進むもありません。メニューに並んでいる以上これはアプリケーションであり、既に開いているブラウザの20個目のタブとして現れれば、いま押したものではなく**ウェブサイトに見えます**。ブラウザ側の枠は、このページが使うものを何一つ提供していません。デスクトップエントリが `--app` を渡します。ターミナルからの起動には付かないので、従来どおりの通常ブラウザのままです(そこではタブこそが求めたものだからです)。**このために追加した依存はありません** — このフラグは Chromium 系のもので、いずれも綴りが同じなので、**マシンに既にあるものを使うか、何もしないか**のどちらかです。何もない場合は従来の動作になります。**Firefox は意図して外しています**: 一番近いのは `--kiosk` で、これはウィンドウ枠の無い本物の全画面です。**出口の見つからないウィンドウは、タブより悪い答え**です。ここで得られるのは通常のウィンドウ操作を備えた普通のウィンドウで、全画面にしたければ F11 で切り替わります。
 
 ## v1.0.0-rc.1 — 2026-08-12
 

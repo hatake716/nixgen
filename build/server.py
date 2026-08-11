@@ -1049,6 +1049,49 @@ def running_nixgen(url):
     return meta if isinstance(meta, dict) and "channel" in meta else None
 
 
+# Browsers that can show a page as an application window — no tab strip, no
+# address bar, no back and forward — and the flag that asks for it. Chromium
+# and its relatives all spell it the same way. Nothing is added to the closure
+# for this: whatever is already on the machine is what gets used, and if none
+# of these is there the ordinary browser opens as before. Firefox is not on the
+# list on purpose: its equivalent is `--kiosk`, which is true fullscreen with
+# no window controls, and a window somebody cannot find their way out of is a
+# worse answer than a tab.
+_APP_BROWSERS = ["chromium", "chromium-browser", "google-chrome-stable",
+                 "google-chrome", "brave", "microsoft-edge-stable",
+                 "vivaldi-stable"]
+
+
+def open_app_window(url):
+    """Show `url` as its own window. True if a browser took it."""
+    for exe in _APP_BROWSERS:
+        path = shutil.which(exe)
+        if not path:
+            continue
+        try:
+            # Detached, and with its output discarded: this process is a web
+            # server, and a browser writing to its stdout for the rest of the
+            # session would bury the one line that says where nixgen is.
+            subprocess.Popen(
+                [path, f"--app={url}"],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                start_new_session=True)
+            return True
+        except OSError:
+            continue
+    return False
+
+
+def show(url, app_mode):
+    """Put nixgen on screen, however this machine can."""
+    if app_mode and open_app_window(url):
+        return
+    try:
+        webbrowser.open(url)
+    except Exception:
+        pass
+
+
 def main():
     global DB_PATH
     ap = argparse.ArgumentParser()
@@ -1057,6 +1100,13 @@ def main():
     # Localhost by default on purpose: there is no authentication.
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--no-browser", action="store_true")
+    # Launched from the application menu there is no terminal and no tab
+    # strip to make sense of: the page is the whole app, so it gets a window
+    # of its own. The desktop entry passes this; a terminal launch keeps the
+    # ordinary browser, where a tab is what you expected.
+    ap.add_argument("--app", action="store_true",
+                    help="open in a window of its own, without tabs or an "
+                         "address bar, when a browser here supports it")
     args = ap.parse_args()
 
     DB_PATH = args.db
@@ -1113,10 +1163,7 @@ def main():
         print(f"  If it is not the version you expected, that is an older copy\n"
               f"  still running: the build id is in the header. Stop it where it\n"
               f"  was started, or use another port:  nixgen --port {args.port + 1}")
-        try:
-            webbrowser.open(url)
-        except Exception:
-            pass
+        show(url, args.app)
         return
 
     meta = get_meta()
@@ -1125,10 +1172,7 @@ def main():
           f"{int(meta.get('package_count', 0)):,} packages")
     print(f"serving {url}   (ctrl-c to stop)")
     if not args.no_browser:
-        try:
-            webbrowser.open(url)
-        except Exception:
-            pass
+        show(url, args.app)
     httpd.serve_forever()
 
 

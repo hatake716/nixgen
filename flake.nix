@@ -107,11 +107,15 @@
             desktopName = "nixgen";
             genericName = "NixOS configuration generator";
             comment = "Build a NixOS configuration in a form, and read the file it writes";
-            exec = "${nixgen}/bin/nixgen";
+            # --app: from the menu this is an application, so it gets a
+            # window without a tab strip or an address bar when a browser
+            # here can do that. A terminal launch has no --app and keeps the
+            # ordinary browser, where a tab is what you asked for.
+            exec = "${nixgen}/bin/nixgen --app";
             icon = "nixgen";
-            # It has no window of its own: it serves a page and opens the
-            # browser. A startup notification would spin for a window that
-            # never arrives.
+            # The window belongs to the browser, not to this process, so
+            # the desktop cannot match a startup notification to it: it would
+            # spin until it gave up.
             terminal = false;
             startupNotify = false;
             # One main category only: two of them puts the entry in the menu

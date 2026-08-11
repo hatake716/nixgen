@@ -907,6 +907,21 @@ harnesses cannot notice.
 - **`Check syntax` is `nix-instantiate --parse` and nothing more.** It cannot
   judge types. Every piece of copy that mentions it says so, because a user who
   thinks it validates will skip `dry-build`.
+- **`--app` is an application window, not a kiosk, and the desktop entry is
+  the only thing that passes it.** From the menu this is an application, so
+  `open_app_window` starts a Chromium-family browser with `--app=<url>`: no
+  tab strip, no address bar, no back and forward, but **ordinary window
+  controls** — F11 is the user's to press. Three parts of that are
+  deliberate. It falls through to `webbrowser.open` when no such browser is
+  installed, so nothing is added to the closure and a machine without one
+  behaves exactly as before. **Firefox is not on `_APP_BROWSERS`**: its
+  nearest equivalent is `--kiosk`, true fullscreen with no way out, and
+  trapping somebody is worse than a tab. And a terminal launch gets no
+  `--app`, because there a tab is what was asked for. The child is started
+  detached with its output discarded — a browser writing to this process's
+  stdout would bury the line saying where nixgen is. `startupNotify` stays
+  false either way: the window belongs to the browser, not to this process,
+  so the desktop cannot match a notification to it.
 - **Unstable is a channel like any other, and picking it makes everything
   unstable** — options, packages, `flake.nix`, `system.stateVersion`. What
   unblocked it was pinning the flake to the indexed snapshot and showing how old
