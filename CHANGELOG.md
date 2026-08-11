@@ -53,6 +53,39 @@ judge types — `dry-build` before you switch.
 
 ---
 
+### Packaging, 2026-08-12e
+
+- **nixgen has a desktop entry now**, so `nix profile install
+  github:hatake716/nixgen` is the last command it needs: after that it is in
+  the application menu under System, and starting it from there opens the
+  browser by itself. The icon is generated at build time by `tools/mark.py
+  --icon`, which keeps that file the only place the mark is drawn — the same
+  reason the two pages paste its output rather than fetching a copy. It is the
+  plain flake on a white ground, because an application menu shows one file and
+  cannot pick per theme the way the README's logo does; line art with a
+  transparent ground would be invisible on a dark panel.
+- **The first command cannot be removed, and that is not nixgen's to fix.**
+  NixOS has no graphical package installer at all — neither GNOME Software nor
+  KDE Discover manages system packages here. Nor does this make the tool
+  GUI-only end to end: `System update` still hands over one command rather than
+  rebuilding for you, deliberately, because the server has no authentication.
+  What it removes is every command *between* those two.
+- **A second launch opens the nixgen already running instead of refusing.**
+  Closing the browser tab leaves the server up, so with an icon to click that
+  is the ordinary case rather than a development mishap, and a refusal printed
+  to a terminal nobody opened reads as the icon being broken. It asks
+  `/api/meta` before opening anything: a busy port can hold something else
+  entirely, and sending a browser at an unrelated local service is worse than
+  the message it replaces. That case, and `--no-browser`, still refuse — with
+  the reason each of them actually has. **The build id in the header is still
+  what says which copy answered**, which is the one thing this must not paper
+  over.
+- **The first run says something without a terminal to say it in.** Building
+  the index takes about five minutes, and started from the menu the progress
+  line goes nowhere, so it puts up a desktop notification instead. Best effort:
+  it needs a session bus to reach anybody, and a failure there does not stop
+  the launch.
+
 ### Tools, 2026-08-12d
 
 - **The eleven-point browser sweep is a command now**: `tools/browser_check.py`
@@ -1433,6 +1466,13 @@ three of these six showed up in only one of the two.
 **既知の制限。** NixOS 専用。Hyprland は非表示です(自動生成される設定が nixgen の書くものを上書きするため)。`Check syntax` は Nix のパーサであって**型は判定できません** — 切り替える前に `dry-build` を。
 
 ---
+
+### パッケージング、2026-08-12e
+
+- **デスクトップエントリを追加しました。** これで `nix profile install github:hatake716/nixgen` がこのツールに必要な最後のコマンドになります。以降はアプリメニューの「システム」に並び、そこから起動すればブラウザが自動で開きます。アイコンはビルド時に `tools/mark.py --icon` が生成するので、**マークを描く場所はそのファイル1つのまま**です(2つのページが出力を貼り付けているのと同じ理由)。素のフレークを白地に載せた形にしてあります。アプリメニューが表示するファイルは1つで、README のロゴのようにテーマごとに選び分けられないためです — 背景が透明な線画では、暗いパネルで見えなくなります。
+- **最初の1コマンドは無くせません。そしてそれは nixgen 側で直せる話ではありません。** NixOS には**GUIによるパッケージ導入手段がそもそも存在しません** — GNOME Software も KDE Discover も、ここではシステムのパッケージを扱わないからです。また、これで全工程がGUIだけになるわけでもありません: `System update` は今も**意図して**コマンドを1つ渡すだけで、代わりにリビルドはしません(サーバーに認証が無いためです)。今回無くなったのは、その**2つの間にあった**コマンドのすべてです。
+- **2回目の起動は、拒否せずに既に動いている nixgen を開きます。** ブラウザのタブを閉じてもサーバーは残るので、クリックするアイコンがある以上これは開発中の事故ではなく**通常の操作**です。誰も開いていないターミナルに向かって拒否のメッセージを出せば、アイコンが壊れているようにしか見えません。開く前に `/api/meta` で確認します: 使用中のポートには全く別のものが居ることもあり、無関係なローカルサービスへブラウザを送るのは、置き換えようとしたメッセージより悪いからです。その場合と `--no-browser` の場合は従来どおり拒否します — ただし**それぞれ実際の理由**を述べるようにしました。**どちらのコピーが応答したかは、今もヘッダのビルド番号が答えます**。そこだけは覆い隠してはならない一点です。
+- **初回起動が、伝える先のターミナルが無くても伝えるようになりました。** 索引の構築には5分ほどかかりますが、メニューから起動した場合その進捗行はどこにも出ません。代わりにデスクトップ通知を出します。届けるにはセッションバスが必要なので、これはベストエフォートで、失敗しても起動は止めません。
 
 ### ツール、2026-08-12d
 

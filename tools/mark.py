@@ -3,6 +3,7 @@
     python3 tools/mark.py            # both SVGs and the favicon data URI
     python3 tools/mark.py --full     # just the full drawing
     python3 tools/mark.py --flake    # just the plain flake
+    python3 tools/mark.py --icon     # the application icon, as its own file
 
 Generated rather than hand-written, for the same reason `tools/shots.py`
 exists: six arms drawn by hand are six slightly different arms, and a mark
@@ -10,7 +11,7 @@ that has to be pasted into two pages and a favicon is a mark that will drift
 between them. The output is inlined into `build/static/index.html` and
 `docs/index.html` — nothing fetches it, so there is no file to keep in step.
 
-Two forms, because one drawing cannot do both jobs:
+Three forms, because one drawing cannot do all three jobs:
 
   full   the flake, the arcs it dissolves into, and the shapes coming off
          them. Needs about 80 pixels before the small shapes mean anything,
@@ -18,6 +19,14 @@ Two forms, because one drawing cannot do both jobs:
   flake  six arms and the hexagon core, heavier stroke, cropped tight. This
          is what the headers and the favicon use; the full one at 22px is a
          smudge, which was checked by rendering it.
+  icon   the flake on its own white ground, as a standalone file. The desktop
+         entry points at it. Unlike the other two it cannot inherit a colour
+         from the page around it, and it cannot pick per theme the way the
+         README's logo does with `<picture>` — an application menu shows one
+         file. Line art with a transparent ground would be invisible on a
+         dark panel, so it carries the ground the palette already assumes.
+         `flake.nix` generates it at build time rather than keeping a copy,
+         so this file stays the only place the mark is drawn.
 """
 import math
 import sys
@@ -120,6 +129,22 @@ def plain():
     return svg(flake(beads=False), box="4 18 84 84", stroke=3.4)
 
 
+def icon(colour="#1b2027", ground="#ffffff"):
+    """The application icon: the plain flake, loosened for a margin, on a
+    rounded white ground. The stroke is heavier than the header's because the
+    ground eats into the drawing. Both numbers were settled by rendering four
+    of them at 32, 48 and 64 and comparing: below 4.6 the arms go thin at
+    32px, above it the core hexagon fills in and the middle turns to a blob.
+    The crop is looser than the header's so the ground reads as a tile rather
+    than as a box drawn around the mark."""
+    x, y, side = 0.0, 14.0, 92.0
+    ground_rect = (f'<rect x="{f(x)}" y="{f(y)}" width="{f(side)}" '
+                   f'height="{f(side)}" rx="20" fill="{ground}" stroke="none"/>')
+    body = svg([ground_rect] + flake(beads=False),
+               box=f"{f(x)} {f(y)} {f(side)} {f(side)}", stroke=4.6)
+    return body.replace("currentColor", colour)
+
+
 def favicon(colour="#1b2027"):
     return "data:image/svg+xml," + urllib.parse.quote(
         plain().replace("currentColor", colour), safe="")
@@ -130,6 +155,8 @@ if __name__ == "__main__":
         print(full())
     elif "--flake" in sys.argv:
         print(plain())
+    elif "--icon" in sys.argv:
+        print(icon())
     else:
         print("full drawing (homepage hero):\n" + full() + "\n")
         print("plain flake (headers):\n" + plain() + "\n")

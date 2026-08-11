@@ -162,6 +162,43 @@ nix run --refresh github:hatake716/nixgen
 
 The build id in the header tells you which one you are on.
 
+### Step 2a — Put it in the application menu (optional)
+
+`nix run` starts it for as long as the terminal is open. If you would rather
+click an icon, install it once:
+
+```bash
+nix profile install github:hatake716/nixgen
+```
+
+**nixgen then appears in your application menu, under System.** Starting it
+from there opens the browser by itself — there is no terminal to keep open,
+and nothing else to type.
+
+Two things are worth knowing about the menu entry:
+
+- **Closing the browser tab does not stop it.** The server keeps running. That
+  is usually what you want, and clicking the icon again brings the page back
+  rather than complaining — but if you want it stopped, stop it from the
+  terminal you started it in, or log out.
+- **The first launch still takes about five minutes**, because the database has
+  to be built. Started from the menu there is no terminal to print progress to,
+  so it puts up a desktop notification instead and opens the browser when it is
+  ready. If you would rather watch it happen, run `nixgen` once in a terminal
+  first.
+
+There is no way to do this step from a GUI, and that is not an oversight on
+nixgen's part: NixOS has no graphical package installer at all. Neither GNOME
+Software nor KDE Discover manages system packages here. The command above is
+the last one this tool needs — everything after it is the browser.
+
+To update it later, or remove it:
+
+```bash
+nix profile upgrade nixgen
+nix profile remove nixgen
+```
+
 ### Step 3 — Build your configuration in the browser
 
 The middle of the screen lists five steps, and they are the order the tabs are

@@ -16,6 +16,8 @@ import sys
 import tarfile
 import tempfile
 import threading
+import urllib.error
+import urllib.request
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
@@ -1021,6 +1023,32 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, fh.read(), ctype)
 
 
+# Long enough for a server that is busy answering something else, short enough
+# that a port held by a program which accepts connections and then says nothing
+# does not hang the launch. Asked once, on an error path, never retried.
+RUNNING_TIMEOUT = 2.0
+
+
+def running_nixgen(url):
+    """The meta of a nixgen already answering on `url`, or None for anything
+    else — including nothing at all.
+
+    A busy port is usually nixgen left running from earlier. The desktop entry
+    makes that the ordinary case rather than a development mishap: closing the
+    browser tab leaves the server up, and the next click on the icon lands
+    here. But the port can hold anything, and sending somebody's browser at an
+    unrelated local service is worse than the message they came for, so this
+    asks first. `/api/meta` is the cheapest question that has a nixgen-shaped
+    answer.
+    """
+    try:
+        with urllib.request.urlopen(url + "api/meta", timeout=RUNNING_TIMEOUT) as r:
+            meta = json.loads(r.read().decode("utf-8"))
+    except Exception:
+        return None
+    return meta if isinstance(meta, dict) and "channel" in meta else None
+
+
 def main():
     global DB_PATH
     ap = argparse.ArgumentParser()
@@ -1057,14 +1085,39 @@ def main():
     except OSError as exc:
         if exc.errno != errno.EADDRINUSE:
             sys.exit(f"could not listen on {args.host}:{args.port} — {exc}")
-        sys.exit(
-            f"port {args.port} is already in use, so nixgen did not start.\n"
-            f"\n"
-            f"  Often it is nixgen itself, left running from earlier. Open\n"
-            f"  {url} and look at the build id in the header: if it is\n"
-            f"  not the version you expected, that is the old one answering.\n"
-            f"\n"
-            f"  Otherwise use another port:  nixgen --port {args.port + 1}")
+        other = running_nixgen(url)
+        if other is None:
+            sys.exit(
+                f"port {args.port} is already in use, and whatever is on it did\n"
+                f"not answer as nixgen, so nixgen did not start.\n"
+                f"\n"
+                f"  Use another port:  nixgen --port {args.port + 1}")
+        if args.no_browser:
+            sys.exit(
+                f"nixgen is already running on {url} "
+                f"({other.get('channel')}), so this one\n"
+                f"did not start.\n"
+                f"\n"
+                f"  If that is not the version you expected, it is an older copy\n"
+                f"  still running: the build id is in the header. Otherwise use\n"
+                f"  another port:  nixgen --port {args.port + 1}")
+        # A nixgen is already there, so show it rather than refusing. Launched
+        # from the desktop entry there is no terminal to print to and no
+        # ctrl-c to press, so a second click on the icon has to put the app on
+        # screen; refusing silently reads as the icon being broken. The build
+        # id in the header is still what says which copy answered — that is
+        # the one thing this must not paper over.
+        print(f"nixgen is already running on {url} "
+              f"({other.get('channel')}) — opening it rather than starting a "
+              f"second one.")
+        print(f"  If it is not the version you expected, that is an older copy\n"
+              f"  still running: the build id is in the header. Stop it where it\n"
+              f"  was started, or use another port:  nixgen --port {args.port + 1}")
+        try:
+            webbrowser.open(url)
+        except Exception:
+            pass
+        return
 
     meta = get_meta()
     print(f"nixgen — {meta.get('channel')} · "

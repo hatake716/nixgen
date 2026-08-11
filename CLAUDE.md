@@ -734,6 +734,17 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   in step and no request to fail. **The palette follows the mark**: it is black
   on white, so `--accent` is ink rather than blue, and anything that used blue
   to mean "matched" or "selected" uses a tinted ground instead.
+- **The third form is the application icon, and it is the one that carries its
+  own ground.** `mark.py --icon` is the flake on a rounded white tile, and
+  `flake.nix` generates it into the package at build time rather than a copy
+  being kept — same rule as the two pages, one place where the mark is drawn.
+  It cannot pick per theme the way the README's logo does with `<picture>`,
+  because an application menu shows one file, and line art on a transparent
+  ground is invisible on a dark panel. The stroke is 4.6 against the header's
+  3.4: below that the arms go thin at 32px, above it the core hexagon fills in
+  and the middle turns to a blob. **Both numbers were settled by rendering
+  four variants at 32, 48 and 64 and looking** — the same measure-do-not-eyeball
+  rule the dropdown labels are held to.
 - No browser storage. State lives in `state` in `app.js`.
 
 > 上記はいずれも「見た目は正しいのに後で壊れる」類の落とし穴です。触る前に一読してください。
@@ -926,6 +937,30 @@ harnesses cannot notice.
   that set. Keep all three — each one alone looks sufficient.
 - **Setup is the first tab and the one the app opens on.** On a fresh install
   those files are needed before anything else.
+- **The desktop entry removes every command except the first and the last, and
+  those two stay for different reasons.** `nix profile install` cannot go:
+  **NixOS has no graphical package installer at all** — GNOME Software and
+  Discover are Flatpak front ends here and do not manage system packages, so
+  no amount of packaging reaches a GUI-only install. `System update` cannot go
+  either, and that one is a choice rather than a limit — the server has no
+  authentication, so it hands over a command instead of rebuilding. Everything
+  between them is now a click. Do not "finish the job" by adding a privileged
+  endpoint; that is the same door, from the other side.
+- **A second launch opens the nixgen already running rather than refusing.**
+  With an icon to click, a busy port is the ordinary case, not a development
+  mishap: closing the tab leaves the server up. A refusal printed to a terminal
+  nobody opened is indistinguishable from a broken icon. It **asks `/api/meta`
+  first** — a busy port can hold anything, and pointing somebody's browser at
+  an unrelated local service is worse than the message it replaces — and that
+  case, plus `--no-browser`, still refuse, each with its own reason. **The
+  build id in the header is still what says which copy answered**, which is
+  the fact this must not paper over; the message says so rather than implying
+  the new one started.
+- **The first-run notification is best effort and stays that way.** Five
+  minutes of index building with no terminal to print to looks like a dead
+  icon, so the wrapper calls `notify-send` when stdout is not a tty. It needs
+  a session bus to reach anyone, so it is `|| true` — a launch must not fail
+  because a notice could not be delivered.
 
 ---
 
