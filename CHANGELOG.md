@@ -9,6 +9,27 @@ option counts.
 
 ## English
 
+### Verification pass, 2026-08-12b
+
+The second full sweep before calling this stable, covering everything since
+the first — the allowUnfree wiring, the redesigned chrome, the bilingual
+Setup tab, the fixed architecture. **Nothing needed fixing.**
+
+- **The whole archive builds**: every preset at once (Sway + noctalia, NVIDIA,
+  Japanese, region, kernel, shell, Flatpak, a searched package), downloaded,
+  unpacked and evaluated as a NixOS system. Read back from the evaluated
+  system: `videoDrivers = ["nvidia"]` under `allowUnfree`, the time zone, the
+  Wayland layout variable, a sway config with the include and without the
+  bar, and three pam_gnome_keyring lines on login.
+- **Re-importing that archive and re-picking the desktop heals to single
+  definitions** — one etc line, one unit.
+- **A desktop walk ends with exactly one display manager**, allowUnfree
+  intact, and no compositor leftovers.
+- The System update dialog, the broken-file imports (duplicate attribute,
+  null input-method type, aarch64 unhiding the architecture), the mobile
+  nav, the visual rules (no ja gaps, no sideways scroll 320-1800px), the
+  fixed harnesses through both readers, and the flake build — all clean.
+
 ### build 2026-08-12k
 
 - **The Architecture field is fixed to `x86_64-linux` and hidden** — one less
@@ -1270,6 +1291,15 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### 検証パス、2026-08-12b
+
+安定版と呼ぶ前の2度目の総点検です。前回以降のすべて — allowUnfree の配線、UI再設計、Setup タブの日英併記、アーキテクチャの固定 — を対象にしました。**修正を要するバグは0件**です。
+
+- **書庫がまるごとビルドできます**: 全プリセット同時(Sway + noctalia・NVIDIA・日本語・地域・カーネル・シェル・Flatpak・検索からのパッケージ)でダウンロードし、展開して NixOS システムとして評価。評価済みシステムからの読み戻しも確認: `allowUnfree` の下で `videoDrivers = ["nvidia"]`、タイムゾーン、Wayland のレイアウト変数、include ありバー無しの sway 設定、login の pam_gnome_keyring 3行。
+- **その書庫を読み戻してデスクトップを選び直しても、定義は1つずつに畳まれます**(etc 1行・ユニット1つ)。
+- **デスクトップを歩き回っても、最後に残るディスプレイマネージャはちょうど1つ**。allowUnfree は保たれ、コンポジタの消し残しもありません。
+- System update のダイアログ、壊れたファイルの取り込み(属性の二重定義・null の入力メソッド type・aarch64 でのアーキテクチャ再表示)、モバイルのナビ、見た目の規約(日本語の文中空白0・320〜1800px で横スクロールなし)、両リーダーの固定ハーネス、フレークビルド — すべてクリーンです。
 
 ### build 2026-08-12k
 
