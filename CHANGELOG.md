@@ -2,12 +2,56 @@
 
 [English](#english) · [日本語](#日本語)
 
-The version you are running is printed in the header of the app, next to the
-option counts.
+Two identifiers, with different jobs. **The build id** (`2026-08-12o`) is in
+the app header and in every file nixgen writes, and it changes whenever the app
+does — it answers "which build wrote this". **The release tag** (`v1.0.0-rc.1`)
+names a snapshot worth using, and doubles as a flake ref:
+`nix run github:hatake716/nixgen/v1.0.0-rc.1`.
 
 ---
 
 ## English
+
+## v1.0.0-rc.1 — 2026-08-12
+
+The first release candidate. Everything below this heading is what it contains;
+the build entries under it are the history of how it got here.
+
+**What it does.** From a fresh NixOS install to a machine you can use, without
+knowing a single option name: search all 24,557 settings and 144,245 packages,
+fill in values with widgets that know the type, pick a desktop that works on
+the first login, and take away three files you can read before anything on your
+machine changes.
+
+**In this candidate.**
+
+- Nine desktops, two of them Wayland compositors that arrive with a shell,
+  a terminal, a keyring and an autostart unit already wired — Sway + noctalia
+  and niri + noctalia, both confirmed on a real machine.
+- Japanese set up all the way through: locale, console keymap, the keyboard
+  layout for X *and* Wayland, fcitx5 with mozc and its front end matched to
+  the session. The app itself speaks both languages everywhere.
+- Kernel, shell, graphics, language, region and Flatpak in one click each,
+  and 189 common apps in twelve categories with icons from your own machine.
+- Reads your existing `configuration.nix`: the Setup fields take what they
+  own, `imports` is merged, and everything else becomes cards you can edit.
+  Reading a `generated.nix` back sets the dropdowns to what it chose.
+- Generate only. nixgen never edits your files and has no privileged
+  endpoint; System update hands you one command you can read.
+
+**How it is checked.** `tools/fuzz.py` and `tools/import_check.py` on every
+push, plus `tools/browser_check.py` — eleven points driving the real app in a
+browser. Before this tag, `tools/eval_check.py` evaluated the generated bundle
+as a NixOS system and read its claims back out: the session name the display
+manager offers, the keyring lines in the built pam.d/login, the sway config's
+include and missing bar, the Wayland layout variable. The round-tripped module
+evaluates identically.
+
+**Known limits.** NixOS only. Hyprland is hidden: its generated config
+overrides what nixgen writes. `Check syntax` runs the Nix parser and cannot
+judge types — `dry-build` before you switch.
+
+---
 
 ### Tools, 2026-08-12d
 
@@ -1369,6 +1413,26 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+## v1.0.0-rc.1 — 2026-08-12
+
+最初のリリース候補です。この見出しの下にあるものが、この候補に含まれる内容です。さらに下の build 見出しは、ここに至るまでの履歴です。
+
+**何ができるか。** NixOS をインストールした直後から、使えるマシンまで。オプション名を1つも知らないまま、24,557件の設定と144,245件のパッケージを検索し、型に応じたウィジェットで値を入れ、初回ログインから使えるデスクトップを選び、**マシンに何も起きないうちに中身を読める**3つのファイルを持ち帰れます。
+
+**この候補に入っているもの。**
+
+- デスクトップ9種。うち2つは Wayland コンポジタで、**シェル・端末・キーリング・自動起動ユニットまで配線済み**で出てきます(Sway + noctalia、niri + noctalia。どちらも実機で確認済み)。
+- **日本語環境が通しで整います**: ロケール、コンソールのキーマップ、X **と** Wayland 両方のキーボードレイアウト、fcitx5 と mozc、そしてセッションに合わせたフロントエンド。アプリ自身もすべて日英併記です。
+- カーネル・シェル・グラフィックス・言語・地域・Flatpak が各1クリック。定番アプリは12分野189個で、アイコンは**お使いのマシンにあるもの**から出します。
+- 既存の `configuration.nix` を読めます。Setup タブが持つ項目はその入力欄へ、`imports` は統合、**それ以外は編集できるカード**になります。`generated.nix` を読み戻すと、プルダウンもその内容に合わせて選択されます。
+- **生成のみ。** nixgen はあなたのファイルを書き換えず、特権の口も持ちません。System update は**読めるコマンドを1つ渡す**だけです。
+
+**どう検査しているか。** 毎プッシュで `tools/fuzz.py` と `tools/import_check.py`、そして実アプリをブラウザで操作する11項目の `tools/browser_check.py`。このタグの前には `tools/eval_check.py` で、生成した3ファイルを**実際の NixOS システムとして評価**し、その主張を読み戻しました(ログイン画面が提示するセッション名、生成された pam.d/login のキーリング行、sway 設定の include とバーの不在、Wayland のレイアウト変数)。往復後のモジュールも同一に評価されます。
+
+**既知の制限。** NixOS 専用。Hyprland は非表示です(自動生成される設定が nixgen の書くものを上書きするため)。`Check syntax` は Nix のパーサであって**型は判定できません** — 切り替える前に `dry-build` を。
+
+---
 
 ### ツール、2026-08-12d
 

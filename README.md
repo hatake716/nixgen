@@ -46,9 +46,13 @@ away from cleanly is a desktop you can afford to try.
 日本語版: [README.ja.md](./README.ja.md) ·
 Homepage: <https://hatake716.github.io/nixgen/>
 
-> **This is a beta.** It works on the author's own machine and in a virtual
-> machine, but nobody knows what it does anywhere else. Always check with
-> `dry-build` (below) before applying anything.
+> **Release candidate for 1.0.** What it generates is checked on every push —
+> the renderer and importer harnesses, and an eleven-point sweep driving the
+> real app in a browser — and before a release the generated bundle is
+> evaluated as an actual NixOS system and its claims read back out of it.
+> Tested on the author's own machines: NixOS only, x86_64 by default.
+> **Always run `sudo nixos-rebuild dry-build` before you switch** — nixgen
+> cannot judge types, and only your machine can tell you the rest.
 
 ---
 
