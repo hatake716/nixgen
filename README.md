@@ -181,8 +181,8 @@ nix profile install github:hatake716/nixgen/development
 ```
 
 **nixgen then appears in your application menu, under System.** Starting it
-from there opens a window of its own — no tabs, no address bar, just the page.
-There is no terminal to keep open, and nothing else to type.
+from there opens a maximised window of its own — no tabs, no address bar,
+just the page. There is no terminal to keep open, and nothing else to type.
 
 Four things are worth knowing about the menu entry:
 

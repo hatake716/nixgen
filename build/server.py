@@ -1072,8 +1072,14 @@ def open_app_window(url):
             # Detached, and with its output discarded: this process is a web
             # server, and a browser writing to its stdout for the rest of the
             # session would bury the one line that says where nixgen is.
+            # Maximised, not fullscreen: the app is three columns beside one
+            # another and the default app window is narrow enough to stack
+            # them. `--start-maximized` asks the window manager for the
+            # ordinary maximised state — the title bar and its buttons stay,
+            # so it can be restored — where `--start-fullscreen` would take
+            # the frame away and leave the same trap as `--kiosk`.
             subprocess.Popen(
-                [path, f"--app={url}"],
+                [path, f"--app={url}", "--start-maximized"],
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                 start_new_session=True)
             return True

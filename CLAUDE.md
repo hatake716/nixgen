@@ -911,7 +911,16 @@ harnesses cannot notice.
   the only thing that passes it.** From the menu this is an application, so
   `open_app_window` starts a Chromium-family browser with `--app=<url>`: no
   tab strip, no address bar, no back and forward, but **ordinary window
-  controls** — F11 is the user's to press. Three parts of that are
+  controls** — F11 is the user's to press. **`--start-maximized` goes with
+  it, and it is maximised rather than fullscreen**: the app is three columns
+  beside one another and the default app window is narrow enough to stack
+  them, but `--start-fullscreen` takes the frame away and leaves the same
+  trap as `--kiosk`. Verify it by the window's own state rather than by its
+  size — `xprop _NET_WM_STATE` must show `MAXIMIZED_HORZ` and
+  `MAXIMIZED_VERT` and no `FULLSCREEN`. **Comparing width against the X
+  screen proves nothing on a multi-head machine**: 1920×1019 looked like a
+  failure beside a 2784×1536 screen and was a correctly maximised window on
+  the 1920×1080 head. Three parts of that are
   deliberate. It falls through to `webbrowser.open` when no such browser is
   installed, so nothing is added to the closure and a machine without one
   behaves exactly as before. **Firefox is not on `_APP_BROWSERS`**: its
