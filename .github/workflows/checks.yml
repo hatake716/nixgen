@@ -25,9 +25,9 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: cachix/install-nix-action@v27
+      - uses: cachix/install-nix-action@v31
         with:
           extra_nix_config: |
             experimental-features = nix-command flakes
@@ -51,7 +51,7 @@ jobs:
 
       - name: Cached index
         id: cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: data
           key: index-${{ env.CHANNEL }}-${{ steps.week.outputs.stamp }}
@@ -85,9 +85,9 @@ jobs:
     needs: checks
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: cachix/install-nix-action@v27
+      - uses: cachix/install-nix-action@v31
         with:
           extra_nix_config: |
             experimental-features = nix-command flakes
@@ -98,7 +98,7 @@ jobs:
 
       - name: Cached index
         id: cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: data
           key: index-${{ env.CHANNEL }}-${{ steps.week.outputs.stamp }}
