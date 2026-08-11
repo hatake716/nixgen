@@ -24,13 +24,16 @@
       <input type="file" id="file-gen" accept=".nix" hidden>
       <button class="btn" id="btn-import">Import configuration.nix</button>
       <input type="file" id="file" accept=".nix" hidden>
-      <button class="btn" id="btn-check">Check syntax</button>
+      <span class="sep" aria-hidden="true"></span>
+      <button class="btn" id="btn-check"><span class="stepnum">4</span>Check syntax</button>
+      <span class="sep" aria-hidden="true"></span>
       <!-- One download, and it is the one the five steps end on. There used
            to be a second button beside it that renamed itself to whichever
            file tab was open — four meanings in one control, and it hid this
            one whenever the `all three` tab was chosen. Taking a single file
            now lives next to the tabs that choose it. -->
-      <button class="btn primary" id="btn-dl-all">Download all three</button>
+      <button class="btn primary" id="btn-dl-all"><span class="stepnum">5</span>Download all three</button>
+      <span class="sep" aria-hidden="true"></span>
       <!-- The one button that changes the machine, so it is the last one and
            does not look like the others. It hands over a command rather than
            doing the work: nixgen has no authentication, and a local server
@@ -51,17 +54,30 @@
 
     <section class="pane active" id="pane-catalog">
       <header>
-        <div class="tabs" role="tablist">
-          <!-- Setup comes first: on a new machine it is where you start. -->
-          <button class="tab" role="tab" data-kind="setup" aria-selected="true">Setup</button>
-          <button class="tab" role="tab" data-kind="options" aria-selected="false">Options</button>
-          <button class="tab" role="tab" data-kind="packages" aria-selected="false">Packages</button>
+        <!-- The five steps, worn by the controls themselves: these tabs are
+             steps 1-3 and the header's Check syntax / Download all three are
+             4 and 5, all carrying the same numbered chip. The empty module
+             pane explains the order; the chrome now shows it. The names stay
+             exactly Setup / Options / Packages because the docs and the five
+             steps refer to them; the small Japanese line is a gloss, not a
+             replacement. -->
+        <div class="tabs" role="tablist" translate="no">
+          <button class="tab" role="tab" data-kind="setup" aria-selected="true">
+            <span class="stepnum">1</span>
+            <span class="tlabel">Setup<i>セットアップ</i></span></button>
+          <button class="tab" role="tab" data-kind="options" aria-selected="false">
+            <span class="stepnum">2</span>
+            <span class="tlabel">Options<i>設定</i></span></button>
+          <button class="tab" role="tab" data-kind="packages" aria-selected="false">
+            <span class="stepnum">3</span>
+            <span class="tlabel">Packages<i>ソフト</i></span></button>
         </div>
       </header>
       <div class="searchwrap">
         <input type="search" id="q" placeholder="openssh, firewall, timeZone…" autocomplete="off" spellcheck="false">
         <label class="filterline" id="filterline">
-          <input type="checkbox" id="only-supported"> Hide options that need hand-written Nix
+          <input type="checkbox" id="only-supported">
+          <span class="plabel">Hide options that need hand-written Nix<i>手書きのNixが必要な項目を隠す</i></span>
         </label>
         <!-- Kernel, desktop, graphics, language: the order a machine is put
              together in, from the part everything else runs on outwards. -->
@@ -70,7 +86,7 @@
              for by name, and each is looked up in the package index before it
              is written, so a channel that does not have one says so. -->
         <div class="presetline" id="kernelline">
-          <span>Kernel</span>
+          <span class="plabel">Kernel<i>カーネル</i></span>
           <select id="s-kernel" class="notranslate" translate="no">
             <option value="">choose… — 選ぶ</option>
             <option value="standard">standard — 標準</option>
@@ -84,7 +100,7 @@
              shell without the module leaves it out of /etc/shells and without
              completions, which is the half people forget. -->
         <div class="presetline" id="shellline">
-          <span>Shell</span>
+          <span class="plabel">Shell<i>シェル</i></span>
           <select id="s-shell" class="notranslate" translate="no">
             <option value="">choose… — 選ぶ</option>
             <option value="bash">bash</option>
@@ -98,7 +114,7 @@
              file is deliberate: they are ordinary options, so they arrive as
              cards you can read, edit and remove. -->
         <div class="presetline" id="presetline">
-          <span>Desktop</span>
+          <span class="plabel">Desktop<i>デスクトップ</i></span>
           <select id="s-desktop" class="notranslate" translate="no">
             <option value="">choose… — 選ぶ</option>
             <option value="gnome">GNOME</option>
@@ -119,7 +135,7 @@
           <button class="mini" id="btn-desktop">Add</button>
         </div>
         <div class="presetline" id="gpuline">
-          <span>Graphics</span>
+          <span class="plabel">Graphics<i>グラフィックス</i></span>
           <select id="s-gpu" class="notranslate" translate="no">
             <option value="">choose… — 選ぶ</option>
             <option value="amd">AMD</option>
@@ -132,7 +148,7 @@
              X layout, and for CJK an input method and fonts as well. Picking
              one adds all of them, as cards you can read and change. -->
         <div class="presetline" id="langline">
-          <span>Language</span>
+          <span class="plabel">Language<i>言語</i></span>
           <select id="s-lang" class="notranslate" translate="no">
             <option value="">choose… — 選ぶ</option>
             <option value="en">English — 英語</option>
@@ -149,7 +165,7 @@
              not a place. This one row decides where the machine is, which in
              NixOS is one setting — time.timeZone is already Region/City. -->
         <div class="presetline" id="regionline">
-          <span>Region</span>
+          <span class="plabel">Region<i>地域</i></span>
           <select id="s-region" class="notranslate" translate="no">
             <option value="">choose… — 選ぶ</option>
             <option value="Asia/Tokyo">Japan — 日本</option>
@@ -177,14 +193,14 @@
              not. It is more than one setting, though, which is why it is a
              row rather than something to find in the search. -->
         <div class="presetline" id="flatpakline">
-          <span>Flatpak</span>
+          <span class="plabel">Flatpak<i>アプリ配布基盤</i></span>
           <span class="grow"></span>
           <button class="mini" id="btn-flatpak">Add</button>
         </div>
         <!-- Picking a category fills the results list, so what happens next is
              the same click as any search hit. Nothing is added on your behalf. -->
         <div class="presetline" id="appsline">
-          <span>Common apps</span>
+          <span class="plabel">Common apps<i>定番アプリ</i></span>
           <!-- Both languages, and translate="no" so a translator leaves them
                alone. These are names of kinds of software, which is exactly
                what machine translation is worst at: "Audio and video" came
@@ -292,7 +308,7 @@
 
     <section class="pane" id="pane-editor">
       <header>
-        <div class="eyebrow">Your module — <span id="sel-count">0</span> set</div>
+        <div class="eyebrow">Your module — モジュール · <span id="sel-count">0</span></div>
       </header>
       <div class="pane-body">
         <!-- Shown while nothing is set, which is exactly the first thing

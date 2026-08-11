@@ -268,6 +268,17 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   do first. Importing is a branch of step one, and checking earned a step of
   its own rather than a footnote under the list. A new step goes in the place
   it is performed, or it is not a step.
+- **The chrome wears the five steps.** The catalog tabs carry numbered chips
+  (1 Setup, 2 Options, 3 Packages) and the header's Check syntax and Download
+  all three carry 4 and 5 — one `.stepnum` shape everywhere, so the numbered
+  list in the empty pane and the controls agree. Renumbering the steps means
+  renumbering the chrome. The tab names stay exactly Setup/Options/Packages
+  (the docs refer to them); the Japanese lines beneath are a gloss, and the
+  preset-row labels got the same stacked treatment (`.plabel`).
+- **`[hidden]` needs an explicit reset once classes set `display`.** Giving
+  `.btn` inline-flex made every hidden button an empty pill: an author display
+  rule beats the UA's `[hidden]` one. `[hidden] { display: none !important }`
+  sits next to the box-sizing reset; keep it when adding display to a class.
 - **A control that renames itself is four controls.** The header used to hold
   `Download generated.nix`, which became `Download configuration.nix`,
   `Download flake.nix`, or the archive depending on the file tab — and hid

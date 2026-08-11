@@ -34,6 +34,8 @@
   --code-val: #b9d08b;
   --code-dim: #5d6b7f;
   --code-vb:  #d7a6f0;
+  --shadow-1: 0 1px 2px rgba(15, 21, 29, .07), 0 1px 1px rgba(15, 21, 29, .04);
+  --shadow-2: 0 3px 10px rgba(15, 21, 29, .10), 0 1px 3px rgba(15, 21, 29, .06);
   --mono: ui-monospace, "JetBrains Mono", "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;
   --sans: ui-sans-serif, Inter, "Segoe UI", Roboto, system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif;
 }
@@ -61,7 +63,9 @@ header.top .wrap { display: flex; align-items: center; gap: 14px; padding-top: 1
 .btn { border: 1px solid var(--rule); background: var(--panel-2); color: var(--ink-soft);
        padding: 6px 12px; border-radius: 3px; font-size: 12px; font-weight: 600;
        cursor: pointer; text-decoration: none; display: inline-block; }
-.btn:hover { background: #fff; color: var(--ink); }
+.btn:hover { background: #fff; color: var(--ink); box-shadow: var(--shadow-1);
+             transform: translateY(-1px); }
+.btn { transition: background .12s, color .12s, box-shadow .12s, transform .12s; }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
 .btn.primary:hover { background: #0f151d; color: #fff; }
 
@@ -78,7 +82,8 @@ h1 { font-size: 40px; line-height: 1.15; letter-spacing: -.025em; margin: 0 0 14
 .lede b { color: var(--ink); font-weight: 600; }
 
 .stats { display: flex; flex-wrap: wrap; gap: 0; border: 1px solid var(--rule);
-         border-radius: 3px; background: var(--panel); margin: 0 0 22px; }
+         border-radius: 8px; background: var(--panel); margin: 0 0 22px;
+         box-shadow: var(--shadow-1); overflow: hidden; }
 .stat { flex: 1 1 0; min-width: 84px; padding: 11px 12px; border-right: 1px solid var(--rule); }
 .stat:last-child { border-right: none; }
 .stat b { display: block; font-family: var(--mono); font-size: 18px; letter-spacing: -.03em; }
@@ -86,8 +91,8 @@ h1 { font-size: 40px; line-height: 1.15; letter-spacing: -.025em; margin: 0 0 14
              color: var(--ink-faint); font-weight: 600; }
 
 pre.cmd { background: var(--code-bg); color: var(--code-fg); font-family: var(--mono);
-          font-size: 13px; padding: 13px 16px; border-radius: 3px; margin: 0 0 14px;
-          overflow-x: auto; }
+          font-size: 13px; padding: 13px 16px; border-radius: 8px; margin: 0 0 14px;
+          overflow-x: auto; box-shadow: var(--shadow-1); }
 pre.cmd .p { color: var(--code-dim); }
 .tiny { font-size: 12px; color: var(--ink-faint); margin: 0; }
 
@@ -111,7 +116,8 @@ code { font-family: var(--mono); font-size: .9em; background: var(--panel);
 pre code { border: none; background: none; padding: 0; }
 
 figure { margin: 26px 0 0; }
-figure img { width: 100%; display: block; border: 1px solid var(--rule); border-radius: 3px; }
+figure img { width: 100%; display: block; border: 1px solid var(--rule);
+             border-radius: 8px; box-shadow: var(--shadow-2); }
 figcaption { font-size: 12px; color: var(--ink-faint); margin-top: 8px; }
 
 /* The three reasons. Given more room than any other section — a tinted ground,
@@ -139,7 +145,10 @@ section.pitch .tiny { max-width: 68ch; }
 }
 
 .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 22px; }
-.card { background: var(--panel); border: 1px solid var(--rule); border-radius: 3px; padding: 16px 18px; }
+.card { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px;
+        padding: 16px 18px; box-shadow: var(--shadow-1);
+        transition: box-shadow .12s; }
+.card:hover { box-shadow: var(--shadow-2); }
 .card h4 { margin: 0 0 6px; font-size: 13px; font-family: var(--mono); }
 .card p { font-size: 13px; color: var(--ink-soft); margin: 0; }
 .card.vb { border-left: 3px solid #8a5fb0; }
@@ -161,8 +170,8 @@ ol.steps li { position: relative; counter-increment: step;
 ol.steps li::before {
   content: counter(step); position: absolute; left: 0; top: 1px;
   width: 21px; height: 21px; border-radius: 50%;
-  background: var(--panel); border: 1px solid var(--rule); color: var(--ink-soft);
-  font: 700 11px/20px var(--sans); text-align: center;
+  background: var(--ink); border: 1px solid var(--ink); color: #fff;
+  font: 700 11px/20px var(--mono); text-align: center;
 }
 ol.steps b { font-weight: 700; }
 

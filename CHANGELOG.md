@@ -9,6 +9,26 @@ option counts.
 
 ## English
 
+### build 2026-08-12i
+
+A design pass: the same monochrome identity, with the order of work worn by
+the interface itself.
+
+- **The five steps are on the controls now.** The three catalog tabs carry
+  numbered chips — 1 Setup, 2 Options, 3 Packages, each with a small Japanese
+  line — and Check syntax and Download all three carry 4 and 5. The empty
+  module pane explains the order; the chrome shows it.
+- **Everything a first-timer reads is bilingual**: the preset row labels
+  (Kernel — カーネル and so on), the filter line, the module pane title.
+- **Depth and motion, still monochrome**: segmented tabs, cards with soft
+  shadows that lift on hover, buttons that respond, rounded corners on one
+  radius, quiet scrollbars, visible focus rings. The homepage picked up the
+  same tokens — shadows, radii, and step circles that match the app's chips —
+  and the screenshots were retaken.
+- Fixed in passing: giving buttons `inline-flex` made every hidden button an
+  empty pill, because an author `display` beats the browser's `[hidden]` rule.
+  A reset now pins `[hidden]` to `display: none`.
+
 ### build 2026-08-12h
 
 - **The header no longer renames a button as you switch file tabs.** The
@@ -1226,6 +1246,15 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-12i
+
+デザインの見直しです。モノクロの見た目はそのままに、**作業の順序をUI自身が着る**ようにしました。
+
+- **5つの手順が、部品そのものに付きました。** カタログの3タブに番号チップ(1 Setup・2 Options・3 Packages、それぞれに日本語の小さな添え書き)、ヘッダーの Check syntax と Download all three に 4 と 5。空のモジュール欄が順序を説明し、**画面の部品が同じ順序を示します**。
+- **初めての人が読む場所を全て日英併記に**: プリセット行のラベル(Kernel — カーネル など)、絞り込みの行、モジュール欄のタイトル。
+- **モノクロのまま、質感と動きを**: セグメント型タブ、ホバーで浮くカードの影、押した感のあるボタン、角丸の統一、控えめなスクロールバー、見えるフォーカスリング。**ホームページにも同じトークン**(影・角丸・アプリのチップと揃えた手順の丸数字)を適用し、スクリーンショットも撮り直しました。
+- 途中で1件修正: ボタンに `inline-flex` を与えたことで**非表示のボタンが空のピルとして描画**されていました。CSS の display 指定はブラウザの `[hidden]` 規則に勝つためで、`[hidden]` を `display: none` に固定するリセットを入れました。
 
 ### build 2026-08-12h
 
