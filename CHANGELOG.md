@@ -4,54 +4,23 @@
 
 Two identifiers, with different jobs. **The build id** (`2026-08-12o`) is in
 the app header and in every file nixgen writes, and it changes whenever the app
-does — it answers "which build wrote this". **The release tag** (`v1.0.0-rc.1`)
-names a snapshot worth using, and doubles as a flake ref:
-`nix run github:hatake716/nixgen/v1.0.0-rc.1`.
+does — it answers "which build wrote this". **The version tag** names a
+snapshot and doubles as a flake ref.
+
+**This is the `development` branch**, so its tags are `-dev`:
+`nix run github:hatake716/nixgen/v1.0.0-dev.1`. The stable line is on `main`
+(`v1.0.0-rc.1`), and what is under a `-dev` heading below has not reached it
+yet.
 
 ---
 
 ## English
 
-## v1.0.0-rc.1 — 2026-08-12
+## v1.0.0-dev.1 — 2026-08-12
 
-The first release candidate. Everything below this heading is what it contains;
-the build entries under it are the history of how it got here.
-
-**What it does.** From a fresh NixOS install to a machine you can use, without
-knowing a single option name: search all 24,557 settings and 144,245 packages,
-fill in values with widgets that know the type, pick a desktop that works on
-the first login, and take away three files you can read before anything on your
-machine changes.
-
-**In this candidate.**
-
-- Nine desktops, two of them Wayland compositors that arrive with a shell,
-  a terminal, a keyring and an autostart unit already wired — Sway + noctalia
-  and niri + noctalia, both confirmed on a real machine.
-- Japanese set up all the way through: locale, console keymap, the keyboard
-  layout for X *and* Wayland, fcitx5 with mozc and its front end matched to
-  the session. The app itself speaks both languages everywhere.
-- Kernel, shell, graphics, language, region and Flatpak in one click each,
-  and 189 common apps in twelve categories with icons from your own machine.
-- Reads your existing `configuration.nix`: the Setup fields take what they
-  own, `imports` is merged, and everything else becomes cards you can edit.
-  Reading a `generated.nix` back sets the dropdowns to what it chose.
-- Generate only. nixgen never edits your files and has no privileged
-  endpoint; System update hands you one command you can read.
-
-**How it is checked.** `tools/fuzz.py` and `tools/import_check.py` on every
-push, plus `tools/browser_check.py` — eleven points driving the real app in a
-browser. Before this tag, `tools/eval_check.py` evaluated the generated bundle
-as a NixOS system and read its claims back out: the session name the display
-manager offers, the keyring lines in the built pam.d/login, the sway config's
-include and missing bar, the Wayland layout variable. The round-tripped module
-evaluates identically.
-
-**Known limits.** NixOS only. Hyprland is hidden: its generated config
-overrides what nixgen writes. `Check syntax` runs the Nix parser and cannot
-judge types — `dry-build` before you switch.
-
----
+On `development`, ahead of `main`. Everything between this heading and
+`v1.0.0-rc.1` is what it adds; below that is the release candidate it grew
+from.
 
 ### Packaging, 2026-08-12e
 
@@ -96,6 +65,48 @@ judge types — `dry-build` before you switch.
   line goes nowhere, so it puts up a desktop notification instead. Best effort:
   it needs a session bus to reach anybody, and a failure there does not stop
   the launch.
+
+## v1.0.0-rc.1 — 2026-08-12
+
+The first release candidate. Everything below this heading is what it contains;
+the build entries under it are the history of how it got here.
+
+**What it does.** From a fresh NixOS install to a machine you can use, without
+knowing a single option name: search all 24,557 settings and 144,245 packages,
+fill in values with widgets that know the type, pick a desktop that works on
+the first login, and take away three files you can read before anything on your
+machine changes.
+
+**In this candidate.**
+
+- Nine desktops, two of them Wayland compositors that arrive with a shell,
+  a terminal, a keyring and an autostart unit already wired — Sway + noctalia
+  and niri + noctalia, both confirmed on a real machine.
+- Japanese set up all the way through: locale, console keymap, the keyboard
+  layout for X *and* Wayland, fcitx5 with mozc and its front end matched to
+  the session. The app itself speaks both languages everywhere.
+- Kernel, shell, graphics, language, region and Flatpak in one click each,
+  and 189 common apps in twelve categories with icons from your own machine.
+- Reads your existing `configuration.nix`: the Setup fields take what they
+  own, `imports` is merged, and everything else becomes cards you can edit.
+  Reading a `generated.nix` back sets the dropdowns to what it chose.
+- Generate only. nixgen never edits your files and has no privileged
+  endpoint; System update hands you one command you can read.
+
+**How it is checked.** `tools/fuzz.py` and `tools/import_check.py` on every
+push, plus `tools/browser_check.py` — eleven points driving the real app in a
+browser. Before this tag, `tools/eval_check.py` evaluated the generated bundle
+as a NixOS system and read its claims back out: the session name the display
+manager offers, the keyring lines in the built pam.d/login, the sway config's
+include and missing bar, the Wayland layout variable. The round-tripped module
+evaluates identically.
+
+**Known limits.** NixOS only. Hyprland is hidden: its generated config
+overrides what nixgen writes. `Check syntax` runs the Nix parser and cannot
+judge types — `dry-build` before you switch.
+
+---
+
 
 ### Tools, 2026-08-12d
 
@@ -1458,6 +1469,18 @@ three of these six showed up in only one of the two.
 
 ## 日本語
 
+## v1.0.0-dev.1 — 2026-08-12
+
+`development` ブランチの版で、`main` より先行しています。この見出しから `v1.0.0-rc.1` までが、この版で加わった内容です。その下は、元になったリリース候補です。
+
+### パッケージング、2026-08-12e
+
+- **デスクトップエントリを追加しました。** これで `nix profile install github:hatake716/nixgen` がこのツールに必要な最後のコマンドになります。以降はアプリメニューの「システム」に並び、そこから起動すればブラウザが自動で開きます。アイコンはビルド時に `tools/mark.py` が生成するので、**マークの出どころはそのファイル1つのまま**です(2つのページが出力を貼り付けているのと同じ理由)。いずれも白地を持たせてあります。アプリメニューが表示するファイルは1つで、README のロゴのようにテーマごとに選び分けられないためです — 背景が透明な線画では、暗いパネルで見えなくなります。
+- **原案のアートワークを数値にしたので、アイコンを原案そのものにできました。** `docs/logo.png` はラスタ画像で、余白のある場所でしか使えませんでした — アプリのヘッダとファビコンが簡略版のフレークを使ってきたのはそのためです。これを `tools/mark.py` の中にパスデータとして起こしたので、**元の描画をどのサイズでも描けます**。64px 以上のアイコンは、近似ではなく原案そのものです。ただし**変換で変わるのは形式であって密度ではありません**: 32px と 48px では原案は依然として雪の結晶と判別できないので、そのサイズはフレークのままにしました。線引きは、両方を 32・48・64 でレンダリングして決めています。GTK の挙動も推測せず確認しました — 完全一致するサイズのディレクトリが `scalable` より優先されるので、24px のパネル枠に原案が入ることはありません。
+- **最初の1コマンドは無くせません。そしてそれは nixgen 側で直せる話ではありません。** NixOS には**GUIによるパッケージ導入手段がそもそも存在しません** — GNOME Software も KDE Discover も、ここではシステムのパッケージを扱わないからです。また、これで全工程がGUIだけになるわけでもありません: `System update` は今も**意図して**コマンドを1つ渡すだけで、代わりにリビルドはしません(サーバーに認証が無いためです)。今回無くなったのは、その**2つの間にあった**コマンドのすべてです。
+- **2回目の起動は、拒否せずに既に動いている nixgen を開きます。** ブラウザのタブを閉じてもサーバーは残るので、クリックするアイコンがある以上これは開発中の事故ではなく**通常の操作**です。誰も開いていないターミナルに向かって拒否のメッセージを出せば、アイコンが壊れているようにしか見えません。開く前に `/api/meta` で確認します: 使用中のポートには全く別のものが居ることもあり、無関係なローカルサービスへブラウザを送るのは、置き換えようとしたメッセージより悪いからです。その場合と `--no-browser` の場合は従来どおり拒否します — ただし**それぞれ実際の理由**を述べるようにしました。**どちらのコピーが応答したかは、今もヘッダのビルド番号が答えます**。そこだけは覆い隠してはならない一点です。
+- **初回起動が、伝える先のターミナルが無くても伝えるようになりました。** 索引の構築には5分ほどかかりますが、メニューから起動した場合その進捗行はどこにも出ません。代わりにデスクトップ通知を出します。届けるにはセッションバスが必要なので、これはベストエフォートで、失敗しても起動は止めません。
+
 ## v1.0.0-rc.1 — 2026-08-12
 
 最初のリリース候補です。この見出しの下にあるものが、この候補に含まれる内容です。さらに下の build 見出しは、ここに至るまでの履歴です。
@@ -1478,13 +1501,6 @@ three of these six showed up in only one of the two.
 
 ---
 
-### パッケージング、2026-08-12e
-
-- **デスクトップエントリを追加しました。** これで `nix profile install github:hatake716/nixgen` がこのツールに必要な最後のコマンドになります。以降はアプリメニューの「システム」に並び、そこから起動すればブラウザが自動で開きます。アイコンはビルド時に `tools/mark.py` が生成するので、**マークの出どころはそのファイル1つのまま**です(2つのページが出力を貼り付けているのと同じ理由)。いずれも白地を持たせてあります。アプリメニューが表示するファイルは1つで、README のロゴのようにテーマごとに選び分けられないためです — 背景が透明な線画では、暗いパネルで見えなくなります。
-- **原案のアートワークを数値にしたので、アイコンを原案そのものにできました。** `docs/logo.png` はラスタ画像で、余白のある場所でしか使えませんでした — アプリのヘッダとファビコンが簡略版のフレークを使ってきたのはそのためです。これを `tools/mark.py` の中にパスデータとして起こしたので、**元の描画をどのサイズでも描けます**。64px 以上のアイコンは、近似ではなく原案そのものです。ただし**変換で変わるのは形式であって密度ではありません**: 32px と 48px では原案は依然として雪の結晶と判別できないので、そのサイズはフレークのままにしました。線引きは、両方を 32・48・64 でレンダリングして決めています。GTK の挙動も推測せず確認しました — 完全一致するサイズのディレクトリが `scalable` より優先されるので、24px のパネル枠に原案が入ることはありません。
-- **最初の1コマンドは無くせません。そしてそれは nixgen 側で直せる話ではありません。** NixOS には**GUIによるパッケージ導入手段がそもそも存在しません** — GNOME Software も KDE Discover も、ここではシステムのパッケージを扱わないからです。また、これで全工程がGUIだけになるわけでもありません: `System update` は今も**意図して**コマンドを1つ渡すだけで、代わりにリビルドはしません(サーバーに認証が無いためです)。今回無くなったのは、その**2つの間にあった**コマンドのすべてです。
-- **2回目の起動は、拒否せずに既に動いている nixgen を開きます。** ブラウザのタブを閉じてもサーバーは残るので、クリックするアイコンがある以上これは開発中の事故ではなく**通常の操作**です。誰も開いていないターミナルに向かって拒否のメッセージを出せば、アイコンが壊れているようにしか見えません。開く前に `/api/meta` で確認します: 使用中のポートには全く別のものが居ることもあり、無関係なローカルサービスへブラウザを送るのは、置き換えようとしたメッセージより悪いからです。その場合と `--no-browser` の場合は従来どおり拒否します — ただし**それぞれ実際の理由**を述べるようにしました。**どちらのコピーが応答したかは、今もヘッダのビルド番号が答えます**。そこだけは覆い隠してはならない一点です。
-- **初回起動が、伝える先のターミナルが無くても伝えるようになりました。** 索引の構築には5分ほどかかりますが、メニューから起動した場合その進捗行はどこにも出ません。代わりにデスクトップ通知を出します。届けるにはセッションバスが必要なので、これはベストエフォートで、失敗しても起動は止めません。
 
 ### ツール、2026-08-12d
 
