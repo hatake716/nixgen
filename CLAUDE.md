@@ -63,6 +63,8 @@ build/
 tools/
   fuzz.py           regression + fuzz harness. Run before shipping renderer changes.
   import_check.py   the same for the importer, through both of its readers.
+  browser_check.py  the eleven-point sweep, against the real app in a browser.
+  eval_check.py     evaluates a generated bundle as a NixOS system, reads it back.
   shots.py          retakes docs/screenshot*.png by driving the real app.
   mark.py           draws the logo; both pages and the favicon inline its output.
 docs/               the GitHub Pages homepage
@@ -751,10 +753,14 @@ python3 tools/import_check.py
 python3 -c "import ast,glob; [ast.parse(open(f).read()) for f in glob.glob('build/*.py')]"
 node --check build/static/app.js
 
-# starter changes — evaluate as an actual NixOS system, not just parse
-#   put configuration.nix, flake.nix, a stub hardware-configuration.nix and a
-#   stub generated.nix in a directory, then:
-nix eval --raw '.#nixosConfigurations.nixos.config.system.build.toplevel.drvPath'
+# UI changes — the eleven-point sweep against a running server (needs playwright;
+#   the launch recipe is in the tool's docstring). <outdir> saves the bundle.
+python3 tools/browser_check.py http://127.0.0.1:8824/ <outdir>
+
+# starter or preset changes — evaluate the bundle as an actual NixOS system
+#   and read the claims back out of it. Takes the directory the sweep saved.
+python3 tools/eval_check.py <outdir>
+python3 tools/eval_check.py <outdir> --generated generated-roundtrip.nix
 ```
 
 `tools/fuzz.py` renders thousands of real options with hostile values and runs
@@ -781,18 +787,33 @@ only ever produce shapes our renderer emits. `with pkgs; [ python313Packages.req
 is what a person writes and what broke, and no amount of sampling would have
 reached it. New shapes belong in `CASES`.
 
-**All of the above runs on every push**, from `.github/workflows/checks.yml`,
-through `nix develop` so that CI and this checklist are the same commands in
-the same shell. The index is built once a week and cached; there is no
-restore-key on purpose, because a fallback would mean it never refreshed, and
-a stale catalogue is the one thing these harnesses cannot notice.
+`tools/browser_check.py` is the eleven-point sweep every release pass used to
+rebuild by hand in a scratchpad (DEBUGGING.md tells that story). It drives the
+real app — real search, real file inputs, real Check syntax — and covers the
+path that has broken more than once in ways nothing else caught: import a
+`configuration.nix`, add a package from search, switch tabs, check. With an
+outdir it saves the generated bundle and the round-tripped module, which is
+what `eval_check.py` takes.
 
-The one documented check CI does not run is the starter evaluation below — it
-needs four hand-made files, and turning that into a tool has not been done.
+`tools/eval_check.py` is the final line of defence: Check syntax parses and
+judges no types, so the tool evaluates the bundle as a real NixOS system and
+then **reads the module's claims back out of it** — the session name the
+display manager actually offers, the keyring lines in the built pam.d/login,
+the sway config's include and missing bar, the Wayland layout variable.
+Passing eval alone is not enough; a setting that evaluates and silently does
+nothing is this project's oldest failure mode. `--revision` re-evaluates
+against a reporter's nixpkgs, because "it evaluates on the development pin"
+and "it evaluates on the reporter's machine" are different facts.
 
-In the browser, after any UI change: import a `configuration.nix`, add a package
-from search, switch tabs, and press Check syntax. That path has broken more than
-once in ways nothing else caught.
+**All of the above runs on every push except `eval_check.py`**, from
+`.github/workflows/checks.yml`, through `nix develop` so that CI and this
+checklist are the same commands in the same shell. The browser sweep runs as
+its own CI job against the cached index. `eval_check.py` stays out of CI
+because it fetches a pinned nixpkgs and takes minutes — run it before a
+release and whenever a preset changes what it writes. The index is built once
+a week and cached; there is no restore-key on purpose, because a fallback
+would mean it never refreshed, and a stale catalogue is the one thing these
+harnesses cannot notice.
 
 > リリース前に `python3 tools/fuzz.py` と `python3 tools/import_check.py` を通してください。ランダム部分だけでは既知バグを取りこぼします。固定ケースが本体です。
 

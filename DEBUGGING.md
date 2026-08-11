@@ -37,28 +37,30 @@ nix develop --command python3 tools/import_check.py  # インポータ: 両リ�
 nix develop --command node --check build/static/app.js
 nix develop --command python3 -c "import ast,glob; [ast.parse(open(f).read()) for f in glob.glob('build/*.py')]"
 nix build .#default --no-link                        # flake としてビルドできるか
+python3 tools/browser_check.py <url> <outdir>        # §4 の11項目(playwright 必要)
+python3 tools/eval_check.py <outdir>                 # §5 の実システム評価と読み戻し
 python3 tools/shots.py <url> docs                    # スクリーンショット撮り直し(playwright 必要)
 ```
 
 **固定ケースがランダム部より重要。** ランダムは自分のレンダラが出す形しか作れないため、
 過去に負数バグを取りこぼした実績がある。新しい形の入力は `CASES`(import_check)へ足すこと。
 
-## 4. ブラウザ検証の再現手順(セッション限りだったもの)
+## 4. ブラウザ検証(tools/browser_check.py に恒久化済み)
 
-⚠️ **重要**: これまでの Playwright スイート(golden / stable2 / confroute / pickers / lastfeat など)は
-セッションのスクラッチパッドにあり、**リポジトリには残っていない**。同等の検証をするには下のレシピで再構成する。
-恒久化(tools/ への移植)は未着手で、**引き継ぎ後の最初の推奨タスク**。
-
-起動(この store パスは作者機のもの。無ければ playwright を入れ直して差し替え):
+かつてセッション限りだった Playwright スイート(golden / stable2 / confroute / pickers /
+lastfeat など)は消失し、パスのたびに手で再構成していた。いまは **`tools/browser_check.py`
+が11項目そのもの**で、CI(checks.yml の browser ジョブ)でも毎プッシュ走る。
+起動レシピはツールの docstring にある(要 playwright。`<outdir>` を渡すと
+生成された3ファイルとラウンドトリップ後の module を保存し、それが §5 の入力になる)。
 
 ```bash
-B=/nix/store/pxhpj9rn0a04sj5cy4xcvsbpa36ivinw-playwright-browsers
-PLAYWRIGHT_BROWSERS_PATH=$B nix shell --impure \
+B=/nix/store/pxhpj9rn0a04sj5cy4xcvsbpa36ivinw-playwright-browsers   # 作者機のパス
+PLAYWRIGHT_BROWSERS_PATH=$B PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 nix shell --impure \
   --expr '(import <nixpkgs> {}).python3.withPackages (ps: [ ps.playwright ])' \
-  --command python3 <script>.py http://127.0.0.1:8824/ <outdir>
+  --command python3 tools/browser_check.py http://127.0.0.1:8824/ <outdir>
 ```
 
-最低限これだけは通す、という11項目(前回パスの内容):
+ツールが検査する11項目(手で確かめるときの一覧としても残す):
 
 1. 全プリセット同時(kernel=lts, shell=fish, desktop=sway, gpu=nvidia, lang=ja, region=Asia/Tokyo, Flatpak)+検索から1パッケージ → Check syntax が `Parses cleanly.`
 2. Download all three → 書庫に3ファイル、`generated.nix` に allowUnfree / sway config 差し替え / keyring / XKB / timeZone / unit が全部ある
@@ -80,10 +82,16 @@ PLAYWRIGHT_BROWSERS_PATH=$B nix shell --impure \
 - 何かを「バグ」と断定する前に、**テスト自身を疑った回数のほうが多い**ことを覚えておく
   (unfree 評価に allowUnfree を入れ忘れた、隠し要素を測った、旧仕様の期待を残した、等)。
 
-## 5. 実システム評価(これが最終防衛線)
+## 5. 実システム評価(これが最終防衛線 — tools/eval_check.py に恒久化済み)
 
 構文チェックは `nix-instantiate --parse` **だけ**。型も評価も見ない。生成物の正しさは
-**実際に NixOS システムとして評価**して確かめる。ハーネスの組み方:
+**実際に NixOS システムとして評価**して確かめる。いまは `tools/eval_check.py` が
+このハーネスそのもの: §4 が保存したディレクトリを渡すと、スタブの
+hardware-configuration.nix を添えて評価し、下の読み戻しまで自動で行う。
+`--generated generated-roundtrip.nix` で往復後の module を、`--revision <hex>` で
+報告者のリビジョンを評価できる。CI には載せていない(ピン留めした nixpkgs の取得と
+数分の評価が要る)。リリース前と、プリセットが書く内容を変えたときに回すこと。
+以下は手で組む場合の元の手順:
 
 ```bash
 mkdir eval && cd eval && git init -q
@@ -146,7 +154,9 @@ nix eval --json '...config.environment.sessionVariables' --apply 'v: v.XKB_DEFAU
 
 ## 8. 引き継ぎ後の推奨タスク(優先順)
 
-1. §4 のブラウザ検査を `tools/` に恒久化して CI に載せる(スクラッチパッド消失で毎回書き直している)。
+1. ~~§4 のブラウザ検査を `tools/` に恒久化して CI に載せる~~ **済み(2026-08-12)**:
+   `tools/browser_check.py` が11項目、`tools/eval_check.py` が §5 のハーネス。
+   前者は CI の browser ジョブで毎プッシュ走る。後者はリリース前に手で回す。
 2. RC 評価で出た報告の一次対応。報告には「ヘッダーの nixgen: 行」を必ず添えてもらう。
 3. リリース時: README のベータ表記を範囲明示に書き換え → CHANGELOG に rc 見出し → 注釈付きタグ
    `v1.0.0-rc.1` → GitHub prerelease。検証機は `nix run github:hatake716/nixgen/v1.0.0-rc.1` で固定。

@@ -9,6 +9,26 @@ option counts.
 
 ## English
 
+### Tools, 2026-08-12d
+
+- **The eleven-point browser sweep is a command now**: `tools/browser_check.py`
+  drives the real app — real search, real file inputs, real Check syntax —
+  through every point the release passes have always checked, and runs in CI
+  on every push as its own job. It had lived in session scratchpads and been
+  rebuilt by hand for every verification pass; this is the same fix the
+  screenshots got.
+- **The real-system evaluation is a command too**: `tools/eval_check.py` takes
+  the directory the sweep saves, adds the stub hardware file, evaluates the
+  bundle as an actual NixOS system, and reads the module's claims back out of
+  it — the session name the login screen offers, the keyring lines in the
+  built pam.d/login, the sway config's include and missing bar, the Wayland
+  layout variable, the nvidia driver, the time zone. `--generated` evaluates
+  the round-tripped module, `--revision` a reporter's nixpkgs. It stays out
+  of CI on purpose: it fetches a pinned nixpkgs and takes minutes.
+- Both ran to completion on this build: all eleven points pass, and both the
+  fresh bundle and the round-tripped module evaluate and read back correctly
+  against the indexed revision.
+
 ### build 2026-08-12o
 
 - **Fixed: an import could leave one leaf defined in two shapes, and the file
@@ -1349,6 +1369,12 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### ツール、2026-08-12d
+
+- **ブラウザ検査の11項目がコマンドになりました**: `tools/browser_check.py` が実際のアプリを操作し(本物の検索・本物のファイル入力・本物の Check syntax)、これまでのリリース点検が毎回確かめてきた全項目を通します。CI でも独立ジョブとして毎プッシュ走ります。以前はセッションのスクラッチパッドにあり、点検のたびに手で作り直していました — スクリーンショットに施したのと同じ直し方です。
+- **実システム評価もコマンドになりました**: `tools/eval_check.py` は検査が保存したディレクトリを受け取り、スタブの hardware ファイルを添えて書庫を**実際の NixOS システムとして評価**し、module の主張を評価済みシステムから読み戻します — ログイン画面が提供するセッション名、ビルドされた pam.d/login のキーリング行、include ありバー無しの sway 設定、Wayland のレイアウト変数、nvidia ドライバ、タイムゾーン。`--generated` で往復後の module を、`--revision` で報告者の nixpkgs を評価できます。CI には意図して載せていません: ピン留めした nixpkgs の取得と数分の評価が要るためです。
+- どちらもこのビルドで完走済みです: 11項目すべて通過、新規生成の書庫も往復後の module も、索引のリビジョンに対して評価と読み戻しが正しく通りました。
 
 ### build 2026-08-12o
 

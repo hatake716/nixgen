@@ -69,3 +69,63 @@ jobs:
 
       - name: Importer — fixed configurations, through both readers
         run: nix develop --command python3 tools/import_check.py
+
+  # The eleven-point browser sweep, against the real app in a real browser.
+  # It lived in session scratchpads and was rebuilt by hand for every
+  # verification pass; now it is tools/browser_check.py and runs here, so a
+  # UI change that breaks the import path or the mobile nav fails the push
+  # that made it. `needs: checks` so the week's index cache is already warm.
+  #
+  # What CI still does not run is tools/eval_check.py — evaluating the
+  # generated bundle as a NixOS system fetches a pinned nixpkgs and takes
+  # minutes. Run that one before a release.
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: checks
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Week
+        id: week
+        run: echo "stamp=$(date -u +%G-W%V)" >> "$GITHUB_OUTPUT"
+
+      - name: Cached index
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: data
+          key: index-${{ env.CHANNEL }}-${{ steps.week.outputs.stamp }}
+
+      - name: Build the index
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          nix develop --command bash build/fetch-data.sh "$CHANNEL"
+          nix develop --command python3 build/build_index.py --channel "$CHANNEL"
+          rm -f data/options.json data/packages.json
+
+      - name: The eleven points, in a real browser
+        run: |
+          nix develop --command python3 build/server.py \
+            --db data/nixgen.sqlite --port 8824 --no-browser &
+          for i in $(seq 30); do
+            curl -sf -o /dev/null http://127.0.0.1:8824/ && break
+            sleep 1
+          done
+          # Browsers and the driver from the same nixpkgs, so their versions
+          # match — a mismatched pair downloads browsers at runtime instead.
+          BROWSERS=$(nix build --impure --expr \
+            '(import (builtins.getFlake "nixpkgs") { }).playwright-driver.browsers' \
+            --no-link --print-out-paths)
+          PYENV=$(nix build --impure --expr \
+            'with import (builtins.getFlake "nixpkgs") { }; python3.withPackages (ps: [ ps.playwright ])' \
+            --no-link --print-out-paths)
+          PLAYWRIGHT_BROWSERS_PATH=$BROWSERS \
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
+            "$PYENV/bin/python3" tools/browser_check.py http://127.0.0.1:8824/
