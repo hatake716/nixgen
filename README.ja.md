@@ -91,7 +91,7 @@ sudo nixos-rebuild switch
 
 もう一度 `nix flake --help` を実行して、ヘルプが出れば成功です。
 
-### ステップ2 — 起動する
+### ステップ2 — 起動する(コマンドから起動する方法)
 
 ```bash
 nix run github:hatake716/nixgen/development
@@ -119,7 +119,7 @@ nix run --refresh github:hatake716/nixgen/development
 
 いまどちらが動いているかは、画面上部のビルド番号で分かります。
 
-### ステップ2a — アプリメニューに入れる(実験的機能)
+### ステップ2a — アプリメニューに入れる(アイコンから起動する方法)
 
 `nix run` はターミナルを開いている間だけの起動です。アイコンをクリックして起動したい場合は、一度だけインストールします。
 

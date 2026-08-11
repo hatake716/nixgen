@@ -137,7 +137,7 @@ sudo nixos-rebuild switch
 
 Run `nix flake --help` again. Help text means it worked.
 
-### Step 2 — Start it
+### Step 2 — Start it (from a command)
 
 ```bash
 nix run github:hatake716/nixgen/development
@@ -171,7 +171,7 @@ nix run --refresh github:hatake716/nixgen/development
 
 The build id in the header tells you which one you are on.
 
-### Step 2a — Put it in the application menu (experimental)
+### Step 2a — Put it in the application menu (start it from an icon)
 
 `nix run` starts it for as long as the terminal is open. If you would rather
 click an icon, install it once:
