@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-12m';
+const BUILD = '2026-08-12n';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -3106,8 +3106,12 @@ function syncPresetPickers() {
     const sel = $(id);
     if (!sel || ![...sel.options].some(o => o.value === key)) return;
     sel.value = key;
-    found.push(sel.previousElementSibling
-      ? sel.previousElementSibling.textContent.split('\n')[0].trim() : id);
+    // The row label is stacked English-over-Japanese in one span, so taking
+    // its textContent glued the two ("Language言語"). The English name is the
+    // first text node, before the <i> that holds the gloss.
+    const lab = sel.closest('.presetline')?.querySelector('.plabel');
+    found.push(lab && lab.firstChild
+      ? lab.firstChild.textContent.trim() : id.replace('#s-', ''));
   };
 
   // The desktop already knows how to recognise itself: every entry carries

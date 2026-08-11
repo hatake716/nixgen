@@ -9,6 +9,18 @@ option counts.
 
 ## English
 
+### build 2026-08-12n
+
+- **Fixed: the import status glued the bilingual row labels together** —
+  "Language言語, Region地域". The stacked label is one span, so reading its
+  text joined both languages; the English name is the first text node, and
+  that is what the list uses now.
+- Hunted the two newest features for more and found nothing else: packages
+  from an imported configuration.nix grey out and append correctly, a second
+  import replaces rather than duplicates, a setup-only file leaves the module
+  empty, a file carrying hidden Hyprland selects nothing, and aarch64 still
+  unhides the architecture through the new routing.
+
 ### build 2026-08-12m
 
 - **Importing a `configuration.nix` now puts everything the Setup tab does not
@@ -1305,6 +1317,11 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### build 2026-08-12n
+
+- **修正: 取り込み時のステータスで、二段表記のラベルが連結して表示されていました**(「Language言語、Region地域」)。積み重ねラベルは1つの span なので、全文を読むと両言語が繋がります。英語名は最初のテキストノードにあり、いまはそれを使います。
+- 直近2機能をさらに攻めましたが、他は見つかりませんでした: configuration.nix から取り込んだパッケージのグレーアウトと追記、2回目の取り込みが置換になること(重複しない)、Setup 項目だけのファイルで module が空のままなこと、非表示の Hyprland を含むファイルで何も選択されないこと、新しい経路でも aarch64 がアーキテクチャ欄を再表示すること。
 
 ### build 2026-08-12m
 
