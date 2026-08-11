@@ -7,10 +7,10 @@ the app header and in every file nixgen writes, and it changes whenever the app
 does — it answers "which build wrote this". **The version tag** names a
 snapshot and doubles as a flake ref.
 
-**This is the `development` branch**, so its tags are `-dev`:
-`nix run github:hatake716/nixgen/v1.0.0-dev.1`. The stable line is on `main`
-(`v1.0.0-rc.1`), and what is under a `-dev` heading below has not reached it
-yet.
+Work lands on the `development` branch first, under `-dev` tags
+(`nix run github:hatake716/nixgen/v1.0.0-dev.1`), and is merged here once it
+has held up. A `-dev` heading below is one of those merges: everything under
+it is part of `main` now.
 
 ---
 
@@ -18,9 +18,9 @@ yet.
 
 ## v1.0.0-dev.1 — 2026-08-12
 
-On `development`, ahead of `main`. Everything between this heading and
-`v1.0.0-rc.1` is what it adds; below that is the release candidate it grew
-from.
+Landed on `development` first, merged into `main` since. Everything between
+this heading and `v1.0.0-rc.1` is what it added; below that is the release
+candidate it grew from.
 
 ### Packaging, 2026-08-12e
 
@@ -1499,7 +1499,7 @@ three of these six showed up in only one of the two.
 
 ## v1.0.0-dev.1 — 2026-08-12
 
-`development` ブランチの版で、`main` より先行しています。この見出しから `v1.0.0-rc.1` までが、この版で加わった内容です。その下は、元になったリリース候補です。
+`development` ブランチに先に入り、その後 `main` に統合された内容です。この見出しから `v1.0.0-rc.1` までが、この版で加わった内容です。その下は、元になったリリース候補です。
 
 ### パッケージング、2026-08-12e
 

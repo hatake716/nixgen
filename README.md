@@ -10,15 +10,6 @@ option name.** Search all 24,557 settings and 144,245 packages, fill in values
 with widgets that know the type, and get a configuration file you can read
 before anything on your machine changes.
 
-> [!NOTE]
-> **You are reading the `development` branch — the experimental one.** Every
-> command below names it (`github:hatake716/nixgen/development`), so what you
-> install is what this page describes. Stable is
-> [`main`](https://github.com/hatake716/nixgen/tree/main), which is what the
-> plain `github:hatake716/nixgen` resolves to; its README leaves the branch
-> off. Work lands here first and moves to `main` once it has held up, so
-> anything on this page may be newer than what `main` will do.
-
 ![nixgen](docs/screenshot.png)
 
 ### Three reasons
@@ -140,7 +131,7 @@ Run `nix flake --help` again. Help text means it worked.
 ### Step 2 — Start it (from a command)
 
 ```bash
-nix run github:hatake716/nixgen/development
+nix run github:hatake716/nixgen
 ```
 
 **That is the whole thing.** No download, no install step. Nix collects what it
@@ -166,7 +157,7 @@ an hour, so a run started soon after an update can still be the previous
 version. Force a re-check:
 
 ```bash
-nix run --refresh github:hatake716/nixgen/development
+nix run --refresh github:hatake716/nixgen
 ```
 
 The build id in the header tells you which one you are on.
@@ -177,7 +168,7 @@ The build id in the header tells you which one you are on.
 click an icon, install it once:
 
 ```bash
-nix profile install github:hatake716/nixgen/development
+nix profile install github:hatake716/nixgen
 ```
 
 **nixgen then appears in your application menu, under System.** Starting it
@@ -232,12 +223,10 @@ nix profile upgrade nixgen
 nix profile remove nixgen
 ```
 
-**No branch on these two, and that is not an oversight.** They take the name
-of the entry in your profile — which is `nixgen` — not a flake reference.
-`nix profile upgrade nixgen/development` matches nothing and silently does
-nothing. The branch is already recorded when you install: `nix profile list`
-shows it as the *Original flake URL*, and upgrading follows it, so an entry
-installed from `development` upgrades to the newest `development`.
+**These two take the name of the entry in your profile — which is `nixgen` —
+not a flake reference**, so nothing else goes after it. The reference was
+recorded when you installed: `nix profile list` shows it as the *Original
+flake URL*, and upgrading follows it.
 
 ### Step 3 — Build your configuration in the browser
 
@@ -862,7 +851,7 @@ contents of the generated file stay in English — a translated
 ### Command-line options
 
 ```bash
-nixgen                       # same as nix run github:hatake716/nixgen/development
+nixgen                       # same as nix run github:hatake716/nixgen
 nixgen --port 9000           # use a different port
 nixgen --no-browser          # do not open a browser
 ```

@@ -7,9 +7,6 @@
 
 **インストール直後から、使えるマシンまで。オプション名を1つも知らないまま。** 設定項目24,557個とソフトウェア144,245個を検索し、型に応じたウィジェットで値を入れると、**マシンに何も起きないうちに中身を読める**設定ファイルが出てきます。
 
-> [!NOTE]
-> **これは `development` ブランチ — 実験用のほうです。** 以下のコマンドはすべてこのブランチを明示しています(`github:hatake716/nixgen/development`)。書いてある内容と実際に入るものを一致させるためです。安定版は [`main`](https://github.com/hatake716/nixgen/tree/main) で、ブランチを付けない `github:hatake716/nixgen` はそちらを指します(main 側の README はブランチを付けていません)。開発はまずここに入り、問題なく動くことが分かってから main に合流するので、このページの内容は main より先行していることがあります。
-
 ![nixgen](docs/screenshot.png)
 
 ### 3つの理由
@@ -94,7 +91,7 @@ sudo nixos-rebuild switch
 ### ステップ2 — 起動する(コマンドから起動する方法)
 
 ```bash
-nix run github:hatake716/nixgen/development
+nix run github:hatake716/nixgen
 ```
 
 **これだけです。** ダウンロードもインストール作業も要りません。Nixが必要なものを勝手に集めて起動します。
@@ -114,7 +111,7 @@ nix run github:hatake716/nixgen/development
 **更新したはずなのに変わらないときは。** Nixは `github:` の指す先を**1時間ほど記憶します。** 更新直後に起動すると、前のバージョンが動くことがあります。取得し直すにはこうします。
 
 ```bash
-nix run --refresh github:hatake716/nixgen/development
+nix run --refresh github:hatake716/nixgen
 ```
 
 いまどちらが動いているかは、画面上部のビルド番号で分かります。
@@ -124,7 +121,7 @@ nix run --refresh github:hatake716/nixgen/development
 `nix run` はターミナルを開いている間だけの起動です。アイコンをクリックして起動したい場合は、一度だけインストールします。
 
 ```bash
-nix profile install github:hatake716/nixgen/development
+nix profile install github:hatake716/nixgen
 ```
 
 **これでアプリメニューの「システム」に nixgen が並びます。** そこから起動すると**専用のウィンドウが最大化した状態**で開きます。タブもアドレスバーもなく、ページだけです。ターミナルを開いたままにする必要も、コマンドを打つ必要もありません。
@@ -152,7 +149,7 @@ nix profile upgrade nixgen
 nix profile remove nixgen
 ```
 
-**この2つにブランチ名を付けないのは、書き忘れではありません。** この2つが取る引数は flake の参照ではなく、**プロファイルに登録された項目の名前**で、それは `nixgen` です。`nix profile upgrade nixgen/development` は**何にも一致せず、黙って何もしません**(削除も同様です)。ブランチはインストール時に記録済みで、`nix profile list` の *Original flake URL* に出ます。更新はその参照を辿るので、`development` から入れた項目は**最新の `development`** に更新されます。
+**この2つが取る引数は flake の参照ではなく、プロファイルに登録された項目の名前で、それは `nixgen` です。** なので後ろに何かを足すことはありません。参照はインストール時に記録済みで、`nix profile list` の *Original flake URL* に出ます。更新はその参照を辿ります。
 
 ### ステップ3 — ブラウザで設定を組み立てる
 
@@ -521,7 +518,7 @@ sudo nixos-rebuild dry-build
 ### 起動時のオプション
 
 ```bash
-nixgen                       # nix run github:hatake716/nixgen/development でも同じ
+nixgen                       # nix run github:hatake716/nixgen でも同じ
 nixgen --port 9000           # 使うポート番号を変える
 nixgen --no-browser          # ブラウザを自動で開かない
 ```
