@@ -10,6 +10,15 @@ option name.** Search all 24,557 settings and 144,245 packages, fill in values
 with widgets that know the type, and get a configuration file you can read
 before anything on your machine changes.
 
+> [!NOTE]
+> **You are reading the `development` branch — the experimental one.** Every
+> command below names it (`github:hatake716/nixgen/development`), so what you
+> install is what this page describes. Stable is
+> [`main`](https://github.com/hatake716/nixgen/tree/main), which is what the
+> plain `github:hatake716/nixgen` resolves to; its README leaves the branch
+> off. Work lands here first and moves to `main` once it has held up, so
+> anything on this page may be newer than what `main` will do.
+
 ![nixgen](docs/screenshot.png)
 
 ### Three reasons
@@ -131,7 +140,7 @@ Run `nix flake --help` again. Help text means it worked.
 ### Step 2 — Start it
 
 ```bash
-nix run github:hatake716/nixgen
+nix run github:hatake716/nixgen/development
 ```
 
 **That is the whole thing.** No download, no install step. Nix collects what it
@@ -157,7 +166,7 @@ an hour, so a run started soon after an update can still be the previous
 version. Force a re-check:
 
 ```bash
-nix run --refresh github:hatake716/nixgen
+nix run --refresh github:hatake716/nixgen/development
 ```
 
 The build id in the header tells you which one you are on.
@@ -168,7 +177,7 @@ The build id in the header tells you which one you are on.
 click an icon, install it once:
 
 ```bash
-nix profile install github:hatake716/nixgen
+nix profile install github:hatake716/nixgen/development
 ```
 
 **nixgen then appears in your application menu, under System.** Starting it
@@ -822,7 +831,7 @@ contents of the generated file stay in English — a translated
 ### Command-line options
 
 ```bash
-nixgen                       # same as nix run github:hatake716/nixgen
+nixgen                       # same as nix run github:hatake716/nixgen/development
 nixgen --port 9000           # use a different port
 nixgen --no-browser          # do not open a browser
 ```

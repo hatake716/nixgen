@@ -988,6 +988,17 @@ harnesses cannot notice.
 
 - `CHANGELOG.md` is the only place entries live. English half on top, Japanese
   half below. `README.md`, `README.ja.md` and `docs/index.html` link to it.
+- **Two branches, and the READMEs differ on purpose.** `main` is the stable one
+  and is what a bare `github:hatake716/nixgen` resolves to; `development` is
+  where work lands first. On `development` both READMEs carry a note saying so
+  and every flake reference names the branch
+  (`github:hatake716/nixgen/development`), because a page whose commands
+  install something other than what the page describes is worse than no page.
+  **Those four command sites and the note must not travel to `main` in a
+  merge** — check `git grep -n 'nixgen/development' README.md README.ja.md`
+  after merging and take them back out. `docs/index.html` is deliberately left
+  alone: GitHub Pages serves the homepage from `main`, so a branch-specific
+  command there would be published to everybody.
 - Figures appear in several files and drift. Current: **24,557 options**,
   **144,245 packages**, **88.3% (21,681)** with a real widget, **1,252** distinct
   type strings, **5,082 (21%)** with a placeholder. All for `nixos-26.05` at
