@@ -9,6 +9,33 @@ option counts.
 
 ## English
 
+### Verification pass, 2026-08-12
+
+A full sweep ahead of calling this stable. **Nothing needed fixing** — the
+first pass to end that way. What was checked, so the next pass can repeat it:
+
+- **The golden path, end to end**: every preset (kernel, shell, desktop,
+  graphics, language, region, Flatpak) plus a searched package; Check syntax;
+  the archive — right three files, build id in the header — and **the whole
+  archive evaluated as a NixOS system**. NVIDIA needs the documented
+  `allowUnfree` line, which is by design: the warning shows and survives every
+  render.
+- **The round trip**: the golden module read back in loses nothing — every
+  difference is a Nix normalisation, and the result parses.
+- **The desktop matrix**: all nine desktops picked in one session, in order.
+  Exactly one display manager at every step, no leftovers accumulate, and the
+  file parses at the end.
+- **Broken input**: a duplicate-attribute file is read, named and collapsed; a
+  null input-method type is repaired; malformed API requests answer 400; five
+  rapid clicks write one line; removing every card brings the five steps back;
+  a configuration.nix import lands on the Setup side and leaves the module
+  empty.
+- **The visual rules**: no space between Japanese characters (app and
+  homepage), all seven dropdowns fit their closed boxes, no sideways scroll
+  from 320 to 1800px.
+- The fixed harnesses (`fuzz.py`, `import_check.py`, both readers) and the
+  flake build.
+
 ### Documentation, 2026-08-12
 
 - **The README logo follows the reader's theme.** The artwork is black line
@@ -1161,6 +1188,17 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### 検証パス、2026-08-12
+
+安定版と呼ぶ前の総点検です。**修正を要するバグは0件**でした。そう終わったのは初めてです。次回も同じ点検ができるよう、確認した内容を残します。
+
+- **ゴールデンパスを通しで**: 全プリセット(カーネル・シェル・デスクトップ・グラフィックス・言語・地域・Flatpak)と検索からのパッケージ追加、Check syntax、書庫(3ファイル・ヘッダーに build id)、そして**書庫全体を NixOS システムとして評価**。NVIDIA は記載どおり `allowUnfree` の1行が必要で、これは設計どおりです(警告が表示され、どの再描画でも消えません)。
+- **往復**: 生成した module を読み戻しても失われるものはなく、差分はすべて Nix の正規化で、結果はパースを通ります。
+- **デスクトップ行列**: 9種を1セッションで順に選択。どの時点でもディスプレイマネージャはちょうど1つ、消し残しは蓄積せず、最後のファイルもパースを通ります。
+- **壊れた入力**: 属性二重定義のファイルは読めて・名指しされて・1つに畳まれる。null の入力メソッド type は修復される。不正な API リクエストは 400。連打5回でも行は1つ。全カード削除で5つの手順が戻る。configuration.nix の取り込みは Setup 側に入り、module は空のまま。
+- **見た目の規約**: 日本語の文中空白0件(アプリ・ホームページ)、7つのプルダウン全てが閉じた箱に収まる、320〜1800px で横スクロールなし。
+- 固定ハーネス(`fuzz.py`、`import_check.py` の両リーダー)と flake ビルド。
 
 ### ドキュメント、2026-08-12
 
