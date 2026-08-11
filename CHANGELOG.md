@@ -16,6 +16,14 @@ it is part of `main` now.
 
 ## English
 
+## v1.0.0-rc.2.1 — 2026-08-12
+
+`v1.0.0-rc.2` plus one important fix, tagged without waiting for the next
+candidate: picking AMD or Intel no longer removes
+`nixpkgs.config.allowUnfree`, and the switch now goes in by itself wherever
+the file names anything unfree. The details are under `v1.0.0-dev.2` below,
+which is exactly what this tag carries.
+
 ## v1.0.0-dev.2 — 2026-08-12
 
 Landed on `development` first, merged into `main` since — a fix important
@@ -1538,6 +1546,10 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+## v1.0.0-rc.2.1 — 2026-08-12
+
+`v1.0.0-rc.2` に重要な修正を1つ加え、次の候補版を待たずにタグを打った版です。AMD や Intel を選んでも `nixpkgs.config.allowUnfree` が外れなくなり、unfree なものがファイルにあればスイッチが自動で入ります。詳細はすぐ下の `v1.0.0-dev.2` にあり、このタグに入っているのはちょうどその内容です。
 
 ## v1.0.0-dev.2 — 2026-08-12
 
