@@ -638,6 +638,16 @@ ship the CJK and emoji fonts already, so there is nothing to add. And the time
 zone: a language is not a place, so nothing here guesses `Asia/Tokyo` from
 Japanese — search for `timeZone` under **Options** and set it yourself.
 
+### Options — picking a region
+
+Under **Language** there is a **Region** row, and it is separate on purpose: a
+language is not a place. Picking one sets `time.timeZone`, which in NixOS is
+already `Region/City` — one setting decides both halves of the question.
+Eighteen places are listed, each checked against the zoneinfo database rather
+than typed from memory, because a wrong name is accepted by the form and shows
+up later only as a clock that is quietly wrong. For anywhere else, search
+`timeZone` under **Options** and type it in.
+
 ### Options — turning on Flatpak
 
 The last row under **Options** has no dropdown, because there is nothing to
