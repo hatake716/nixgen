@@ -9,6 +9,16 @@ option counts.
 
 ## English
 
+### Documentation, 2026-08-12c
+
+- **Added `DEBUGGING.md`**: a handover for whoever debugs next. How the
+  verification has been done and how to repeat it — the browser sweep's
+  eleven points, the real-system evaluation harness, the inspection recipes —
+  plus the six families every bug so far has belonged to, the honest boundary
+  between verified and unverified, and the test-side false positives to avoid
+  repeating. CLAUDE.md stays the home of the invariants; this is the home of
+  the method.
+
 ### build 2026-08-12n
 
 - **Fixed: the import status glued the bilingual row labels together** —
@@ -1317,6 +1327,10 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+### ドキュメント、2026-08-12c
+
+- **`DEBUGGING.md` を追加しました**: 次にデバッグする人への引き継ぎです。これまでの検証のやり方と再現手順(ブラウザ検査の11項目・実システム評価ハーネス・実ファイル検査のレシピ)、これまでの全バグが属した**6つの族**、検証済みと未検証の**正直な境界**、繰り返さないためのテスト側誤検出の記録。不変条件の本体は CLAUDE.md のままで、こちらは**方法**の本体です。
 
 ### build 2026-08-12n
 
