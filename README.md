@@ -184,7 +184,7 @@ nix profile install github:hatake716/nixgen/development
 from there opens a window of its own — no tabs, no address bar, just the page.
 There is no terminal to keep open, and nothing else to type.
 
-Three things are worth knowing about the menu entry:
+Four things are worth knowing about the menu entry:
 
 - **The window needs a Chromium-family browser** — Chromium, Chrome, Brave,
   Edge or Vivaldi, whichever is already installed. On a machine with only
@@ -199,6 +199,26 @@ Three things are worth knowing about the menu entry:
   so it puts up a desktop notification instead and opens the browser when it is
   ready. If you would rather watch it happen, run `nixgen` once in a terminal
   first.
+- **An icon pinned to a dock or panel can go on launching the old version
+  after an upgrade.** This is not specific to nixgen — it happens to anything
+  installed with Nix. A dock stores the launcher as an absolute path, and the
+  menu entry it copies from is a symlink into the Nix store, so what gets
+  stored is the store path. Store paths never change, which is the point of
+  them: upgrading writes a *new* one and leaves the pinned file exactly as it
+  was, so the icon keeps starting the version it was pinned to, forever. This
+  was found with Plank, whose `~/.config/plank/dock1/launchers/nixgen.dockitem`
+  held `file:///nix/store/…-nixgen.desktop/…`; the same shape applies to GNOME
+  favourites and KDE panel pins. **Remove the icon and add it again after an
+  upgrade** and it picks up the new one. To tell this apart from anything else,
+  compare what the dock holds against what the profile now points at:
+
+  ```bash
+  grep Launcher ~/.config/plank/dock1/launchers/nixgen.dockitem
+  readlink ~/.nix-profile/share/applications/nixgen.desktop
+  ```
+
+  Two different store paths means the icon is stale. The application menu
+  itself is fine — it reads the profile, so it always has the current one.
 
 There is no way to do this step from a GUI, and that is not an oversight on
 nixgen's part: NixOS has no graphical package installer at all. Neither GNOME

@@ -79,6 +79,14 @@ from.
   somebody cannot find their way out of is a worse answer than a tab. What
   this gives is an ordinary window with ordinary controls; F11 makes it
   fullscreen if that is what you want.
+- **An icon pinned to a dock keeps launching the version it was pinned to**,
+  and the README says so now. Not a nixgen bug and not fixable from here: a
+  dock stores the launcher's absolute path, the menu entry is a symlink into
+  the store, so a store path is what gets stored — and those never change, so
+  an upgrade writes a new one and the pinned file goes on pointing at the old.
+  Found on a real machine with Plank, where it looked exactly like `--app`
+  having no effect. Remove the icon and add it again; the application menu
+  itself is fine, since it reads the profile.
 
 ## v1.0.0-rc.1 — 2026-08-12
 
@@ -1495,6 +1503,7 @@ three of these six showed up in only one of the two.
 - **2回目の起動は、拒否せずに既に動いている nixgen を開きます。** ブラウザのタブを閉じてもサーバーは残るので、クリックするアイコンがある以上これは開発中の事故ではなく**通常の操作**です。誰も開いていないターミナルに向かって拒否のメッセージを出せば、アイコンが壊れているようにしか見えません。開く前に `/api/meta` で確認します: 使用中のポートには全く別のものが居ることもあり、無関係なローカルサービスへブラウザを送るのは、置き換えようとしたメッセージより悪いからです。その場合と `--no-browser` の場合は従来どおり拒否します — ただし**それぞれ実際の理由**を述べるようにしました。**どちらのコピーが応答したかは、今もヘッダのビルド番号が答えます**。そこだけは覆い隠してはならない一点です。
 - **初回起動が、伝える先のターミナルが無くても伝えるようになりました。** 索引の構築には5分ほどかかりますが、メニューから起動した場合その進捗行はどこにも出ません。代わりにデスクトップ通知を出します。届けるにはセッションバスが必要なので、これはベストエフォートで、失敗しても起動は止めません。
 - **アイコンから起動したときは、専用のウィンドウで開きます** — タブバーもアドレスバーも、戻る・進むもありません。メニューに並んでいる以上これはアプリケーションであり、既に開いているブラウザの20個目のタブとして現れれば、いま押したものではなく**ウェブサイトに見えます**。ブラウザ側の枠は、このページが使うものを何一つ提供していません。デスクトップエントリが `--app` を渡します。ターミナルからの起動には付かないので、従来どおりの通常ブラウザのままです(そこではタブこそが求めたものだからです)。**このために追加した依存はありません** — このフラグは Chromium 系のもので、いずれも綴りが同じなので、**マシンに既にあるものを使うか、何もしないか**のどちらかです。何もない場合は従来の動作になります。**Firefox は意図して外しています**: 一番近いのは `--kiosk` で、これはウィンドウ枠の無い本物の全画面です。**出口の見つからないウィンドウは、タブより悪い答え**です。ここで得られるのは通常のウィンドウ操作を備えた普通のウィンドウで、全画面にしたければ F11 で切り替わります。
+- **ドックに登録したアイコンは、登録した時点の版を起動し続けます。** README に明記しました。nixgen の不具合ではなく、こちら側では直せません: ドックはランチャーを絶対パスで保存し、メニュー項目はストアへの symlink なので、**保存されるのはストアパス**です。ストアパスは変わらないので、更新は新しいものを作るだけで、登録済みのファイルは古いほうを指したままになります。実機で Plank を使っていて見つかりました — 症状は `--app` が全く効いていないのと**見分けがつきません**。アイコンを削除して登録し直せば直ります。アプリメニュー自体はプロファイルを読むので問題ありません。
 
 ## v1.0.0-rc.1 — 2026-08-12
 
