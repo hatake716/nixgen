@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-12k';
+const BUILD = '2026-08-12l';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -3160,6 +3160,85 @@ async function readInto(ev, into) {
   return;
 }
 
+/* What a card holds, as plain text: a raw option's value is Nix source, a
+   nullable wraps it, everything else is the value itself. */
+function cardText(path) {
+  const e = findEntry(path);
+  if (!e) return null;
+  let v = e.value;
+  if (v && typeof v === 'object' && !Array.isArray(v) && '__null' in v) {
+    if (v.__null) return null;
+    v = v.v;
+  }
+  if (v === null || v === undefined) return null;
+  return String(v).trim().replace(/^"|"$/g, '');
+}
+
+/* Read the presets back out of the module and show them in the dropdowns.
+   Importing a generated.nix used to fill the cards and leave every dropdown
+   on `choose…`, so what the file had chosen was invisible until you read the
+   Nix — and re-picking looked like the only way to find out.
+
+   **This selects; it never applies.** The settings are already in the module,
+   and `select.value = …` fires no click, so nothing is written. That is the
+   whole safety property: a wrong guess here shows a wrong name in a dropdown,
+   never a wrong line in the file.
+
+   Each preset is recognised by what it actually wrote, not by a remembered
+   choice — the same rule the greeter and package cleanups follow. */
+function syncPresetPickers() {
+  const found = [];
+  const set = (id, key) => {
+    if (!key) return;
+    const sel = $(id);
+    if (!sel || ![...sel.options].some(o => o.value === key)) return;
+    sel.value = key;
+    found.push(sel.previousElementSibling
+      ? sel.previousElementSibling.textContent.split('\n')[0].trim() : id);
+  };
+
+  // The desktop already knows how to recognise itself: every entry carries
+  // the option that is its own, because the shared roles cannot tell them
+  // apart.
+  const d = pickedDesktop();
+  set('#s-desktop', d && Object.keys(DESKTOPS).find(k => DESKTOPS[k] === d));
+
+  // boot.kernelPackages is Nix source, and LTS is a list of candidates, so
+  // every spelling a preset could have written is compared.
+  const kern = cardText('boot.kernelPackages');
+  if (kern) {
+    set('#s-kernel', Object.keys(KERNELS).find(k =>
+      KERNELS[k].try.some(t => t.expr === kern)));
+  }
+
+  const shell = cardText('users.defaultUserShell');
+  if (shell) set('#s-shell', Object.keys(SHELLS).find(k => SHELLS[k].pkg === shell));
+
+  /* Graphics has no single marker. NVIDIA and Intel name themselves; AMD is
+     the one that adds nothing of its own, so it is claimed only when both
+     lines the preset writes are there — a bare hardware.graphics.enable
+     someone added from the search box is not enough to call it an AMD
+     machine. */
+  const drivers = cardText('services.xserver.videoDrivers') || '';
+  const extras = JSON.stringify(findEntry('hardware.graphics.extraPackages')?.value || '');
+  if (String(drivers).includes('nvidia') || findEntry('hardware.nvidia.open')) {
+    set('#s-gpu', 'nvidia');
+  } else if (extras.includes('intel-media-driver')) {
+    set('#s-gpu', 'intel');
+  } else if (findEntry('hardware.graphics.enable') &&
+             findEntry('hardware.graphics.enable32Bit')) {
+    set('#s-gpu', 'amd');
+  }
+
+  const locale = cardText('i18n.defaultLocale');
+  if (locale) set('#s-lang', Object.keys(LANGUAGES).find(k => LANGUAGES[k].locale === locale));
+
+  const zone = cardText('time.timeZone');
+  if (zone && REGIONS[zone]) set('#s-region', zone);
+
+  return found;
+}
+
 /* The module route: what it used to do for every file, and still the right
    thing for one nixgen wrote. */
 async function intoModule(f, r, incoming, toSetup) {
@@ -3273,8 +3352,17 @@ async function intoModule(f, r, incoming, toSetup) {
   showNotice(notes);
   rerender();
   runSearch();
-  setStatus(say(`Imported ${r.matched.length} settings.`,
-                `${r.matched.length}件の設定を読み込みました。`), 'ok');
+  const picked = syncPresetPickers();
+  const tail = picked.length
+    ? ` The Options dropdowns now show what the file had chosen ` +
+      `(${picked.join(', ')}) — nothing was re-applied.`
+    : '';
+  const tailJa = picked.length
+    ? `Options のプルダウンは、ファイルが選んでいた内容(${picked.join('、')})を` +
+      `表示しています。設定を入れ直してはいません。`
+    : '';
+  setStatus(say(`Imported ${r.matched.length} settings.${tail}`,
+                `${r.matched.length}件の設定を読み込みました。${tailJa}`), 'ok');
 }
 
 function showNotice(items) {

@@ -379,6 +379,15 @@ The module (`generated.nix`) is left alone: it is for what you add under
 file also set, the line turns red and the status bar says which — the same
 warning as for anything the Setup tab writes.
 
+**The Options dropdowns show what the file chose.** After reading a
+`generated.nix` back in, the Kernel, Shell, Desktop, Graphics, Language and
+Region dropdowns are set to whatever that file had — read out of the settings
+themselves, not from a memory of the click. **It selects, it never applies**:
+the settings are already in the module, so nothing is written and nothing is
+duplicated. A preset the file does not use, or a value nixgen does not list
+(a time zone outside the eighteen), stays on `choose…` rather than being
+guessed at.
+
 **A `generated.nix` from an earlier session goes back the other way.** Press
 **Import generated.nix**: its settings become cards in the module, which is
 where they came from. That is the round trip for "closing the tab loses the
