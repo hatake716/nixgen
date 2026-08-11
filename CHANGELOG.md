@@ -58,12 +58,23 @@ judge types — `dry-build` before you switch.
 - **nixgen has a desktop entry now**, so `nix profile install
   github:hatake716/nixgen` is the last command it needs: after that it is in
   the application menu under System, and starting it from there opens the
-  browser by itself. The icon is generated at build time by `tools/mark.py
-  --icon`, which keeps that file the only place the mark is drawn — the same
-  reason the two pages paste its output rather than fetching a copy. It is the
-  plain flake on a white ground, because an application menu shows one file and
-  cannot pick per theme the way the README's logo does; line art with a
-  transparent ground would be invisible on a dark panel.
+  browser by itself. The icons are generated at build time by `tools/mark.py`,
+  which keeps that file the only place the mark comes from — the same reason
+  the two pages paste its output rather than fetching a copy. They carry a
+  white ground, because an application menu shows one file and cannot pick per
+  theme the way the README's logo does; line art with a transparent ground
+  would be invisible on a dark panel.
+- **The artwork is numbers now, so the icon can be the artwork.**
+  `docs/logo.png` is a raster and could only be used where there was room —
+  the app header and the favicon have always shown a simplified flake instead.
+  It is traced into path data in `tools/mark.py`, so the original drawing can
+  be rendered at any size, and the icon at 64px and up is that drawing rather
+  than an approximation of it. **Tracing changes the format, not the amount of
+  detail**: rendered at 32 and 48 the artwork is still not identifiably a
+  snowflake, so those sizes keep the flake. Both were rendered at 32, 48 and
+  64 to decide where the line falls. GTK was checked rather than assumed — it
+  prefers an exact-size icon directory over `scalable`, which is what keeps
+  the artwork out of a 24px panel slot.
 - **The first command cannot be removed, and that is not nixgen's to fix.**
   NixOS has no graphical package installer at all — neither GNOME Software nor
   KDE Discover manages system packages here. Nor does this make the tool
@@ -1469,7 +1480,8 @@ three of these six showed up in only one of the two.
 
 ### パッケージング、2026-08-12e
 
-- **デスクトップエントリを追加しました。** これで `nix profile install github:hatake716/nixgen` がこのツールに必要な最後のコマンドになります。以降はアプリメニューの「システム」に並び、そこから起動すればブラウザが自動で開きます。アイコンはビルド時に `tools/mark.py --icon` が生成するので、**マークを描く場所はそのファイル1つのまま**です(2つのページが出力を貼り付けているのと同じ理由)。素のフレークを白地に載せた形にしてあります。アプリメニューが表示するファイルは1つで、README のロゴのようにテーマごとに選び分けられないためです — 背景が透明な線画では、暗いパネルで見えなくなります。
+- **デスクトップエントリを追加しました。** これで `nix profile install github:hatake716/nixgen` がこのツールに必要な最後のコマンドになります。以降はアプリメニューの「システム」に並び、そこから起動すればブラウザが自動で開きます。アイコンはビルド時に `tools/mark.py` が生成するので、**マークの出どころはそのファイル1つのまま**です(2つのページが出力を貼り付けているのと同じ理由)。いずれも白地を持たせてあります。アプリメニューが表示するファイルは1つで、README のロゴのようにテーマごとに選び分けられないためです — 背景が透明な線画では、暗いパネルで見えなくなります。
+- **原案のアートワークを数値にしたので、アイコンを原案そのものにできました。** `docs/logo.png` はラスタ画像で、余白のある場所でしか使えませんでした — アプリのヘッダとファビコンが簡略版のフレークを使ってきたのはそのためです。これを `tools/mark.py` の中にパスデータとして起こしたので、**元の描画をどのサイズでも描けます**。64px 以上のアイコンは、近似ではなく原案そのものです。ただし**変換で変わるのは形式であって密度ではありません**: 32px と 48px では原案は依然として雪の結晶と判別できないので、そのサイズはフレークのままにしました。線引きは、両方を 32・48・64 でレンダリングして決めています。GTK の挙動も推測せず確認しました — 完全一致するサイズのディレクトリが `scalable` より優先されるので、24px のパネル枠に原案が入ることはありません。
 - **最初の1コマンドは無くせません。そしてそれは nixgen 側で直せる話ではありません。** NixOS には**GUIによるパッケージ導入手段がそもそも存在しません** — GNOME Software も KDE Discover も、ここではシステムのパッケージを扱わないからです。また、これで全工程がGUIだけになるわけでもありません: `System update` は今も**意図して**コマンドを1つ渡すだけで、代わりにリビルドはしません(サーバーに認証が無いためです)。今回無くなったのは、その**2つの間にあった**コマンドのすべてです。
 - **2回目の起動は、拒否せずに既に動いている nixgen を開きます。** ブラウザのタブを閉じてもサーバーは残るので、クリックするアイコンがある以上これは開発中の事故ではなく**通常の操作**です。誰も開いていないターミナルに向かって拒否のメッセージを出せば、アイコンが壊れているようにしか見えません。開く前に `/api/meta` で確認します: 使用中のポートには全く別のものが居ることもあり、無関係なローカルサービスへブラウザを送るのは、置き換えようとしたメッセージより悪いからです。その場合と `--no-browser` の場合は従来どおり拒否します — ただし**それぞれ実際の理由**を述べるようにしました。**どちらのコピーが応答したかは、今もヘッダのビルド番号が答えます**。そこだけは覆い隠してはならない一点です。
 - **初回起動が、伝える先のターミナルが無くても伝えるようになりました。** 索引の構築には5分ほどかかりますが、メニューから起動した場合その進捗行はどこにも出ません。代わりにデスクトップ通知を出します。届けるにはセッションバスが必要なので、これはベストエフォートで、失敗しても起動は止めません。

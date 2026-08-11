@@ -62,13 +62,36 @@
           '';
           };
 
-          # Generated at build time rather than kept as a file, so `mark.py`
-          # stays the only place the mark is drawn — the same reason the two
+          # Generated at build time rather than kept as files, so `mark.py`
+          # stays the only place the mark comes from — the same reason the two
           # pages paste its output rather than fetching a copy.
-          icon = pkgs.runCommand "nixgen-icon" { } ''
-            mkdir -p $out/share/icons/hicolor/scalable/apps
-            ${pkgs.python3}/bin/python3 ${./tools/mark.py} --icon \
-              > $out/share/icons/hicolor/scalable/apps/nixgen.svg
+          #
+          # Two renditions, for the reason the README's logo has two: the
+          # artwork needs room. Rendered at 32 or 48 its arcs and small shapes
+          # collapse into noise, so those sizes get the plain flake and 64 and
+          # up get the artwork. A theme is allowed to disagree per size — that
+          # is what the size directories are for — and GTK was checked to
+          # confirm it prefers an exact-size directory over `scalable`, which
+          # is what keeps the artwork out of a 24px panel slot.
+          icon = pkgs.runCommand "nixgen-icon" {
+            nativeBuildInputs = [ pkgs.librsvg ];
+          } ''
+            py=${pkgs.python3}/bin/python3
+            $py ${./tools/mark.py} --icon > art.svg
+            $py ${./tools/mark.py} --icon-small > flake.svg
+
+            install -Dm444 art.svg \
+              $out/share/icons/hicolor/scalable/apps/nixgen.svg
+
+            render() {
+              for s in $2; do
+                d=$out/share/icons/hicolor/''${s}x''${s}/apps
+                mkdir -p "$d"
+                rsvg-convert -w "$s" -h "$s" "$1" -o "$d/nixgen.png"
+              done
+            }
+            render flake.svg "16 22 24 32 48"
+            render art.svg "64 128 256"
           '';
 
           # NixOS has no way to install anything from a GUI — neither GNOME

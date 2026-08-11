@@ -734,17 +734,37 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   in step and no request to fail. **The palette follows the mark**: it is black
   on white, so `--accent` is ink rather than blue, and anything that used blue
   to mean "matched" or "selected" uses a tinted ground instead.
-- **The third form is the application icon, and it is the one that carries its
-  own ground.** `mark.py --icon` is the flake on a rounded white tile, and
-  `flake.nix` generates it into the package at build time rather than a copy
-  being kept — same rule as the two pages, one place where the mark is drawn.
-  It cannot pick per theme the way the README's logo does with `<picture>`,
-  because an application menu shows one file, and line art on a transparent
-  ground is invisible on a dark panel. The stroke is 4.6 against the header's
-  3.4: below that the arms go thin at 32px, above it the core hexagon fills in
-  and the middle turns to a blob. **Both numbers were settled by rendering
-  four variants at 32, 48 and 64 and looking** — the same measure-do-not-eyeball
-  rule the dropdown labels are held to.
+- **The artwork exists as numbers now, and that is what `--logo` is.**
+  `docs/logo.png` is a raster, so it could only ever be used where there was
+  room; `LOGO_PATH` in `mark.py` is the same drawing traced out of it with
+  potrace, so it can be rendered at any size. The command that produced it is
+  in the comment above it and `docs/logo.png` is its only source — do not
+  hand-edit the path data. **It is one `d` on purpose**: potrace fills
+  outlines rather than stroking them, so which regions are holes is carried by
+  the winding of the subpaths in order, and splitting them apart changes the
+  drawing. Note what this does **not** fix: tracing changes the format, not
+  the amount of detail, so the artwork is still mush when it is small.
+- **The application icon is two renditions, and the split was measured.**
+  `mark.py --icon` is the traced artwork on a rounded white tile and
+  `--icon-small` is the plain flake on the same tile; `flake.nix` renders the
+  first at 64, 128 and 256 and the second at 16 through 48, plus the artwork
+  as the `scalable` SVG. **Rendering both at 32, 48 and 64 is what decided
+  it** — at 48 the artwork is not identifiably a snowflake, and the flake is,
+  which is the same finding that keeps `docs/logo.png` out of the 22px header.
+  A theme is allowed to disagree per size; that is what the size directories
+  are for. **GTK was checked rather than assumed**: it prefers an exact-size
+  directory over `scalable`, which is what keeps the artwork out of a 24px
+  panel slot — verify with `Gtk.IconTheme.lookup_icon` against the built
+  output if the set of sizes changes. An icon cannot pick per theme the way
+  the README's logo does with `<picture>`, because an application menu shows
+  one file, and line art on a transparent ground is invisible on a dark panel,
+  so both renditions carry the ground. The flake's stroke is 4.6 against the
+  header's 3.4: below that the arms go thin at 32px, above it the core
+  hexagon fills in and the middle turns to a blob.
+- **Sized PNGs are not belt-and-braces, they are how the split is expressed.**
+  One SVG cannot be two drawings, so shipping only `scalable` would mean one
+  rendition at every size, and it would be the wrong one at the sizes a panel
+  and a menu actually ask for.
 - No browser storage. State lives in `state` in `app.js`.
 
 > 上記はいずれも「見た目は正しいのに後で壊れる」類の落とし穴です。触る前に一読してください。
