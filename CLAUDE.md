@@ -443,18 +443,30 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   gets a VAAPI driver because decoding does not work without one, AMD needs
   nothing beyond mesa, and `hardware.nvidia.open = false` is set rather than
   left computed — `true` is wrong on anything before Turing.
-- **NVIDIA brings `allowUnfree` with it, and takes it away carefully.** The
-  driver is unfree, so the preset writes `nixpkgs.config.allowUnfree = true`
-  as a flat card — the one output that could not build as generated, now can,
-  which was evaluated. Switching GPU drops the previous card's pieces
-  (`hardware.nvidia.*`, `videoDrivers = ["nvidia"]`, intel's VAAPI extra) but
-  **only when the value is exactly what the preset wrote**, and the comparison
-  must unwrap nullables first: `hardware.nvidia.open` is stored as
-  `{__null:false, v:false}`, and comparing that to `false` left the card alive
-  through every switch. `allowUnfree` leaves only when `state.unfree` finds
-  nothing still listed — vscode or Steam in the list keeps it, named in the
-  status bar. Both unfree notes in `doRender` stand down when the rendered
-  text already sets the switch.
+- **NVIDIA brings `allowUnfree` with it.** The driver is unfree, so the
+  preset writes `nixpkgs.config.allowUnfree = true` as a flat card — the one
+  output that could not build as generated, now can, which was evaluated.
+  Switching GPU drops the previous card's pieces (`hardware.nvidia.*`,
+  `videoDrivers = ["nvidia"]`, intel's VAAPI extra) but **only when the value
+  is exactly what the preset wrote**, and the comparison must unwrap
+  nullables first: `hardware.nvidia.open` is stored as `{__null:false,
+  v:false}`, and comparing that to `false` left the card alive through every
+  switch.
+- **`allowUnfree` goes in by itself, and comes out by nobody but the user.**
+  Every render scans the file for `pkgs.<attr>` names and NVIDIA settings,
+  asks the index which attrs are unfree (the `unfree` column it has carried
+  all along; answers cached in `state.unfreeKnown`), and writes the flat card
+  when something unfree is named without the switch — one site in `doRender`
+  covering the search box, both imports and verbatim cards alike, with the
+  status bar naming the packages. It stands down only when the switch is
+  already set: any spelling in the module text, or the starter/carried
+  configuration.nix via `state.starterDefines`. **Nothing removes the card
+  automatically.** It used to leave when "nothing still needs it", and that
+  check only knew what the UI had added (`state.unfree`) — so picking AMD or
+  Intel with an imported Steam in the list removed the one line letting it
+  build, which reached a real machine. A card deleted while something unfree
+  is still named comes back on the next render, because that file is one
+  `nixos-rebuild` refuses outright.
 - **A warning that must survive belongs in `doRender`, not in the preset that
   raised it.** The NVIDIA driver is unfree and the existing reminder cannot see
   it, since that one reads `environment.systemPackages` and this arrives
@@ -884,6 +896,7 @@ harnesses cannot notice.
 | `attribute … already defined` after reading a file in | import joined the form instead of replacing what it landed on |
 | the same error from importing nixgen's own generated.nix back in | the replace step compared exact rendered paths, and the importer changes shape — a flat line folds into an attrs card, a set flattens into leaves — so one leaf lived in two cards |
 | the first screen is blank and says nothing | one failed fetch ended the boot sequence before the Setup pane was shown |
+| `allowUnfree` vanishes when AMD or Intel is picked | the takes-it-out check only knew UI-added packages, so anything unfree that arrived by import did not count |
 
 ---
 

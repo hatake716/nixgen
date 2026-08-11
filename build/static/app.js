@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-12o';
+const BUILD = '2026-08-12p';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -102,7 +102,8 @@ const state = {
   snapshot: null,        // when the channel published the indexed data
   ageDays: null,         // …and how many days ago that was
   stale: false,          // …and whether that is long enough to matter here
-  unfree: new Set(),     // attrs that need nixpkgs.config.allowUnfree
+  unfree: new Set(),     // attrs the UI added with the index's unfree flag on
+  unfreeKnown: new Map(), // attr -> unfree?, from the index; cached per session
   lastTouched: null,
   stateTouched: false,   // whether stateVersion was typed in by hand
 };
@@ -1878,22 +1879,15 @@ async function addGpu(key) {
      the switch goes in with the driver. A flat card, since `nixpkgs.config`
      is an attrs option the form has no widget for.
 
-     Switching to AMD or Intel takes it out again ONLY when nothing else
-     needs it: vscode, Steam and their like are unfree too, and the card may
-     be the only thing letting them build. `state.unfree` knows what the UI
-     added; anything it still finds in the list keeps the card, and the
-     status bar says which way it went. */
-  let unfreeCard = null;
+     Switching to AMD or Intel leaves the card alone. It used to come out
+     "when nothing else needs it", and that reached a real machine wrong:
+     the needs-it check only knew what the UI had added, so with an imported
+     Steam in the list the AMD click removed the one line letting it build.
+     ensureUnfree in doRender owns the question now — it puts the card in
+     wherever the file names anything unfree, and never takes it out, so
+     removing it is the user's decision alone. */
   if (g.nvidia) {
-    unfreeCard = setRawCard(['nixpkgs', 'config', 'allowUnfree'], 'true', 'boolean');
-    added.push(unfreeCard);
-  } else {
-    const stillNeeded = [...state.unfree].filter(a => alreadyListed(a));
-    if (!stillNeeded.length) {
-      if (dropRawCard(['nixpkgs', 'config', 'allowUnfree'])) unfreeCard = 'dropped';
-    } else {
-      unfreeCard = 'kept:' + stillNeeded.join(', ');
-    }
+    added.push(setRawCard(['nixpkgs', 'config', 'allowUnfree'], 'true', 'boolean'));
   }
   renderEditor();
   pushRender();
@@ -1910,20 +1904,12 @@ async function addGpu(key) {
       g.nvidia
         ? ' nixpkgs.config.allowUnfree = true went in with it — the driver ' +
           'is unfree and the build refuses it otherwise.'
-        : unfreeCard === 'dropped'
-          ? ' allowUnfree came out again: nothing unfree is left in the module.'
-          : unfreeCard && unfreeCard.startsWith('kept:')
-            ? ` allowUnfree stays: ${unfreeCard.slice(5)} still needs it.`
-            : '';
+        : '';
     const extraJa =
       g.nvidia
         ? 'ドライバが unfree のため nixpkgs.config.allowUnfree = true も' +
           '入れました。無いとビルドが拒否されます。'
-        : unfreeCard === 'dropped'
-          ? 'unfree なものが残っていないので、allowUnfree は外しました。'
-          : unfreeCard && unfreeCard.startsWith('kept:')
-            ? `${unfreeCard.slice(5)} が使うため、allowUnfree は残しています。`
-            : '';
+        : '';
     setStatus(say(`${g.label}: ${added.length} settings added.${extra}`,
                   `${g.label}: ${added.length}件の設定を追加しました。${extraJa}`), 'ok');
   }
@@ -2721,30 +2707,53 @@ async function doRender() {
       `赤で表示しています。どちらかのファイルから消してください。両方が ` +
       `lib.mkDefault だと NixOS はどちらを採るか決められず、rebuild が失敗します。`));
   }
-  /* Both unfree notes stand down once the module really sets the switch —
-     an instruction to add a line that is already on screen reads as a bug.
-     The check is on the rendered text, so a verbatim or ancestor-card
-     spelling counts too. */
-  const unfreeAllowed = /allowUnfree\s*=\s*true/.test(res.text);
-  const unfree = [...state.unfree].filter(a => res.text.includes('pkgs.' + a));
-  if (unfree.length && !unfreeAllowed) {
-    notes.push(say(
-      `${unfree.join(', ')} ${unfree.length > 1 ? 'are' : 'is'} unfree. ` +
-      `Set nixpkgs.config.allowUnfree = true; in your configuration.nix.`,
-      `${unfree.join('、')} は unfree です。configuration.nix に ` +
-      `nixpkgs.config.allowUnfree = true; を設定してください。`));
+  /* allowUnfree is put in here, not warned about — and never taken out.
+     Working on the rendered text covers every route in: a package clicked in
+     the UI, a list or an NVIDIA module imported from a file, a name typed
+     into a verbatim card. The index knows which packages are unfree, so
+     names the UI never flagged are looked up once and remembered
+     (state.unfreeKnown). Removal is the user's alone — a card deleted while
+     the file still names something unfree comes back on the next render,
+     because that file is one nixos-rebuild refuses outright. The add stands
+     down only when the switch is already set: in the module text (any
+     spelling — card, verbatim, folded attrs), or in the starter/carried
+     configuration.nix, which state.starterDefines records. */
+  const unfreeAllowed = /allowUnfree\s*=\s*true/.test(res.text)
+    || state.starterDefines.has('nixpkgs.config.allowUnfree');
+  const named = new Set();
+  for (const m of res.text.matchAll(
+      /\bpkgs\.([A-Za-z_][\w'-]*(?:\.[A-Za-z_][\w'-]*)*)/g)) {
+    named.add(m[1]);
   }
-  /* The NVIDIA driver is unfree, and the reminder above cannot see it: that
-     one watches environment.systemPackages, and this arrives through a
-     module. It belongs here rather than in a one-off message from the preset,
-     because a note that is regenerated on every render is one that cannot be
-     wiped by the next one — which is exactly what happened when it was. */
-  if (/^\s*hardware\.nvidia\./m.test(res.text) && !unfreeAllowed) {
-    notes.push(say(
-      `The NVIDIA driver is unfree. Set nixpkgs.config.allowUnfree = true; ` +
-      `in your configuration.nix, or the build refuses it.`,
-      `NVIDIA のドライバは unfree です。configuration.nix に ` +
-      `nixpkgs.config.allowUnfree = true; を設定しないとビルドが拒否されます。`));
+  const unknown = [...named].filter(a => !state.unfreeKnown.has(a));
+  if (unknown.length) {
+    try {
+      const { results } = await fetch('/api/packages?attrs=' +
+        encodeURIComponent(unknown.join(','))).then(r => r.json());
+      unknown.forEach(a => state.unfreeKnown.set(a, false));
+      (results || []).forEach(r => state.unfreeKnown.set(r.attr, !!r.unfree));
+    } catch (err) {
+      // Offline lookup: the UI-flagged set below still stands, and the
+      // unknowns stay unknown rather than being remembered as free.
+    }
+  }
+  const uiFlagged = [...state.unfree].filter(a => res.text.includes('pkgs.' + a));
+  const looked = [...named].filter(a => state.unfreeKnown.get(a));
+  const reasons = [...new Set([...uiFlagged, ...looked])];
+  const nvidiaHere = /^\s*hardware\.nvidia\./m.test(res.text)
+    || /videoDrivers\s*=[^;]*"nvidia"/.test(res.text);
+  if ((reasons.length || nvidiaHere) && !unfreeAllowed) {
+    setRawCard(['nixpkgs', 'config', 'allowUnfree'], 'true', 'boolean');
+    renderEditor();
+    pushRender();
+    const why = reasons.length ? reasons.join(', ') : 'the NVIDIA driver';
+    const whyJa = reasons.length ? reasons.join('、') : 'NVIDIA ドライバ';
+    setStatus(say(
+      `${why} ${reasons.length > 1 ? 'are' : 'is'} unfree — ` +
+      `nixpkgs.config.allowUnfree = true went in automatically. Remove the ` +
+      `card only if you know nothing needs it.`,
+      `${whyJa} は unfree のため、nixpkgs.config.allowUnfree = true を` +
+      `自動で追加しました。不要と分かっている場合のみカードを削除してください。`), 'ok');
   }
   /* Steam runs from the package, but the module is what puts the 32-bit
      graphics drivers in place and can open the remote-play ports. Saying so
