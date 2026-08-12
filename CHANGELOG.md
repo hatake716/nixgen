@@ -16,6 +16,14 @@ it is part of `main` now.
 
 ## English
 
+## v1.0.0-rc.3 — 2026-08-12
+
+The third release candidate: `v1.0.0-rc.2.2` plus everything under the four
+`v1.0.0-dev.4` through `v1.0.0-dev.7` headings below, which landed on
+`development` first and have been merged. In one line: an Undo button, the
+server exits when the last page closes, the status bar is twice the size,
+and dark mode — system-following, hand-switched, marks included.
+
 ## v1.0.0-dev.7 — 2026-08-12
 
 Landed on `development` first, merged into `main` since. Everything between
@@ -1707,6 +1715,10 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+## v1.0.0-rc.3 — 2026-08-12
+
+3つめのリリース候補です。`v1.0.0-rc.2.2` に、下の `v1.0.0-dev.4` から `v1.0.0-dev.7` までの4見出し(先に `development` に入り、統合済みのもの)をすべて加えたものです。一言でいえば、Undo ボタン、最後のページを閉じるとサーバーが終了、ステータスバーが2倍の大きさに、そしてダークモード(OS 追従・手動切り替え・ロゴとアイコンも連動)です。
 
 ## v1.0.0-dev.7 — 2026-08-12
 
