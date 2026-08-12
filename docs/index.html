@@ -16,14 +16,31 @@
 <meta property="og:description" content="A form for all 24,557 NixOS options and 144,245 packages.">
 <meta property="og:image" content="logo.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%224%2018%2084%2084%22%20fill%3D%22none%22%20stroke%3D%22%231b2027%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cg%20transform%3D%22rotate%280%2046%2060%29%22%3E%3Cpath%20d%3D%22M34.5%2060L8%2060%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%280%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2053.31%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%280%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2066.69%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%2860%2046%2060%29%22%3E%3Cpath%20d%3D%22M34.5%2060L8%2060%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%2860%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2053.31%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%2860%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2066.69%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28120%2046%2060%29%22%3E%3Cpath%20d%3D%22M34.5%2060L8%2060%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28120%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2053.31%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28120%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2066.69%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28180%2046%2060%29%22%3E%3Cpath%20d%3D%22M34.5%2060L8%2060%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28180%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2053.31%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28180%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2066.69%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28240%2046%2060%29%22%3E%3Cpath%20d%3D%22M34.5%2060L8%2060%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28240%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2053.31%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28240%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2066.69%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28300%2046%2060%29%22%3E%3Cpath%20d%3D%22M34.5%2060L8%2060%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28300%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2053.31%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28300%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2066.69%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M57.5%2060L51.75%2069.96L40.25%2069.96L34.5%2060L40.25%2050.04L51.75%2050.04Z%22%2F%3E%3Cpath%20d%3D%22M52.33%2060L49.16%2065.48L42.84%2065.48L39.67%2060L42.84%2054.52L49.16%2054.52Z%22%2F%3E%3Cpath%20d%3D%22M46%2060L46%2066.33%22%2F%3E%3Cpath%20d%3D%22M46%2060L40.52%2056.84%22%2F%3E%3Cpath%20d%3D%22M46%2060L51.48%2056.84%22%2F%3E%3C%2Fsvg%3E">
+<script>
+/* Before the stylesheet paints, so arriving on a dark machine never flashes
+   white: the saved choice first, then the system's. This is the only thing
+   this page stores, for the same reason the app stores it — a toggle that
+   forgets on every visit reads as broken. */
+try {
+  var t = localStorage.getItem('theme');
+  if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) {
+    document.documentElement.dataset.theme = 'dark';
+  }
+} catch (e) {}
+</script>
 <style>
 :root {
   --ground:   #d9dde3;
   --panel:    #f6f7f9;
   --panel-2:  #ecEef2;
   --ink:      #1b2027;
-  --ink-soft: #5c6773;
-  --ink-faint:#8e98a4;
+  /* Both clear 4.5:1 on every ground this page uses. They did not before —
+     the lede sat at 4.23 and the small print at 2.15, which the dark palette
+     being measured made impossible to leave alone. Soft moved further down
+     than it strictly had to so that faint could reach the bar and still read
+     as the quieter of the two. */
+  --ink-soft: #414a56;
+  --ink-faint:#555e69;
   --rule:     #c2c9d2;
   --accent:   #232c38;
   --accent-soft:#e7eaef;
@@ -38,7 +55,46 @@
   --shadow-2: 0 3px 10px rgba(15, 21, 29, .10), 0 1px 3px rgba(15, 21, 29, .06);
   --mono: ui-monospace, "JetBrains Mono", "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;
   --sans: ui-sans-serif, Inter, "Segoe UI", Roboto, system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif;
+
+  /* Colours that were literals before dark mode existed. */
+  --hover-bg:    #ffffff;
+  --accent-fg:   #ffffff;
+  --accent-hover:#0f151d;
+  --vb:          #8a5fb0;
+  color-scheme: light;
 }
+
+/* The same palette the app carries, so the two look like one thing. The code
+   blocks (--code-*) are night-coloured in both themes and do not move; the
+   rest of the page joins them. `color-scheme` is what turns the scrollbars
+   and any native control dark along with it. The two logo images are black
+   line art whose shape lives entirely in the alpha channel, so invert(1) is
+   exact rather than approximate — the same fact the README's <picture> swap
+   rests on. The application-icon SVG below is NOT inverted: it is a picture
+   of the icon file as installed, and that file carries a white tile on
+   purpose, because an application menu shows one file and cannot pick per
+   theme. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground:      #0d1117;
+  --panel:       #151a22;
+  --panel-2:     #1d242e;
+  --ink:         #e2e8f0;
+  --ink-soft:    #a3aebc;
+  --ink-faint:   #838e9b;
+  --rule:        #2a3340;
+  --accent:      #dbe2ea;
+  --accent-soft: #242e3a;
+  --signal:      #d9a144;
+  --hover-bg:    #242c37;
+  --accent-fg:   #10151c;
+  --accent-hover:#ffffff;
+  --vb:          #cbb4ea;
+  --shadow-1: 0 1px 2px rgba(0,0,0,.40), 0 1px 1px rgba(0,0,0,.30);
+  --shadow-2: 0 3px 10px rgba(0,0,0,.50), 0 1px 3px rgba(0,0,0,.35);
+}
+:root[data-theme="dark"] .brand,
+:root[data-theme="dark"] .lockup { filter: invert(1); }
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--ground); color: var(--ink);
              font-family: var(--sans); font-size: 15px; line-height: 1.65;
@@ -63,11 +119,11 @@ header.top .wrap { display: flex; align-items: center; gap: 14px; padding-top: 1
 .btn { border: 1px solid var(--rule); background: var(--panel-2); color: var(--ink-soft);
        padding: 6px 12px; border-radius: 3px; font-size: 12px; font-weight: 600;
        cursor: pointer; text-decoration: none; display: inline-block; }
-.btn:hover { background: #fff; color: var(--ink); box-shadow: var(--shadow-1);
+.btn:hover { background: var(--hover-bg); color: var(--ink); box-shadow: var(--shadow-1);
              transform: translateY(-1px); }
 .btn { transition: background .12s, color .12s, box-shadow .12s, transform .12s; }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-.btn.primary:hover { background: #0f151d; color: #fff; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+.btn.primary:hover { background: var(--accent-hover); color: var(--accent-fg); }
 
 .hero { padding: 40px 0 40px; }
 /* The logo as drawn, at a size where its detail means something. The
@@ -165,7 +221,7 @@ section.pitch .tiny { max-width: 68ch; }
 .card:hover { box-shadow: var(--shadow-2); }
 .card h4 { margin: 0 0 6px; font-size: 13px; font-family: var(--mono); }
 .card p { font-size: 13px; color: var(--ink-soft); margin: 0; }
-.card.vb { border-left: 3px solid #8a5fb0; }
+.card.vb { border-left: 3px solid var(--vb); }
 .card.ok { border-left: 3px solid var(--accent); }
 
 table { border-collapse: collapse; width: 100%; font-size: 13.5px; margin: 0 0 14px; }
@@ -184,7 +240,7 @@ ol.steps li { position: relative; counter-increment: step;
 ol.steps li::before {
   content: counter(step); position: absolute; left: 0; top: 1px;
   width: 21px; height: 21px; border-radius: 50%;
-  background: var(--ink); border: 1px solid var(--ink); color: #fff;
+  background: var(--ink); border: 1px solid var(--ink); color: var(--ground);
   font: 700 11px/20px var(--mono); text-align: center;
 }
 ol.steps b { font-weight: 700; }
@@ -209,6 +265,8 @@ footer a { margin-right: 14px; }
     <img class="brand" src="logo.png" width="1100" height="527" alt="nixgen">
     <nav>
       <button class="btn" id="lang">日本語</button>
+      <!-- Names the theme it switches TO, as the app's does. -->
+      <button class="btn" id="theme">Dark</button>
       <a class="btn primary" href="https://github.com/hatake716/nixgen">GitHub</a>
     </nav>
   </div>
@@ -698,6 +756,34 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
   };
   set((navigator.language || 'en').toLowerCase().startsWith('ja') ? 'ja' : 'en');
   btn.addEventListener('click', () => set(root.lang === 'ja' ? 'en' : 'ja'));
+
+  /* Light and dark are the same page with different variables; the attribute
+     is set before the first paint by the script in <head>. Two things CSS
+     cannot reach are kept in step here: the favicon, because a data URI
+     cannot read a variable, so its ink is swapped for the dark palette's;
+     and the button's label, which names the theme you would switch to. With
+     nothing saved the page keeps following the system, live. */
+  const icon = document.querySelector('link[rel="icon"]');
+  const inkHref = icon.href;
+  const snowHref = inkHref.replace('%231b2027', '%23dbe2ea');
+  const themeBtn = document.getElementById('theme');
+  const applyTheme = dark => {
+    if (dark) root.dataset.theme = 'dark';
+    else delete root.dataset.theme;
+    icon.href = dark ? snowHref : inkHref;
+    themeBtn.textContent = dark ? 'Light' : 'Dark';
+  };
+  themeBtn.addEventListener('click', () => {
+    const dark = root.dataset.theme !== 'dark';
+    applyTheme(dark);
+    try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+  });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+    let saved = null;
+    try { saved = localStorage.getItem('theme'); } catch (err) {}
+    if (!saved) applyTheme(e.matches);
+  });
+  applyTheme(root.dataset.theme === 'dark');
 </script>
 
 </body>

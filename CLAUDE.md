@@ -1270,6 +1270,20 @@ checklist item.
 - `docs/index.html` is self-contained and hard-codes `hatake716` links. It was
   once maintained both with and without a placeholder, and the two copies got
   swapped by accident — keep one version only.
+- **The homepage carries the app's dark mode, by the same mechanism.** Same
+  palette, same `:root[data-theme="dark"]` override, same inline script in
+  `<head>` setting the attribute before the stylesheet paints, same button
+  naming the theme it switches to, same single stored preference. Two things
+  differ because the page is not the app. **The two `logo.png` images are
+  inverted in dark** (`.brand` and `.lockup`) — pure black in the alpha
+  channel, so `invert(1)` is exact — while **the application-icon SVG is
+  not**: that one is a picture of the icon file as installed, and the file
+  carries a white tile on purpose, because a menu shows one file and cannot
+  pick per theme. And the screenshots stay as they are; they are photographs
+  of a running app. The light palette was raised at the same time — `--ink-soft`
+  sat at 4.23:1 and `--ink-faint` at 2.15:1, which only became untenable once
+  a dark palette measured above 4.5 everywhere sat beside it. Measure both
+  themes when touching either.
 - Tone: plain, specific, no marketing. Limitations are stated where a reader
   would hit them, not buried. The homepage says what the tool cannot do on the
   front page on purpose.

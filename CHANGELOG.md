@@ -16,6 +16,32 @@ it is part of `main` now.
 
 ## English
 
+## v1.0.0-dev.11 — 2026-08-12
+
+Landed on `development` first, merged into `main` since.
+
+### Homepage, 2026-08-12
+
+- **The homepage has dark mode**, by the same mechanism the app uses: the
+  palette behind a `data-theme` attribute, set before the stylesheet paints
+  so arriving on a dark machine never flashes white. It follows your system
+  by default, a header button switches it by hand, and the choice is
+  remembered — with nothing chosen it keeps following the system live.
+- **The logo and the favicon follow.** Both `logo.png` images are pure black
+  in the alpha channel, so inverting them yields a clean white original — the
+  same fact the README's dark-theme logo rests on — and the favicon's ink is
+  swapped so the browser tab matches. **The application icon deliberately does
+  not follow**: that one is a picture of the icon file as installed, and the
+  file carries a white tile on purpose, because an application menu shows one
+  file and cannot pick per theme.
+- **The light palette was raised while the ruler was out.** Its body text sat
+  at 4.23:1 and its small print at 2.15:1 — below the bar, and impossible to
+  leave once a dark palette measuring above 4.5 everywhere sat beside it.
+  Both themes now clear 4.5:1 at every place probed, and the quieter of the
+  two greys is still visibly the quieter one.
+
+## English
+
 ## v1.0.0-rc.4.1 — 2026-08-12
 
 `v1.0.0-rc.4` plus one fix, tagged without waiting: adding a package to an
@@ -1892,6 +1918,18 @@ three of these six showed up in only one of the two.
   from the published type data, and a live view of the file being generated.
 
 ---
+
+## 日本語
+
+## v1.0.0-dev.11 — 2026-08-12
+
+`development` ブランチに先に入り、その後 `main` に統合された内容です。
+
+### ホームページ、2026-08-12
+
+- **ホームページにダークモードを実装しました。** 方式はアプリと同じで、`data-theme` 属性の裏にパレットを置き、スタイル適用前に属性を決めるので、暗い環境で開いても白が一瞬光りません。既定は**閲覧者の設定に追随**し、ヘッダのボタンで手動切り替えもでき、選択は記憶されます(何も選んでいなければ OS の変更にその場で追随し続けます)。
+- **ロゴとファビコンも連動します。** 2つの `logo.png` はアルファチャンネルだけの純黒なので、反転すると**にじみのない白の原画**になります(README のダーク用ロゴと同じ事実です)。ファビコンもインクを差し替えるのでタブが揃います。**アプリケーションアイコンだけは意図的に連動させていません** — あれはインストールされる実物のアイコンファイルの写真で、そのファイルは白地を持つのが正しいからです(アプリメニューは1つのファイルしか表示せず、テーマごとに選び分けられません)。
+- **ものさしを出したついでに、ライト側のパレットも引き上げました。** 本文が 4.23:1、小さな文字が 2.15:1 と基準を下回っており、4.5 を全域で超えるダークが隣に並ぶと放置できませんでした。**両テーマとも、測定した全箇所で 4.5:1 を超えます**。淡いほうのグレーは、今も見た目に淡いままです。
 
 ## 日本語
 
