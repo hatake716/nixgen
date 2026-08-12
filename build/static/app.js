@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-12x';
+const BUILD = '2026-08-12y';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -844,6 +844,14 @@ const SWAY_CONFIG_NO_BAR =
       sed '/^bar {/,/^}/d' \${config.programs.sway.package}/etc/sway/config > $out
     ''`;
 
+/* The one path every desktop preset writes that is not in its own entry —
+   see the note on GPU_PATHS. It has already moved out of services.xserver
+   once, so it is a candidate list even though only one spelling is live. */
+const DESKTOP_PATHS = {
+  defaultSession: ['services.displayManager.defaultSession',
+                   'services.xserver.displayManager.defaultSession'],
+};
+
 const DESKTOPS = {
   gnome: { label: 'GNOME', session: 'gnome', wayland: true, greeter: 'gdm',
     marker: ['services.desktopManager.gnome.enable',
@@ -1089,7 +1097,7 @@ function imChosen(path) {
 async function ensureImType() {
   if (!findEntry('i18n.inputMethod.enable')) return null;
   if (imChosen('i18n.inputMethod.type') || imChosen('i18n.inputMethod.enabled')) return null;
-  return await addWithValue(['i18n.inputMethod.type', 'i18n.inputMethod.enabled'],
+  return await addWithValue(LANG_PATHS.imType,
                             'fcitx5');
 }
 
@@ -1412,7 +1420,7 @@ async function syncImFrontend(added) {
              findEntry('i18n.inputMethod.type') ||
              findEntry('i18n.inputMethod.enabled');
   if (!im) return false;
-  const used = await addWithValue(['i18n.inputMethod.fcitx5.waylandFrontend'],
+  const used = await addWithValue(LANG_PATHS.imWayland,
                                   d.wayland);
   if (used) added.push(used);
   return !!used;
@@ -1443,9 +1451,9 @@ async function addDesktop(key) {
      the one session it has anyway. The option is `null or session name` with
      a raw inside, so the value is Nix source and arrives quoted. */
   if (d.session) {
-    const used = await addWithValue(['services.displayManager.defaultSession'],
+    const used = await addWithValue(DESKTOP_PATHS.defaultSession,
                                     JSON.stringify(d.session));
-    used ? added.push(used) : missing.push('services.displayManager.defaultSession');
+    used ? added.push(used) : missing.push(DESKTOP_PATHS.defaultSession[0]);
   }
   const imSynced = await syncImFrontend(added);
   /* A desktop that needs a package as well as its settings. Looked up rather
@@ -1632,11 +1640,19 @@ const LANGUAGES = {
         im: 'fcitx5', addons: ['fcitx5-rime'] },
 };
 
-/* The paths the language preset writes — see the note on GPU_PATHS. */
+/* The paths the language preset writes — see the note on GPU_PATHS. The
+   input method half is here too: it is written from three different places
+   (the language preset, the ensureImType repair, the front-end sync), which
+   is exactly why one table is worth having. */
 const LANG_PATHS = {
-  locale: ['i18n.defaultLocale'],
-  keyMap: ['console.keyMap'],
-  xkb:    ['services.xserver.xkb.layout', 'services.xserver.layout'],
+  locale:     ['i18n.defaultLocale'],
+  keyMap:     ['console.keyMap'],
+  xkb:        ['services.xserver.xkb.layout', 'services.xserver.layout'],
+  imType:     ['i18n.inputMethod.type', 'i18n.inputMethod.enabled'],
+  imEnable:   ['i18n.inputMethod.enable'],
+  imAddons:   ['i18n.inputMethod.fcitx5.addons'],
+  imWayland:  ['i18n.inputMethod.fcitx5.waylandFrontend'],
+  sessionVars: ['environment.sessionVariables'],
 };
 
 /* Where the machine is, which the language deliberately does not decide: a
@@ -1736,15 +1752,15 @@ async function addLanguage(key) {
   let imOk = false;
   if (L.im) {
     const sel = await addWithValue(
-      ['i18n.inputMethod.type', 'i18n.inputMethod.enabled'], L.im);
+      LANG_PATHS.imType, L.im);
     if (sel) {
       imOk = true;
       added.push(sel);
       if (sel === 'i18n.inputMethod.type') {
-        const en = await addWithValue(['i18n.inputMethod.enable'], true);
+        const en = await addWithValue(LANG_PATHS.imEnable, true);
         en ? added.push(en) : missing.push('i18n.inputMethod.enable');
       }
-      const addons = await addWithValue(['i18n.inputMethod.fcitx5.addons'], L.addons);
+      const addons = await addWithValue(LANG_PATHS.imAddons, L.addons);
       if (addons) added.push(addons);
       // Match the front end to the desktop's session if one is already picked;
       // otherwise picking a desktop later sets it (addDesktop re-syncs).
@@ -3246,10 +3262,28 @@ function paintCode(text) {
 
    Only values that arrived as values are read. An expression carried over
    verbatim (`lib.mkIf …`) stays a card, because a form field cannot hold it. */
+/* `lib.mkForce true` and friends. The importer keeps a priority call verbatim
+   — it carries a decision, and a module that loses it stops building — but
+   this function runs on the configuration.nix path only, and the Setup fields
+   are exactly where that priority has nowhere to survive to: the starter
+   writes every line it owns with `lib.mkDefault`. Left as a card, a
+   Setup-owned option would be defined in the module AND in the
+   configuration.nix beside it, and two boot loaders is a rebuild refusal. So
+   the field takes the value and the card goes, as it always did. Only a plain
+   literal is unwrapped; anything else is an expression and stays one. */
+const PRIORITY_LITERAL =
+  /^\(*\s*(?:lib\.)?mk(?:Force|Override\s+\S+)\s+(.*?)\s*\)*$/s;
+
 function fillSetupFrom(incoming) {
   const value = new Map();
   for (const x of incoming) {
-    if (!x.entry.verbatim) value.set(resolvePath(x.entry), x.entry.value);
+    const path = resolvePath(x.entry);
+    if (!x.entry.verbatim) { value.set(path, x.entry.value); continue; }
+    const m = PRIORITY_LITERAL.exec(String(x.entry.value || ''));
+    if (!m) continue;
+    const lit = m[1];
+    if (lit === 'true' || lit === 'false') value.set(path, lit === 'true');
+    else if (/^"[^"\\]*"$/.test(lit)) value.set(path, lit.slice(1, -1));
   }
   const used = [];
   const take = (path, fn) => {

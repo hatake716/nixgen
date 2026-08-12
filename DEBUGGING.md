@@ -147,7 +147,7 @@ nix eval --json '...config.environment.sessionVariables' --apply 'v: v.XKB_DEFAU
 
 **未検証・薄い場所**:
 - **実機ログイン以降の動作全般は作者の RC 評価に依存**(これがこの数日の予定)。
-- CI(.github/workflows)は fuzz/import_check/構文までで、**starter の実システム評価とブラウザ検査は回していない**。
+- CI(.github/workflows)は fuzz/import_check/構文に加えて、**ブラウザ検査(11項目)とカタログ検査(`tools/catalogue_check.py`)を毎プッシュ回しています**。回していないのは `tools/eval_check.py` だけで、これはピン留めした nixpkgs の取得に数分かかるためリリース前に手で流します(2026-08-12 更新)。
 - 翻訳ガード(MutationObserver + data-keep)は実際の Chrome 翻訳では最近試していない。
 - unstable チャンネルの経路はしばらく通しで触っていない(仕組みは 25.11 切替テストと同一)。
 - モバイルはビューポートのみで実機なし。アクセシビリティはフォーカスリング程度。

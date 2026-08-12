@@ -117,7 +117,8 @@ EXTRACT = r"""() => {
                                [FLATPAK_PATHS, 'FLATPAK_PATHS'],
                                [SHELL_PATHS, 'SHELL_PATHS'],
                                [KERNEL_PATHS, 'KERNEL_PATHS'],
-                               [REGION_PATHS, 'REGION_PATHS']]) {
+                               [REGION_PATHS, 'REGION_PATHS'],
+                               [DESKTOP_PATHS, 'DESKTOP_PATHS']]) {
     for (const [field, cands] of Object.entries(table)) {
       opt(`${name}.${field}`, cands);
     }
@@ -213,6 +214,24 @@ def channel_series(have_any):
     return sorted(out, key=key, reverse=True)
 
 
+def mainline_series():
+    """The series `linux_latest` points at, as `7_1`, or None.
+
+    Mainline is the line above which nothing has been named longterm yet, so
+    it is where the kernel question stops.
+    """
+    url = BASE.rstrip("/") + "/api/packages?attrs=linux_latest"
+    try:
+        with urllib.request.urlopen(url, timeout=30) as r:
+            rows = json.load(r).get("results", [])
+    except Exception:
+        return None
+    if not rows:
+        return None
+    parts = (rows[0].get("version") or "").split(".")
+    return "_".join(parts[:2]) if len(parts) >= 2 else None
+
+
 def main():
     with sync_playwright() as p:
         browser = p.chromium.launch()
@@ -274,8 +293,16 @@ def main():
     shipped = channel_series(have_pkg)
     def as_nums(s):
         return [int(x) for x in s.split("_")]
+    # Mainline is always newer than the newest longterm series, so flagging
+    # everything above the head of the list would fire on every run of a
+    # perfectly current tree — and a check that always fires is one nobody
+    # reads. The series the channel calls `latest` is by definition not
+    # longterm yet, so it and anything above it are excluded; what is left is
+    # the band where a new LTS actually appears.
+    latest = mainline_series()
     ahead = [(s, v) for s, v in shipped
-             if newest_listed and as_nums(s) > as_nums(newest_listed)]
+             if newest_listed and as_nums(s) > as_nums(newest_listed)
+             and not (latest and as_nums(s) >= as_nums(latest))]
     kernel_note = False
     if ahead:
         kernel_note = True
