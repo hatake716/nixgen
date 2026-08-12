@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-12y';
+const BUILD = '2026-08-12z';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -2426,11 +2426,22 @@ function appendToNixList(src, attr) {
   const close = text.lastIndexOf(']');
   if (open < 0 || close < open) return null;
 
-  const scoped = /(^|\s)with\s+pkgs\s*;/.test(text.slice(0, open));
+  /* `(` counts as whitespace here: `lib.mkForce (with pkgs; [ … ])` puts the
+     scope behind a bracket, and missing it spells the new element
+     `pkgs.ripgrep` among neighbours written bare. */
+  const scoped = /(^|[\s(])with\s+pkgs\s*;/.test(text.slice(0, open));
   const item = scoped ? attr : 'pkgs.' + attr;
   if (new RegExp('(^|[\\s\\[])' + rxEscape(item) + '(?=[\\s\\]]|$)').test(text)) return text;
 
   const inner = text.slice(open + 1, close);
+  /* Whatever follows the list, and usually that is nothing — but a value can
+     be a call wrapping one, and `lib.mkForce (with pkgs; [ … ])` ends in a
+     bracket this rebuild used to drop on the floor. The result parsed as
+     `… ];` and Check syntax was the only thing that noticed, because the
+     render itself succeeds and the archive downloads clean. Reachable since
+     the importer began keeping mkForce verbatim: before that, such a list
+     arrived as a widget and never came through here. */
+  const tail = text.slice(close + 1);
   const closeIndent = (text.slice(0, close).match(/\n([ \t]*)$/) || [null, ''])[1];
   const multiline = inner.includes('\n');
 
@@ -2440,13 +2451,15 @@ function appendToNixList(src, attr) {
   items.push(item);
   items.sort(byName);
 
-  if (!multiline) return text.slice(0, open + 1) + ' ' + items.join(' ') + ' ]';
+  if (!multiline) {
+    return text.slice(0, open + 1) + ' ' + items.join(' ') + ' ]' + tail;
+  }
 
   let indent = closeIndent + '  ';
   const first = inner.split('\n').find(l => l.trim());
   if (first) indent = (first.match(/^[ \t]*/) || [''])[0] || indent;
   return text.slice(0, open + 1) + '\n' +
-         items.map(x => indent + x).join('\n') + '\n' + closeIndent + ']';
+         items.map(x => indent + x).join('\n') + '\n' + closeIndent + ']' + tail;
 }
 
 /* Split a list body into elements, keeping bracketed and quoted runs whole. */

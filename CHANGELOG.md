@@ -9,10 +9,32 @@ snapshot and doubles as a flake ref.
 
 **This is the `development` branch**, so its tags are `-dev`:
 `nix run github:hatake716/nixgen/v1.0.0-dev.1`. The stable line is on `main`
-(`v1.0.0-rc.4`), and anything above the newest `-rc` heading below has not
+(`v1.0.0-rc.4.1`), and anything above the newest `-rc` heading below has not
 reached it yet.
 
 ---
+
+## English
+
+## v1.0.0-rc.4.1 — 2026-08-12
+
+`v1.0.0-rc.4` plus one fix, tagged without waiting: adding a package to an
+imported list that was wrapped in `lib.mkForce (with pkgs; [ … ])` produced a
+file that does not parse. `appendToNixList` rebuilds a list from its first `[`
+to its last `]` and dropped everything after — nothing at all for a bare list,
+and the closing bracket of the wrapper for this one, leaving `… ];`. The
+function has always done that; rc.4 made it reachable, because that is the
+release in which the importer began keeping `mkForce` verbatim, and before
+that such a list arrived as a widget and never came through this path.
+
+Worth knowing what did **not** notice: the render succeeds, so the file
+downloads cleanly and the status bar says nothing. Check syntax was the only
+thing between it and `nixos-rebuild`. The same edit teaches the scope test to
+see `(with pkgs;`, so an added package is spelled the way its neighbours are.
+
+Found by an adversarial review of the rc.4 work, reproduced end to end, and
+fixed with the whole gate re-run: fuzz, the importer through both readers, the
+eleven-point sweep, the catalogue check, and `eval_check` on the bundle.
 
 ## English
 
@@ -1870,6 +1892,16 @@ three of these six showed up in only one of the two.
   from the published type data, and a live view of the file being generated.
 
 ---
+
+## 日本語
+
+## v1.0.0-rc.4.1 — 2026-08-12
+
+`v1.0.0-rc.4` に修正を1つ加え、待たずにタグを打った版です。`lib.mkForce (with pkgs; [ … ])` で包まれたリストを取り込んだ状態でパッケージを追加すると、**解析できないファイル**になっていました。`appendToNixList` は最初の `[` から最後の `]` までを組み立て直し、**その後ろを捨てて**いました。素のリストなら後ろには何も無いのですが、この形では包みの閉じ括弧がそこにあり、`… ];` が残ります。この関数はずっとそう書かれていて、**rc.4 で初めて到達可能になりました** — インポータが `mkForce` を保存するようになった版だからです。それ以前は、この形のリストはウィジェットとして届き、この経路を通りませんでした。
+
+**何が気づかなかったか**も重要です: レンダリングは成功するので、ファイルは何事もなくダウンロードでき、ステータスバーも何も言いません。`nixos-rebuild` との間に立っていたのは Check syntax だけでした。同じ修正で、スコープ判定が `(with pkgs;` も見るようになり、追加されるパッケージが周囲と同じ綴りになります。
+
+rc.4 の作業に対する敵対的レビューが発見し、通しで再現したうえで修正し、全検査を再実行しています(fuzz、インポータ両リーダー、11項目スイープ、カタログ検査、束の `eval_check`)。
 
 ## 日本語
 
