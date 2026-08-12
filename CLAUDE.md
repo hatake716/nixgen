@@ -4,6 +4,10 @@ Context for picking this project up. The code is readable; what follows is the
 part that is not obvious from reading it — the reasons behind decisions, and the
 mistakes already made so they are not made twice.
 
+**Taking the project over from someone else? Read `HANDOVER.md` after this
+one.** It carries what this file deliberately does not: the state of the
+project, the work left open and why it was left, and the maintenance rhythm.
+
 日本語の要点は各節の末尾にあります。
 
 ---
