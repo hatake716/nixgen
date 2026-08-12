@@ -16,6 +16,20 @@ it is part of `main` now.
 
 ## English
 
+## v1.0.0-rc.4 — 2026-08-12
+
+The fourth release candidate: `v1.0.0-rc.3` plus a maintainability pass. Two
+new presets reached it first — Media playback and the Flatpak store app — and
+then a five-way audit of the whole codebase, whose findings are under the
+`v1.0.0-dev.8`, `v1.0.0-dev.9` and `v1.0.0-dev.10` headings below. In one line: the
+presets' vocabulary is now checked against the channel on every push, so the
+half-yearly NixOS release becomes a checklist item instead of a discovery —
+and twelve defects were fixed on the way there, including an LTS choice that
+handed out a two-year-old kernel and an import that rebuilt nixgen's own
+output into a file that would not build.
+
+## English
+
 ## v1.0.0-dev.10 — 2026-08-12
 
 Landed on `development` first, merged into `main` since. A maintenance pass:
@@ -1856,6 +1870,12 @@ three of these six showed up in only one of the two.
   from the published type data, and a live view of the file being generated.
 
 ---
+
+## 日本語
+
+## v1.0.0-rc.4 — 2026-08-12
+
+4つめのリリース候補です。`v1.0.0-rc.3` に保守のための一巡を加えたものです。先にメディア再生と Flatpak ストアアプリの2プリセットが入り、そのあとコードベース全体を5観点で監査しました。内容は下の `v1.0.0-dev.8`・`v1.0.0-dev.9`・`v1.0.0-dev.10` の見出しにあります。一言でいえば、**プリセットが名指しする名前が毎プッシュでチャンネルと突き合わされる**ようになり、半年ごとの NixOS リリースが「発見」ではなく「チェックリスト項目」になりました。その過程で12件の不具合も修正しています(2年古いカーネルを渡していた LTS、nixgen 自身の出力を取り込むとビルドできないファイルになる取り込み、など)。
 
 ## 日本語
 
