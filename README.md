@@ -149,8 +149,9 @@ You should see three panes: search on the left, input fields in the middle, the
 file taking shape on the right. Type `openssh` into the search box and click the
 top result — if a line appears on the right, everything is working.
 
-Press **Ctrl-C** in the terminal to stop. Later runs start in about a second,
-because the database is already built.
+Press **Ctrl-C** in the terminal to stop — or just close the page: a few
+seconds after the last nixgen page closes, the server exits on its own. Later
+runs start in about a second, because the database is already built.
 
 **Not seeing a change you expected?** Nix remembers where `github:` points for
 an hour, so a run started soon after an update can still be the previous
@@ -181,10 +182,11 @@ Four things are worth knowing about the menu entry:
   Edge or Vivaldi, whichever is already installed. On a machine with only
   Firefox it opens an ordinary browser tab instead, which works the same; the
   window is the nicer of the two, not the working one.
-- **Closing the window does not stop it.** The server keeps running. That
-  is usually what you want, and clicking the icon again brings the page back
-  rather than complaining — but if you want it stopped, stop it from the
-  terminal you started it in, or log out.
+- **Closing the window stops it.** The page is the application: a few
+  seconds after the last nixgen page closes, the server exits by itself and
+  nothing is left running in the background. A reload does not count, and
+  closing one of two windows leaves the other's server alone — it only
+  leaves when no page remains. Clicking the icon again starts it fresh.
 - **The first launch still takes about five minutes**, because the database has
   to be built. Started from the menu there is no terminal to print progress to,
   so it puts up a desktop notification instead and opens the browser when it is

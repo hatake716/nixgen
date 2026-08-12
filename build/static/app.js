@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-12r';
+const BUILD = '2026-08-12s';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -3761,6 +3761,26 @@ async function systemUpdate() {
 }
 
 $('#btn-update').addEventListener('click', systemUpdate);
+
+/* The page is the application: while at least one page is open the server
+   stays, and when the last one closes it exits by itself. Each page invents
+   an id — hello on load, a ping every twenty seconds, a bye beacon on
+   pagehide. The ping is slow on purpose: a hidden tab's timers are
+   throttled to once a minute, and the server's own timeout is minutes for
+   the same reason — the bye beacon is what makes an ordinary close prompt.
+   pageshow says hello again for a page brought back from the back-forward
+   cache. A server started with --no-browser ignores all of this. */
+const PAGE_ID = Math.random().toString(36).slice(2) + '-' +
+                Math.random().toString(36).slice(2);
+function sayAlive() {
+  fetch('/api/alive?id=' + PAGE_ID).catch(() => {});
+}
+sayAlive();
+setInterval(sayAlive, 20000);
+window.addEventListener('pageshow', sayAlive);
+window.addEventListener('pagehide', () => {
+  navigator.sendBeacon('/api/bye', PAGE_ID);
+});
 
 /* The verdict in both languages. A failure carries the parser's own words
    after it — those are Nix's, in Nix's English, and translating them would

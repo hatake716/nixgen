@@ -1046,8 +1046,10 @@ harnesses cannot notice.
   between them is now a click. Do not "finish the job" by adding a privileged
   endpoint; that is the same door, from the other side.
 - **A second launch opens the nixgen already running rather than refusing.**
-  With an icon to click, a busy port is the ordinary case, not a development
-  mishap: closing the tab leaves the server up. A refusal printed to a terminal
+  A busy port means a page is open somewhere (or a `--no-browser` server is
+  being driven): the second window simply joins the same server, both pages
+  count toward its lifetime, and the server leaves when the last of them
+  closes. A refusal printed to a terminal
   nobody opened is indistinguishable from a broken icon. It **asks `/api/meta`
   first** — a busy port can hold anything, and pointing somebody's browser at
   an unrelated local service is worse than the message it replaces — and that
@@ -1055,6 +1057,20 @@ harnesses cannot notice.
   build id in the header is still what says which copy answered**, which is
   the fact this must not paper over; the message says so rather than implying
   the new one started.
+- **The process follows the last page out, and a page is counted, not
+  guessed.** Every page invents an id and reports it — hello on load, a ping
+  every twenty seconds, a bye beacon on pagehide — so a reload (bye, then
+  hello within the grace) and a second window (a second id) fall out of the
+  arithmetic instead of being special-cased. The exit waits five seconds
+  after the last bye; the 300-second silence backstop exists only for a
+  browser that died without saying bye, and it is that long **because Chrome
+  freezes hidden tabs on battery** — a frozen page cannot ping, and exiting
+  under a page that still exists reads as data loss. `time.monotonic()`
+  throughout, so a suspend counts against nobody. Nothing arms until the
+  first page connects (the first run builds its index for five minutes with
+  no page open), and **`--no-browser` disables the whole mechanism**: tests
+  and CI open and close pages at machine speed, and a harness must not have
+  its server exit between suites.
 - **The first-run notification is best effort and stays that way.** Five
   minutes of index building with no terminal to print to looks like a dead
   icon, so the wrapper calls `notify-send` when stdout is not a tty. It needs

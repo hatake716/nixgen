@@ -16,6 +16,38 @@ it is part of `main` now.
 
 ## English
 
+## v1.0.0-dev.5 — 2026-08-12
+
+Landed on `development` first, merged into `main` since. Everything between
+this heading and `v1.0.0-dev.4` is what it added.
+
+### build 2026-08-12s
+
+- **Closing the last nixgen page now exits the server.** The page is the
+  application: a few seconds after the last one closes, the process ends by
+  itself, and nothing is left running in the background — clicking the icon
+  again starts it fresh. Counted, not guessed: every page invents an id and
+  reports it (hello on load, a ping every twenty seconds, a bye beacon as
+  it closes), so a reload — whose bye is followed within the grace by the
+  new page's hello — and a second window, which is simply a second id, fall
+  out of the arithmetic instead of being special-cased.
+- **The slow parts are deliberate.** The ordinary close is prompt because
+  of the bye beacon; the five-minute silence backstop exists only for a
+  browser that died without saying goodbye, and it is that long because
+  Chrome freezes hidden tabs on battery — a frozen page cannot ping, and
+  exiting under a page that still exists reads as data loss. Monotonic
+  clocks throughout, so a suspended laptop counts against nobody. Nothing
+  arms until the first page connects, so the five-minute first-run index
+  build is safe.
+- **`--no-browser` turns the whole mechanism off.** A driven server —
+  tests, CI, the browser sweep — opens and closes pages at machine speed
+  and must not have its server exit between suites; there, closing pages
+  leaves the server exactly as it always was.
+- Verified against real processes: reloads and a second window leave the
+  server up, the last page closing ends it within seconds, and a
+  `--no-browser` server ignores pages coming and going. The eleven-point
+  sweep passes on top.
+
 ## v1.0.0-dev.4 — 2026-08-12
 
 Landed on `development` first, merged into `main` since. Everything between
@@ -1628,6 +1660,17 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+## v1.0.0-dev.5 — 2026-08-12
+
+`development` ブランチに先に入り、その後 `main` に統合された内容です。この見出しから `v1.0.0-dev.4` までが、この版で加わった内容です。
+
+### build 2026-08-12s
+
+- **最後の nixgen のページを閉じると、サーバーも終了するようになりました。** ページがアプリケーションそのものです。最後のページが閉じられて数秒すると、プロセスは自分で終わり、裏には何も残りません — もう一度アイコンをクリックすれば、新しく起動します。推測ではなく**数えています**: 各ページが自分の ID を発行して申告し(読み込み時に hello、20秒ごとに ping、閉じる瞬間に bye ビーコン)、リロード(bye の直後、猶予内に新しいページの hello が届く)も2つめのウィンドウ(単に2つめの ID)も、特別扱いではなく算術から自然に落ちます。
+- **遅い部分は意図的です。** 通常の「閉じる」が即座なのは bye ビーコンのおかげです。5分の無応答バックストップは、bye を言えずに死んだブラウザのためだけにあり、その長さにも理由があります — Chrome はバッテリー駆動時に非表示タブを凍結し、凍結されたページは ping を打てません。まだ存在しているページの足元でサーバーが終了すれば、それはデータ喪失に見えます。時計は一貫して monotonic なので、ノート PC のサスペンドは誰の不利にもなりません。最初のページが接続するまで機構は武装しないので、初回の5分の索引構築も安全です。
+- **`--no-browser` はこの機構を丸ごと無効にします。** テスト・CI・ブラウザ検査のような「駆動される」サーバーは、機械の速度でページを開閉します。スイートの合間にサーバーが終了しては困るので、そこでは従来どおりページを閉じてもサーバーは残ります。
+- 実プロセスに対して検証しました: リロードと2つめのウィンドウではサーバーが残り、最後のページを閉じると数秒で終了し、`--no-browser` のサーバーはページの出入りを無視します。仕上げに11項目のスイープも全て通っています。
 
 ## v1.0.0-dev.4 — 2026-08-12
 

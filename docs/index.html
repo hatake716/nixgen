@@ -415,10 +415,10 @@ sudo nixos-rebuild dry-build   <span class="p"># then: sudo nixos-rebuild switch
           icon. From there it behaves like any other application on the
           machine: starting it opens a maximised window of its own, with no
           tabs, no address bar and no back and forward — just the page, with
-          ordinary window controls. Closing the window leaves the server
-          running, and clicking the icon again brings it back rather than
-          complaining.</p>
-        <p class="ja"><b>コマンドを一度だけ</b> — <code>nix profile install github:hatake716/nixgen</code> — 実行すると、アプリメニューの「システム」にこのアイコンで nixgen が並びます。そこからは、マシンにある他のアプリケーションと同じ使い勝手です。起動すると専用のウィンドウが最大化した状態で開き、タブもアドレスバーも戻る・進むもありません — あるのはページと、通常のウィンドウ操作だけです。ウィンドウを閉じてもサーバーは動いたままで、もう一度アイコンをクリックすればエラーではなく画面が戻ってきます。</p>
+          ordinary window controls. Closing the window ends it: a few seconds
+          after the last page closes, the server exits by itself, and
+          clicking the icon again starts it fresh.</p>
+        <p class="ja"><b>コマンドを一度だけ</b> — <code>nix profile install github:hatake716/nixgen</code> — 実行すると、アプリメニューの「システム」にこのアイコンで nixgen が並びます。そこからは、マシンにある他のアプリケーションと同じ使い勝手です。起動すると専用のウィンドウが最大化した状態で開き、タブもアドレスバーも戻る・進むもありません — あるのはページと、通常のウィンドウ操作だけです。ウィンドウを閉じれば、数秒後にサーバーも自分で終了して裏には何も残りません。もう一度アイコンをクリックすれば、新しく起動します。</p>
         <p class="tiny en">The window uses whichever Chromium-family browser is already
           installed — Chromium, Chrome, Brave, Edge or Vivaldi. With only
           Firefox it opens as an ordinary browser tab instead, which works the

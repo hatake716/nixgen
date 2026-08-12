@@ -16,6 +16,7 @@ import sys
 import tarfile
 import tempfile
 import threading
+import time
 import urllib.error
 import urllib.request
 import webbrowser
@@ -994,6 +995,12 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/api/option":
             opt = get_option(one("path", ""))
             return self._json(opt or {"error": "not found"}, 200 if opt else 404)
+        if u.path == "/api/alive":
+            # A page saying it is open: hello on load, a ping every twenty
+            # seconds. watch_clients, started in main() unless --no-browser,
+            # is what acts on the bookkeeping.
+            client_seen(one("id", ""))
+            return self._send(204, b"", "text/plain")
         if u.path == "/api/locate-bundle":
             # Read-only, and it takes a host name and a time, never a path:
             # System update asks where the archive the browser just wrote
@@ -1025,6 +1032,13 @@ class Handler(BaseHTTPRequestHandler):
     def _post(self):
         u = urlparse(self.path)
         length = int(self.headers.get("Content-Length") or 0)
+        if u.path == "/api/bye":
+            # A beacon, not JSON: the body is the page id, sent as the page
+            # closes. It skips the JSON plumbing below because a page that no
+            # longer exists cannot be asked to retry a parse error.
+            client_bye(self.rfile.read(min(length, 256))
+                       .decode("utf-8", "replace").strip())
+            return self._send(204, b"", "text/plain")
         payload = json.loads(self.rfile.read(length) or b"{}")
         if not isinstance(payload, dict):
             raise TypeError("the request body is not an object")
@@ -1123,6 +1137,66 @@ def running_nixgen(url):
     except Exception:
         return None
     return meta if isinstance(meta, dict) and "channel" in meta else None
+
+
+# ------------------------------------------------------------------ lifetime
+
+# The page is the application, so when the last page goes, the process goes —
+# unless --no-browser said this is a driven server: tests and CI open and
+# close pages at machine speed, and a harness must not have its server exit
+# between suites. Every page invents an id and reports it: hello on load, a
+# ping every twenty seconds, a bye beacon as it closes. Reloads and second
+# windows fall out of the accounting — a reload's bye is followed within the
+# grace by the new page's hello, and a second window is simply a second id.
+# The long timeout is only the backstop for a browser that died without
+# saying bye, and it is long on purpose: Chrome freezes hidden tabs on
+# battery, a frozen page cannot ping, and exiting under a page that still
+# exists reads as data loss. time.monotonic() throughout, so a suspend does
+# not count against anyone.
+_CLIENTS = {}                # page id -> monotonic time of last sign of life
+_CLIENTS_LOCK = threading.Lock()
+_ARMED = False               # a page has connected at least once
+_CLIENT_TIMEOUT = 300        # silent this long = the browser died mid-flight
+_BYE_GRACE = 5               # seconds between the last bye and the exit
+
+
+def client_seen(cid):
+    global _ARMED
+    if not cid:
+        return
+    with _CLIENTS_LOCK:
+        _CLIENTS[cid[:64]] = time.monotonic()
+        _ARMED = True
+
+
+def client_bye(cid):
+    if not cid:
+        return
+    with _CLIENTS_LOCK:
+        _CLIENTS.pop(cid[:64], None)
+
+
+def watch_clients(httpd):
+    """Shut the server down once the last page has gone."""
+    empty_since = None
+    while True:
+        time.sleep(1)
+        now = time.monotonic()
+        with _CLIENTS_LOCK:
+            for cid, seen in list(_CLIENTS.items()):
+                if now - seen > _CLIENT_TIMEOUT:
+                    del _CLIENTS[cid]
+            armed, empty = _ARMED, not _CLIENTS
+        if not armed or not empty:
+            empty_since = None
+            continue
+        if empty_since is None:
+            empty_since = now
+            continue
+        if now - empty_since >= _BYE_GRACE:
+            print("the last page closed — nixgen exits.")
+            httpd.shutdown()
+            return
 
 
 # Browsers that can show a page as an application window — no tab strip, no
@@ -1255,6 +1329,11 @@ def main():
     print(f"serving {url}   (ctrl-c to stop)")
     if not args.no_browser:
         show(url, args.app)
+        # The page is the application: once one has connected, the process
+        # follows the last page out. serve_forever returns when the watcher
+        # calls shutdown, and main simply ends.
+        threading.Thread(target=watch_clients, args=(httpd,),
+                         daemon=True).start()
     httpd.serve_forever()
 
 
