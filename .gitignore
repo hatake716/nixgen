@@ -1,2 +1,7 @@
 data/
 __pycache__/
+
+# Local agent tooling, not part of the project. Committed once by accident
+# with `git add -A`; keep them out rather than rely on remembering.
+AGENTS.md
+.codex/
