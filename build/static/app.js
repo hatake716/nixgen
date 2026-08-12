@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-12u';
+const BUILD = '2026-08-12v';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -1833,6 +1833,26 @@ const GPUS = {
             nvidia: true },
 };
 
+/* Drop the card at `path`, but only when it holds exactly `value` — a card
+   the user edited is the user's and stays. Shared by the GPU and media
+   presets: a preset's pieces leave when its choice does. A nullable option
+   wraps its value ({__null, v}); compare what it holds, or
+   hardware.nvidia.open = false never matches false and the card survives
+   every switch — which is how that unwrap got here. */
+function dropIfOurs(path, value) {
+  for (const [key, e] of [...state.selected]) {
+    if (resolvePath(e) !== path) continue;
+    let v = e.value;
+    if (v && typeof v === 'object' && !Array.isArray(v) && '__null' in v) {
+      v = v.__null ? null : v.v;
+    }
+    if (value === undefined
+        || JSON.stringify(v) === JSON.stringify(value)) {
+      state.selected.delete(key);
+    }
+  }
+}
+
 async function addGpu(key) {
   const g = GPUS[key];
   if (!g) return;
@@ -1856,26 +1876,10 @@ async function addGpu(key) {
   /* The previous card's pieces leave when the card does, the same rule the
      desktops follow — without this, NVIDIA -> AMD kept
      `services.xserver.videoDrivers = ["nvidia"]` and the hardware.nvidia
-     cards, which is still an NVIDIA configuration wearing an AMD label, and
-     with `allowUnfree` gone it stops building outright. Only values this
-     preset wrote are touched: a videoDrivers card holding anything but
-     exactly ["nvidia"] is the user's and stays. */
-  const dropIfOurs = (path, value) => {
-    for (const [key, e] of [...state.selected]) {
-      if (resolvePath(e) !== path) continue;
-      // A nullable option wraps its value ({__null, v}); compare what it
-      // holds, or hardware.nvidia.open = false never matches false and the
-      // card survives every switch — which is how this line got here.
-      let v = e.value;
-      if (v && typeof v === 'object' && !Array.isArray(v) && '__null' in v) {
-        v = v.__null ? null : v.v;
-      }
-      if (value === undefined
-          || JSON.stringify(v) === JSON.stringify(value)) {
-        state.selected.delete(key);
-      }
-    }
-  };
+     cards, which is still an NVIDIA configuration wearing an AMD label.
+     dropIfOurs (shared, above GPUS) touches only values this preset wrote:
+     a videoDrivers card holding anything but exactly ["nvidia"] is the
+     user's and stays. */
   if (!g.nvidia) {
     dropIfOurs('hardware.nvidia.modesetting.enable', true);
     dropIfOurs('hardware.nvidia.open', false);
@@ -1936,6 +1940,110 @@ async function addGpu(key) {
 $('#btn-gpu').addEventListener('click', () => {
   const key = $('#s-gpu').value;
   if (key) { remember(); addGpu(key); }
+});
+
+/* Media playback. One sound server or the other, never both — and the
+   "never both" is enforced by NixOS, not by this preset: at this channel's
+   revision GNOME's remote-desktop module switches PipeWire on with a plain
+   `true`, so PulseAudio beside it is a same-priority conflict and the build
+   refuses the file. That is why the PulseAudio choice writes
+   `lib.mkForce false` on services.pipewire.enable rather than an ordinary
+   false — the module system's own error message names mkForce as the lever.
+   Evaluated, not assumed: each server with GNOME, with Plasma, and alone,
+   all four as real NixOS systems at the indexed revision.
+
+   PipeWire gets its compatibility layers — ALSA with 32-bit for Steam and
+   wine (the graphics preset's enable32Bit reasoning), and the PulseAudio
+   socket most applications actually talk to — plus rtkit, which is what
+   grants it realtime scheduling. hardware.pulseaudio.* is the pre-24.11
+   spelling: candidates, the way DESKTOPS names roles, because this name
+   has already moved once. */
+const AUDIO = {
+  pipewire: {
+    label: 'PipeWire',
+    steps: [
+      { paths: ['services.pipewire.enable'], value: true },
+      { paths: ['services.pipewire.alsa.enable'], value: true },
+      { paths: ['services.pipewire.alsa.support32Bit'], value: true },
+      { paths: ['services.pipewire.pulse.enable'], value: true },
+      { paths: ['security.rtkit.enable'], value: true },
+    ],
+  },
+  pulseaudio: {
+    label: 'PulseAudio',
+    steps: [
+      { paths: ['services.pulseaudio.enable',
+                'hardware.pulseaudio.enable'], value: true },
+      { paths: ['services.pulseaudio.support32Bit',
+                'hardware.pulseaudio.support32Bit'], value: true },
+    ],
+    pipewireOff: true,
+  },
+};
+
+const PIPEWIRE_OFF = 'lib.mkForce false';
+
+async function addAudio(key) {
+  const a = AUDIO[key];
+  if (!a) return;
+
+  // The other server's pieces leave when the choice does — only values
+  // this preset wrote are touched, the same rule the GPU switch follows.
+  // The mkForce card is dropped only when it still says exactly what we
+  // wrote: edited, it is the user's.
+  if (key !== 'pipewire') {
+    for (const s of AUDIO.pipewire.steps) dropIfOurs(s.paths[0], s.value);
+  }
+  if (key !== 'pulseaudio') {
+    for (const s of AUDIO.pulseaudio.steps) {
+      for (const p of s.paths) dropIfOurs(p, s.value);
+    }
+    const off = findEntry('services.pipewire.enable');
+    if (off && off.value === PIPEWIRE_OFF) {
+      dropRawCard(['services', 'pipewire', 'enable']);
+    }
+  }
+
+  const added = [], missing = [];
+  for (const step of a.steps) {
+    const used = await addWithValue(step.paths, step.value);
+    used ? added.push(used) : missing.push(step.paths[0]);
+  }
+  if (a.pipewireOff) {
+    added.push(setRawCard(['services', 'pipewire', 'enable'],
+                          PIPEWIRE_OFF, 'boolean'));
+  }
+
+  renderEditor();
+  pushRender();
+  if (missing.length) {
+    setStatus(say(
+      `${a.label}: added ${added.length}, but this release has no ` +
+      `${missing.join(', ')}. Check the result before applying it.`,
+      `${a.label}: ${added.length}件を追加しましたが、このリリースには ` +
+      `${missing.join('、')} がありません。適用する前に結果を確認してください。`), 'bad');
+  } else {
+    const extra = key === 'pulseaudio'
+      ? ' services.pipewire.enable = lib.mkForce false went in with it: some ' +
+        'desktops switch PipeWire on themselves, and an ordinary false loses ' +
+        'that argument. Screen sharing and GNOME remote desktop need ' +
+        'PipeWire and will be off; NixOS 26.11 drops PulseAudio with GDM ' +
+        'entirely.'
+      : '';
+    const extraJa = key === 'pulseaudio'
+      ? 'services.pipewire.enable = lib.mkForce false も入れました。デスクトップに' +
+        'よっては PipeWire を自分で有効化するため、通常の false では衝突します。' +
+        'PipeWire を要する画面共有や GNOME のリモートデスクトップは無効になり、' +
+        'PulseAudio + GDM の組み合わせは NixOS 26.11 で廃止予定です。'
+      : '';
+    setStatus(say(`${a.label}: ${added.length} settings added.${extra}`,
+                  `${a.label}: ${added.length}件の設定を追加しました。${extraJa}`), 'ok');
+  }
+}
+
+$('#btn-audio').addEventListener('click', () => {
+  const key = $('#s-audio').value;
+  if (key) { remember(); addAudio(key); }
 });
 
 /* The kernel. `boot.kernelPackages` is a raw option — its value is Nix source
@@ -3270,6 +3378,15 @@ function syncPresetPickers() {
 
   const zone = cardText('time.timeZone');
   if (zone && REGIONS[zone]) set('#s-region', zone);
+
+  /* Sound: the enable cards name the server. The PulseAudio choice leaves
+     its mkForce card on services.pipewire.enable, whose value is a source
+     string rather than `true`, so it cannot be mistaken for the PipeWire
+     pick — and it is checked second for the same reason. */
+  const pa = findEntry('services.pulseaudio.enable');
+  const pw = findEntry('services.pipewire.enable');
+  if (pa && pa.value === true) set('#s-audio', 'pulseaudio');
+  else if (pw && pw.value === true) set('#s-audio', 'pipewire');
 
   return found;
 }

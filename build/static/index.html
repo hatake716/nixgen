@@ -159,6 +159,20 @@ try {
           </select>
           <button class="mini" id="btn-gpu">Add</button>
         </div>
+        <!-- Media playback: one sound server or the other, never both.
+             The PulseAudio choice writes lib.mkForce false on PipeWire,
+             because some desktops switch PipeWire on with a plain true and
+             an ordinary false is a same-priority conflict — evaluated, not
+             assumed; the notes live with AUDIO in app.js. -->
+        <div class="presetline" id="audioline">
+          <span class="plabel">Media playback<i>メディア再生</i></span>
+          <select id="s-audio" class="notranslate" translate="no">
+            <option value="">choose… — 選ぶ</option>
+            <option value="pipewire">PipeWire</option>
+            <option value="pulseaudio">PulseAudio</option>
+          </select>
+          <button class="mini" id="btn-audio">Add</button>
+        </div>
         <!-- A language is not one setting: the locale, the console keymap, the
              X layout, and for CJK an input method and fonts as well. Picking
              one adds all of them, as cards you can read and change. -->
@@ -374,7 +388,8 @@ try {
               <b class="w">Import generated.nix</b> instead.)</li>
             <li><b>Open <b class="w">Options</b>: add settings.</b> The
               dropdowns handle the big ones in one go — a kernel, a shell, a
-              desktop, graphics, a language, Flatpak. For anything else, type
+              desktop, graphics, media playback, a language, Flatpak. For
+              anything else, type
               what you are after — <code>ssh</code>, <code>firewall</code>,
               <code>timeZone</code> — and click a result to bring it here.</li>
             <li><b>Open <b class="w">Packages</b>: add software.</b> Search, or
@@ -435,7 +450,7 @@ try {
             <p class="lede">nixgen は新しいファイルを作ります。今あるファイルは読むだけで、書き換えることはありません。<b>タブの並びが、そのまま進める順序です。Setup → Options → Packages、そして確認して受け取ります。</b></p>
             <ol>
               <li><b>まず <b class="w">Setup</b> で、マシンの名前を決めます。</b>ホスト名、自分のアカウント、ブートローダー。入力するそばから、右側の <code>configuration.nix</code> と <code>flake.nix</code> が書き換わっていきます。<b>すでに <code>configuration.nix</code> がある場合は</b>、先に <b class="w">Import configuration.nix</b> を押してください。このタブの項目が読み込んだファイルから埋まり、それ以外は右の <code>configuration.nix</code> にそのまま入ります。(前回保存した <code>generated.nix</code> を戻すときは、<b class="w">Import generated.nix</b> のほうです。)</li>
-              <li><b><b class="w">Options</b> を開いて、設定を足します。</b>大物はプルダウンで一度に入ります — カーネル・シェル・デスクトップ・グラフィックス・言語・Flatpak。それ以外は検索です。<code>ssh</code>、<code>firewall</code>、<code>timeZone</code> のように打って、結果をクリックすると、ここに入ります。</li>
+              <li><b><b class="w">Options</b> を開いて、設定を足します。</b>大物はプルダウンで一度に入ります — カーネル・シェル・デスクトップ・グラフィックス・メディア再生・言語・Flatpak。それ以外は検索です。<code>ssh</code>、<code>firewall</code>、<code>timeZone</code> のように打って、結果をクリックすると、ここに入ります。</li>
               <li><b><b class="w">Packages</b> を開いて、ソフトを足します。</b>検索するか、<b class="w">Common apps</b> の分野から選びます。クリックしたものは <code>environment.systemPackages</code> に入ります。</li>
               <li><b>ひと通り終えたら <b class="w">Check syntax</b> を押します。</b>本物の Nix のパーサーを通し、どこで壊れているかを伝えます。値の<i>型</i>が正しいかどうかまでは分かりません。それは最後の <code>dry-build</code> の役目です。ここで指摘が出たら、直してから先に進んでください。</li>
               <li><b><b class="w">Download all three</b> を押して、ファイルを配置します。</b>ホスト名の付いた書庫が1つ出てきます。展開して、3つのファイルを <code>/etc/nixos</code> にコピーしてください。もともとあるファイルは1つだけ、隣に残ります。
