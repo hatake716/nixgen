@@ -57,6 +57,10 @@ BASE = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8824/"
 OUT = sys.argv[2] if len(sys.argv) > 2 else None
 
 failures = []
+# Renders that came back stale. settled_text records them; the sweep names
+# them at the end, because "counts were zero" is a symptom and this is the
+# cause.
+render_failures = []
 
 
 def report(ok, name, detail=""):
@@ -77,13 +81,21 @@ def settled_text(page):
 
     `settled()` answers false when the last render failed, and throwing that
     away meant every assertion below could be measured against the file as it
-    was before the change — a pass that proves the previous point. The marker
-    goes into the text so the caller fails rather than compares happily.
+    was before the change — a pass that proves the previous point.
+
+    On a failure the stale text is **withheld**, not merely marked. Every
+    assertion in this file is a positive one — `X in t`, a count, a regex
+    tally — so returning the old file with a prefix on it still let them all
+    match; the marker made the failure visible to a human reading the output
+    and to nothing else. Returning the marker alone makes each of those go
+    false. The failure is also recorded so the sweep names it at the end
+    rather than leaving somebody to infer it from a count of zero.
     """
     ok, text = page.evaluate(
         "async () => { const ok = await settled(); return [ok, generatedText]; }")
     if not ok:
-        return "RENDER-FAILED\n" + (text or "")
+        render_failures.append(len(render_failures) + 1)
+        return "RENDER-FAILED"
     return text
 
 
@@ -387,6 +399,11 @@ with sync_playwright() as p:
     }""")
     nav_ok = nav["bar"] and all(vis == [want] for want, vis in nav["steps"])
     report(nav_ok, "mobile bottom bar switches panes", str(nav["steps"]))
+
+    # Said out loud rather than left to be inferred from the points that fell
+    # over: a render that did not settle is the reason, not a symptom.
+    report(not render_failures, "every render settled",
+           f"{len(render_failures)} render(s) failed")
 
     browser.close()
 
