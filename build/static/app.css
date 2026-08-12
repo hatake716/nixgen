@@ -21,7 +21,60 @@
   --r: 6px;
   --shadow-1: 0 1px 2px rgba(15, 21, 29, .07), 0 1px 1px rgba(15, 21, 29, .04);
   --shadow-2: 0 3px 10px rgba(15, 21, 29, .10), 0 1px 3px rgba(15, 21, 29, .06);
+
+  /* Surfaces that were hard-coded white before dark mode existed. */
+  --card:        #ffffff;
+  --hover-bg:    #ffffff;
+  --hit:         #e2e6ec;
+  --accent-fg:   #ffffff;
+  --accent-hover:#0f151d;
+  --danger-bg:   #fdf6e9;
+  --pop-shadow:  0 6px 18px rgba(27,32,39,.14);
+  color-scheme: light;
 }
+
+/* Dark is the same room with the lights off. The file pane's night colours
+   (--code-*) are already the destination, so that pane does not change and
+   the rest of the page moves into its family. The header mark is
+   currentColor and follows --ink by itself; /logo.png in the steps is pure
+   black in the alpha channel, so invert(1) turns it white exactly; the
+   favicon is swapped from app.js, because a data URI cannot read variables.
+   color-scheme is what turns the native half — selects, checkboxes,
+   scrollbars — dark along with everything else. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground:      #0d1117;
+  --panel:       #151a22;
+  --panel-2:     #1d242e;
+  --ink:         #e2e8f0;
+  --ink-soft:    #a3aebc;
+  --ink-faint:   #838e9b;
+  --rule:        #2a3340;
+  --accent:      #dbe2ea;
+  --accent-soft: #242e3a;
+  --signal:      #d9a144;
+  --card:        #1a2029;
+  --hover-bg:    #242c37;
+  --hit:         #33404f;
+  --accent-fg:   #10151c;
+  --accent-hover:#ffffff;
+  --danger-bg:   #2a2315;
+  --pop-shadow:  0 6px 18px rgba(0,0,0,.5);
+  --shadow-1: 0 1px 2px rgba(0,0,0,.40), 0 1px 1px rgba(0,0,0,.30);
+  --shadow-2: 0 3px 10px rgba(0,0,0,.50), 0 1px 3px rgba(0,0,0,.35);
+}
+
+/* The handful of colours that are one-off tints rather than palette slots. */
+:root[data-theme="dark"] .badge.raw,
+:root[data-theme="dark"] .badge.vb     { background: #372b4a; color: #cbb4ea; }
+:root[data-theme="dark"] .badge.broken,
+:root[data-theme="dark"] .badge.clash  { background: #452626; color: #e6a3a3; }
+:root[data-theme="dark"] .badge.unfree { background: #3a3016; }
+:root[data-theme="dark"] .card.verbatim { background: #231d2c; }
+:root[data-theme="dark"] .notice.bad   { border-left-color: #c96a6a; }
+:root[data-theme="dark"] .card .drop:hover { color: #e08b8b; }
+:root[data-theme="dark"] .btn.danger:hover { color: #e8c27a; }
+:root[data-theme="dark"] .howto-logo   { filter: invert(1); }
 
 * { box-sizing: border-box; }
 
@@ -89,7 +142,7 @@ header .actions {
   display: inline-flex; align-items: center; gap: 7px;
   transition: background .12s, color .12s, box-shadow .12s, transform .12s;
 }
-.btn:hover { background: #fff; color: var(--ink); box-shadow: var(--shadow-1);
+.btn:hover { background: var(--hover-bg); color: var(--ink); box-shadow: var(--shadow-1);
              transform: translateY(-1px); }
 .btn:active { transform: translateY(0); box-shadow: none; }
 
@@ -106,8 +159,8 @@ header .actions {
 header .actions .sep { width: 1px; height: 20px; background: var(--rule); }
 /* Wrapped onto several rows there is nothing to separate. */
 @media (max-width: 980px) { header .actions .sep { display: none; } }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-.btn.primary:hover { background: #0f151d; color: #fff; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+.btn.primary:hover { background: var(--accent-hover); color: var(--accent-fg); }
 .btn:focus-visible, a:focus-visible, input:focus-visible,
 select:focus-visible, textarea:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 1px;
@@ -136,13 +189,13 @@ main {
   transition: background .12s, color .12s, box-shadow .12s;
 }
 .tab:hover { color: var(--ink-soft); }
-.tab[aria-selected="true"] { background: #fff; color: var(--ink); box-shadow: var(--shadow-1); }
+.tab[aria-selected="true"] { background: var(--card); color: var(--ink); box-shadow: var(--shadow-1); }
 .tab .tlabel { display: flex; flex-direction: column; align-items: flex-start;
                line-height: 1.15; text-align: left; }
 .tab .tlabel i { font-style: normal; font-weight: 500; font-size: 8.5px;
                  letter-spacing: .04em; color: var(--ink-faint); }
 .tab[aria-selected="true"] .stepnum { background: var(--ink); border-color: var(--ink);
-                                      color: #fff; opacity: 1; }
+                                      color: var(--panel); opacity: 1; }
 
 /* The file tabs keep the quiet look: they choose a file, not a step. */
 .filetabs { background: none; padding: 0; width: auto; }
@@ -152,7 +205,7 @@ main {
 .searchwrap { padding: 10px 14px; border-bottom: 1px solid var(--rule); }
 .searchwrap input[type=search] {
   width: 100%; padding: 9px 11px; border: 1px solid var(--rule);
-  border-radius: var(--r); background: #fff; font-family: var(--mono); font-size: 13px;
+  border-radius: var(--r); background: var(--card); font-family: var(--mono); font-size: 13px;
   transition: border-color .12s, box-shadow .12s;
 }
 .searchwrap input[type=search]:focus { border-color: var(--ink-soft); box-shadow: var(--shadow-1); outline: none; }
@@ -193,8 +246,8 @@ main {
 }
 .row:hover { background: var(--accent-soft); }
 .row .p { font-family: var(--mono); font-size: 12px; word-break: break-all; }
-.row .p b { font-weight: 700; color: var(--ink); background: #e2e6ec;
-            border-radius: 2px; box-shadow: 0 0 0 1px #e2e6ec; }
+.row .p b { font-weight: 700; color: var(--ink); background: var(--hit);
+            border-radius: 2px; box-shadow: 0 0 0 1px var(--hit); }
 .row .d { font-size: 11px; color: var(--ink-soft); margin-top: 2px;
           display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .row .t { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); margin-top: 3px; }
@@ -276,7 +329,7 @@ main {
 #howto .ja .lede { line-height: 1.9; }
 #howto .ja li { line-height: 1.9; }
 
-.card { background: #fff; border: 1px solid var(--rule); border-radius: calc(var(--r) + 2px);
+.card { background: var(--card); border: 1px solid var(--rule); border-radius: calc(var(--r) + 2px);
         margin: 10px 12px; padding: 12px 16px; border-left: 3px solid transparent;
         box-shadow: var(--shadow-1); transition: box-shadow .12s; }
 .card:hover { box-shadow: var(--shadow-2); }
@@ -296,7 +349,7 @@ main {
 .control { margin-top: 9px; }
 .control input[type=text], .control input[type=number], .control select, .control textarea {
   width: 100%; padding: 6px 8px; border: 1px solid var(--rule);
-  border-radius: var(--r); background: #fff; font-family: var(--mono); font-size: 12px;
+  border-radius: var(--r); background: var(--card); font-family: var(--mono); font-size: 12px;
 }
 .control textarea { min-height: 68px; resize: vertical; line-height: 1.5; }
 /* rows is set from the content in autosize(); height must follow it. */
@@ -307,7 +360,7 @@ main {
                 border-radius: 9px; position: relative; cursor: pointer; transition: background .12s; }
 .toggle input:checked { background: var(--accent); }
 .toggle input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
-                       background: #fff; border-radius: 50%; transition: transform .12s; }
+                       background: var(--card); border-radius: 50%; transition: transform .12s; }
 .toggle input:checked::after { transform: translateX(16px); }
 
 .items { display: flex; flex-direction: column; gap: 5px; }
@@ -316,7 +369,7 @@ main {
 .item .k { flex: 0 0 34%; }
 .mini { border: 1px solid var(--rule); background: var(--panel-2); border-radius: var(--r);
         cursor: pointer; padding: 3px 8px; font-size: 11px; color: var(--ink-soft); flex: none; }
-.mini:hover { background: #fff; color: var(--ink); }
+.mini:hover { background: var(--hover-bg); color: var(--ink); }
 /* The undo button rides the module pane's header, pushed to the far edge.
    Disabled is the resting state (nothing to go back to), so it has to look
    asleep rather than broken — and must not light up on hover. */
@@ -329,8 +382,8 @@ main {
 .pkgpick { position: relative; }
 .pkgpick .sugg {
   position: absolute; z-index: 20; left: 0; right: 0; top: 100%;
-  background: #fff; border: 1px solid var(--rule); max-height: 220px; overflow-y: auto;
-  box-shadow: 0 6px 18px rgba(27,32,39,.14);
+  background: var(--card); border: 1px solid var(--rule); max-height: 220px; overflow-y: auto;
+  box-shadow: var(--pop-shadow);
 }
 .pkgpick .sugg button { display: block; width: 100%; text-align: left; border: none; background: none;
                         cursor: pointer; padding: 6px 9px; font-family: var(--mono); font-size: 11px; }
@@ -453,7 +506,7 @@ pre.nix .verbatim .v { color: #d7a6f0; }
                    font-weight: 600; margin-bottom: 11px; }
 .setupform input[type=text], .setupform select {
   width: 100%; margin-top: 4px; padding: 6px 8px; border: 1px solid var(--rule);
-  border-radius: var(--r); background: #fff; font-family: var(--mono); font-size: 12px;
+  border-radius: var(--r); background: var(--card); font-family: var(--mono); font-size: 12px;
   font-weight: 400; color: var(--ink);
 }
 .setupform .note { font-size: 11px; color: var(--ink-soft); line-height: 1.6; margin: 0 0 14px; }
@@ -493,8 +546,8 @@ pre.nix .clash { border-left: 2px solid #a34545; margin-left: -2px; padding-left
 
 /* The system-update button: the only one that changes the machine, so it does
    not wear the same colour as the downloads beside it. */
-.btn.danger { border-color: var(--signal); color: var(--signal); background: #fdf6e9; }
-.btn.danger:hover { background: #fff; color: #7a4f00; }
+.btn.danger { border-color: var(--signal); color: var(--signal); background: var(--danger-bg); }
+.btn.danger:hover { background: var(--hover-bg); color: #7a4f00; }
 
 #dlg {
   border: 1px solid var(--rule); border-radius: var(--r); padding: 0;
@@ -527,7 +580,7 @@ pre.nix .clash { border-left: 2px solid #a34545; margin-left: -2px; padding-left
 #howto .warnbox {
   margin: 4px 0 18px; padding: 11px 13px; font-size: 12.5px; line-height: 1.65;
   border: 1px solid var(--signal); border-left-width: 3px; border-radius: var(--r);
-  background: #fdf6e9; color: var(--ink-soft);
+  background: var(--danger-bg); color: var(--ink-soft);
 }
 #howto .warnbox b { color: var(--ink); }
 
