@@ -19,7 +19,10 @@ before anything on your machine changes.
 > off. Work lands here first and moves to `main` once it has held up, so
 > anything on this page may be newer than what `main` will do.
 
-![nixgen](docs/screenshot.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-dark.png">
+  <img src="docs/screenshot.png" alt="nixgen">
+</picture>
 
 ### Three reasons
 

@@ -34,6 +34,15 @@ Landed on `development` first, merged into `main` since.
   not follow**: that one is a picture of the icon file as installed, and the
   file carries a white tile on purpose, because an application menu shows one
   file and cannot pick per theme.
+- **The screenshots were retaken, and there are dark ones now.** The three on
+  the homepage were four features out of date — no Undo button, no theme
+  toggle, no Media playback row, the old short status bar. `tools/shots.py`
+  takes each one twice now, light and dark, setting the theme in
+  `localStorage` before the page loads so it is the app's own switch rather
+  than a class poked in afterwards. The homepage swaps the pair on its own
+  `data-theme`, not on `prefers-color-scheme`, so the picture follows the
+  button the reader pressed rather than the system underneath it. The READMEs
+  get the dark shot through `<picture>`, the way their logo already does.
 - **The light palette was raised while the ruler was out.** Its body text sat
   at 4.23:1 and its small print at 2.15:1 — below the bar, and impossible to
   leave once a dark palette measuring above 4.5 everywhere sat beside it.
@@ -1929,6 +1938,7 @@ three of these six showed up in only one of the two.
 
 - **ホームページにダークモードを実装しました。** 方式はアプリと同じで、`data-theme` 属性の裏にパレットを置き、スタイル適用前に属性を決めるので、暗い環境で開いても白が一瞬光りません。既定は**閲覧者の設定に追随**し、ヘッダのボタンで手動切り替えもでき、選択は記憶されます(何も選んでいなければ OS の変更にその場で追随し続けます)。
 - **ロゴとファビコンも連動します。** 2つの `logo.png` はアルファチャンネルだけの純黒なので、反転すると**にじみのない白の原画**になります(README のダーク用ロゴと同じ事実です)。ファビコンもインクを差し替えるのでタブが揃います。**アプリケーションアイコンだけは意図的に連動させていません** — あれはインストールされる実物のアイコンファイルの写真で、そのファイルは白地を持つのが正しいからです(アプリメニューは1つのファイルしか表示せず、テーマごとに選び分けられません)。
+- **スクリーンショットを撮り直し、ダーク版を用意しました。** ホームページの3枚は機能4つ分古くなっていました(Undo ボタンなし、テーマ切替なし、メディア再生の行なし、ステータス欄も旧い高さ)。`tools/shots.py` は各カットを**ライトとダークで2回**撮るようになり、テーマはページ読み込み前に `localStorage` へ書きます — アプリが最初に見る場所なので、後からクラスを差し込むのではなく**アプリ自身のスイッチ**を使っていることになります。ホームページは `prefers-color-scheme` ではなく自分の `data-theme` で組を切り替えます。読者が押したボタンに従うべきで、その下の OS 設定ではないからです。README では `<picture>` でダーク版を出します(ロゴが既にそうしているのと同じ方式です)。
 - **ものさしを出したついでに、ライト側のパレットも引き上げました。** 本文が 4.23:1、小さな文字が 2.15:1 と基準を下回っており、4.5 を全域で超えるダークが隣に並ぶと放置できませんでした。**両テーマとも、測定した全箇所で 4.5:1 を超えます**。淡いほうのグレーは、今も見た目に淡いままです。
 
 ## 日本語

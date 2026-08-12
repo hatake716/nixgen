@@ -10,7 +10,10 @@
 > [!NOTE]
 > **これは `development` ブランチ — 実験用のほうです。** 以下のコマンドはすべてこのブランチを明示しています(`github:hatake716/nixgen/development`)。書いてある内容と実際に入るものを一致させるためです。安定版は [`main`](https://github.com/hatake716/nixgen/tree/main) で、ブランチを付けない `github:hatake716/nixgen` はそちらを指します(main 側の README はブランチを付けていません)。開発はまずここに入り、問題なく動くことが分かってから main に合流するので、このページの内容は main より先行していることがあります。
 
-![nixgen](docs/screenshot.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-dark.png">
+  <img src="docs/screenshot.png" alt="nixgen">
+</picture>
 
 ### 3つの理由
 
