@@ -1283,7 +1283,20 @@ checklist item.
 
 ## Open items
 
-None outstanding. The list this file carried for a while — unstable support,
+- **`with lib;` between a module's header and its body defeats the importer.**
+  Found by review, pre-existing, and left alone deliberately in the pass that
+  found it. `_module_body` in `nix_import.py` expects the header to be
+  followed by the attribute set, and a `with lib;` in between is not that
+  shape, so the whole file is refused rather than partly read. What makes it
+  awkward: `with` opens a scope, so reading the body correctly means knowing
+  that every bare `mkForce` inside it is `lib.mkForce` — the importer would
+  have to carry that scope through `classify`, which today reasons about one
+  expression at a time. The shape matters more now than it did, because
+  `PRIORITY_KEEP` deliberately matches the bare spelling, which is the one
+  that appears under `with lib;`. A file nixgen wrote never has it; a file a
+  person wrote often does.
+
+The list this file carried for a while — unstable support,
 index age, the port message, leftover databases, stale screenshots, the buried
 import summary — is done. When something new goes on it, write down what makes
 it hard, not just what is missing: every one of those was solved by the note
