@@ -1277,6 +1277,15 @@ checklist item.
   `docs/index.html` is deliberately left
   alone: GitHub Pages serves the homepage from `main`, so a branch-specific
   command there would be published to everybody.
+- **The counts live outside the repository too.** GitHub's About description
+  carries them, and because `git grep` cannot see it, it is the one place that
+  drifts silently — it sat at `24,517 / 144,200` while every file in the tree
+  said `24,557 / 144,245`, and it took an outside reader looking at the
+  repository page to notice. It is the first thing anyone arriving from a link
+  reads. Update it with the rest:
+  ```bash
+  gh repo edit hatake716/nixgen --description "A form for all 24,557 NixOS options and 144,245 packages. Reads your existing configuration.nix."
+  ```
 - Figures appear in several files and drift. Current: **24,557 options**,
   **144,245 packages**, **88.3% (21,681)** with a real widget, **1,252** distinct
   type strings, **5,082 (21%)** with a placeholder. All for `nixos-26.05` at
