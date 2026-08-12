@@ -29,8 +29,26 @@ MODULE_KEYS = {"imports", "options", "disabledModules"}
 
 # Wrappers that only annotate a value's priority; the value inside is the
 # interesting part.
-PRIORITY_CALLS = re.compile(
-    r"^\(?\(?(?:lib\.|\(lib\)\.)?mk(?:Force|Default|Override\s+\S+|VMOverride)\)?\s+(.*)\)?$",
+# `lib.mkDefault x` and `lib.mkVMOverride x` are folded away to x: the value is
+# what the form holds, and the priority they carry is one this tool is not
+# going to reproduce from a widget. That folding is load-bearing — every line
+# of the configuration.nix nixgen writes is wrapped in mkDefault, and the Setup
+# fields only fill from a plain string or bool, so a hostname that arrived as
+# `lib.mkDefault "nixos"` has to reach `fillSetupFrom` as "nixos".
+PRIORITY_FOLD = re.compile(
+    r"^\(?\(?(?:lib\.|\(lib\)\.)?mk(?:Default|VMOverride)\)?\s+(.*)\)?$",
+    re.S)
+# `mkForce` and `mkOverride n` are the opposite: they exist to win a conflict,
+# and a value that loses its wrapper loses the argument it was written to win.
+# nixgen writes one itself — the PulseAudio preset sets
+# `services.pipewire.enable = lib.mkForce false`, because a desktop may switch
+# PipeWire on with a plain `true` and two plain definitions is a build refusal.
+# Folding it turned nixgen's own output into a file that would not build the
+# moment it was read back in, which is the whole point of Import generated.nix.
+# So these are kept verbatim: the line reads back as it was written, and the
+# card shows the source rather than a widget that cannot express priority.
+PRIORITY_KEEP = re.compile(
+    r"^\(?\(?(?:lib\.|\(lib\)\.)?mk(?:Force|Override\s+\S+)\)?\s+(.*)\)?$",
     re.S)
 
 
@@ -414,7 +432,10 @@ def classify(value):
     # stripping the outer pair first would throw that away.
     v = _unparen(_undo_parens(value))
 
-    m = PRIORITY_CALLS.match(v)
+    # Kept before folded: a value that wins a conflict keeps saying so.
+    if PRIORITY_KEEP.match(v):
+        return "raw", v
+    m = PRIORITY_FOLD.match(v)
     if m:
         v = _unparen(m.group(1))
 

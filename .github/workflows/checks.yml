@@ -129,3 +129,11 @@ jobs:
           PLAYWRIGHT_BROWSERS_PATH=$BROWSERS \
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
             "$PYENV/bin/python3" tools/browser_check.py http://127.0.0.1:8824/
+          # Every name the presets promise, against the channel that is
+          # indexed. Cheap — one page load and a handful of batched queries —
+          # and it is the check that turns a NixOS release from a discovery
+          # into a checklist item: run it on the new channel and it names
+          # what nixpkgs renamed underneath us.
+          PLAYWRIGHT_BROWSERS_PATH=$BROWSERS \
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
+            "$PYENV/bin/python3" tools/catalogue_check.py http://127.0.0.1:8824/

@@ -886,6 +886,11 @@ node --check build/static/app.js
 #   the launch recipe is in the tool's docstring). <outdir> saves the bundle.
 python3 tools/browser_check.py http://127.0.0.1:8824/ <outdir>
 
+# preset changes, and every new channel — does the catalogue still have every
+#   name the presets promise? Same launch recipe. -v also lists the old
+#   spellings kept on purpose.
+python3 tools/catalogue_check.py http://127.0.0.1:8824/
+
 # starter or preset changes — evaluate the bundle as an actual NixOS system
 #   and read the claims back out of it. Takes the directory the sweep saved.
 python3 tools/eval_check.py <outdir>
@@ -945,6 +950,74 @@ would mean it never refreshed, and a stale catalogue is the one thing these
 harnesses cannot notice.
 
 > リリース前に `python3 tools/fuzz.py` と `python3 tools/import_check.py` を通してください。ランダム部分だけでは既知バグを取りこぼします。固定ケースが本体です。
+
+---
+
+## When a new NixOS release lands
+
+NixOS ships a numbered release every six months, YY.05 and YY.11. Most of this
+repository handles that by itself: `releases.py` probes for channels rather
+than holding a list, the index is per channel, and every preset asks the
+catalogue for its names instead of trusting them. **What does not handle
+itself is the presets' vocabulary**, because nixpkgs renames things — `gdm`
+and `sddm` left `services.xserver` and `lightdm` did not, `plasma5` went,
+`hardware.pulseaudio` became `services.pulseaudio`, the whole `xfce.*` scope
+was flattened, `superTuxKart` became `supertuxkart`. None of those crash. Each
+one quietly writes one setting fewer, or drops a row out of a category, and
+nobody is told.
+
+So the release-day work is one command and a short list.
+
+```bash
+# 1. Build an index for the new channel and start on it.
+nix develop --command bash build/fetch-data.sh nixos-27.05
+nix develop --command python3 build/build_index.py --channel nixos-27.05
+python3 build/server.py --db data/nixgen-nixos-27.05.sqlite --port 8824 --no-browser
+
+# 2. Ask whether the presets still name real things. (Launch recipe as ever.)
+python3 tools/catalogue_check.py http://127.0.0.1:8824/
+```
+
+What it prints and what to do:
+
+- **`BROKEN`** — an option group where no candidate survives. The preset
+  writes one setting fewer than it promises. Find the new spelling and **add
+  it to the front of the candidate list, keeping the old one**: nixgen offers
+  the current release and the two before it, so the old spelling is what keeps
+  those working.
+- **`UNRESOLVED`** — a package entry with no live spelling. Same fix, and in
+  `APPS` an entry becomes an array: `['thunar', 'xfce.thunar']`.
+- **`CHECK … KERNELS.lts`** — the channel ships a kernel series newer than the
+  head of the LTS list. Whether it is longterm is
+  <https://www.kernel.org/category/releases.html>'s answer, not the index's.
+  If it is, put it on the front. This is the one list a human has to keep
+  current, and it is how 6.18 was caught after it had been longterm for
+  months.
+- **`legacy` (only under `-v`)** — an old spelling that no longer resolves but
+  whose entry has a live one. Expected. Prune only when the release that
+  needed it drops off the list of three.
+
+Then the rest, in this order, because each one can only be trusted if the ones
+before it passed:
+
+3. `tools/fuzz.py` and `tools/import_check.py` — they read whatever catalogue
+   they are given, so run them against the new index too.
+4. `tools/browser_check.py … <outdir>` — the sweep.
+5. `tools/eval_check.py <outdir>` — the only check that proves the file builds
+   as a system. **This is the one that matters most on a new release**, because
+   a name can resolve in the catalogue and still be wrong in the module.
+6. Recompute the documented figures (the command is in Documentation, below)
+   and update them; they are per revision, not per release, and they drift.
+7. `system.stateVersion` needs nothing: `build_index` records what the
+   catalogue says.
+
+CI runs step 2 on every push, against the channel in
+`.github/workflows/checks.yml`. **Pointing that at the new channel is the
+cheapest early warning there is** — do it as soon as the channel publishes,
+before the release is the default, and the six-month surprise becomes a
+checklist item.
+
+> NixOSは半年ごとに新リリースが出ます。チャンネルの探索や索引は自動で追従しますが、**プリセットが名指ししているオプション名・パッケージ名だけは追従しません**。nixpkgs は改名するのに、改名は例外を出さず、設定が1つ静かに減るだけだからです。新リリースが出たら、新チャンネルの索引を作り `python3 tools/catalogue_check.py` を1回流してください。`BROKEN` / `UNRESOLVED` は候補リストの**先頭に新綴りを足す**(古い綴りは残す。3リリース分を提供しているため)。`CHECK` はカーネルの LTS 一覧で、kernel.org を見て判断します。そのうえで fuzz → import_check → browser_check → **eval_check** の順に。最後の eval_check が「索引には在るが実際には効かない」を捕まえる唯一の検査です。
 
 ---
 

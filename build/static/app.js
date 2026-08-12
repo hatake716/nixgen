@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-12w';
+const BUILD = '2026-08-12x';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -174,8 +174,13 @@ async function boot() {
   // prevent. `translate="no"` says so and this makes it stick, because not
   // every browser honours the attribute. #s-release is filled in later and
   // guards its own options as it builds them.
+  // Every preset select belongs here. Three were added to the row above and
+  // not to this list — a select carries `translate="no"`, and this is the
+  // half that makes it stick where the attribute is ignored, so a missing id
+  // is a silent hole rather than an error. Adding a preset row means adding
+  // it here.
   $$('#s-desktop option, #s-lang option, #s-gpu option, #s-kernel option, ' +
-     '#s-shell option, ' +
+     '#s-shell option, #s-audio option, #s-flatpak option, #s-region option, ' +
      '#s-apps option, #s-system option, #s-pin option, ' +
      '#s-bootloader option').forEach(keep);
   renderEditor();
@@ -475,7 +480,7 @@ function showProgress(stateName, message) {
   const p = $('#s-release-progress');
   p.hidden = !message;
   p.textContent = message;
-  p.style.color = stateName === 'failed' ? '#9a3b3b' : 'var(--ink-soft)';
+  p.style.color = stateName === 'failed' ? 'var(--bad-fg)' : 'var(--ink-soft)';
 }
 
 async function pollReindex() {
@@ -1552,6 +1557,9 @@ async function addDesktop(key) {
    source, so what is written is `pkgs.fish` rather than a package widget.
    Bash gets `bashInteractive`: `pkgs.bash` is the build without readline, and
    handing somebody that as their login shell is a bad afternoon. */
+/* One place per preset for the paths it writes — see the note on GPU_PATHS. */
+const SHELL_PATHS = { defaultShell: ['users.defaultUserShell'] };
+
 const SHELLS = {
   bash: { label: 'bash', pkg: 'pkgs.bashInteractive' },
   zsh:  { label: 'zsh',  pkg: 'pkgs.zsh',  module: 'programs.zsh.enable' },
@@ -1563,7 +1571,7 @@ async function addShell(key) {
   if (!sh) return;
   const steps = [];
   if (sh.module) steps.push({ paths: [sh.module], value: true });
-  steps.push({ paths: ['users.defaultUserShell'], value: sh.pkg });
+  steps.push({ paths: SHELL_PATHS.defaultShell, value: sh.pkg });
 
   const added = [], missing = [];
   for (const step of steps) {
@@ -1624,6 +1632,13 @@ const LANGUAGES = {
         im: 'fcitx5', addons: ['fcitx5-rime'] },
 };
 
+/* The paths the language preset writes — see the note on GPU_PATHS. */
+const LANG_PATHS = {
+  locale: ['i18n.defaultLocale'],
+  keyMap: ['console.keyMap'],
+  xkb:    ['services.xserver.xkb.layout', 'services.xserver.layout'],
+};
+
 /* Where the machine is, which the language deliberately does not decide: a
    language is not a place, so `time.timeZone` was left out of the language
    preset and is its own row. Every name here was checked against the zoneinfo
@@ -1633,6 +1648,8 @@ const LANGUAGES = {
    `time.timeZone` is `null or string without spaces`, so the form holds it as
    a nullable and the value is a plain string. The list is short on purpose,
    like every other preset: the search box reaches the other ~600. */
+const REGION_PATHS = { timeZone: ['time.timeZone'] };
+
 const REGIONS = {
   'Asia/Tokyo':          'Japan — 日本',
   'Asia/Seoul':          'Korea — 韓国',
@@ -1656,7 +1673,7 @@ const REGIONS = {
 
 async function addRegion(zone) {
   if (!REGIONS[zone]) return;
-  const used = await addWithValue(['time.timeZone'], zone);
+  const used = await addWithValue(REGION_PATHS.timeZone, zone);
   renderEditor();
   pushRender();
   if (!used) {
@@ -1675,11 +1692,10 @@ async function addLanguage(key) {
   const L = LANGUAGES[key];
   if (!L) return;
   const steps = [
-    { paths: ['i18n.defaultLocale'], value: L.locale },
+    { paths: LANG_PATHS.locale, value: L.locale },
     // console.keyMap is a union, so the form holds it as Nix source.
-    { paths: ['console.keyMap'], value: JSON.stringify(L.keyMap) },
-    { paths: ['services.xserver.xkb.layout', 'services.xserver.layout'],
-      value: L.xkb },
+    { paths: LANG_PATHS.keyMap, value: JSON.stringify(L.keyMap) },
+    { paths: LANG_PATHS.xkb, value: L.xkb },
   ];
 
   const added = [], missing = [];
@@ -1796,6 +1812,15 @@ async function addLanguage(key) {
    Plasma already ships Discover; picking it there is a duplicate element
    in a list, which Nix is fine with (evaluated) and which keeps the file
    honest about what it wants. */
+/* What the row writes whatever store app is chosen. In a table for the same
+   reason GPU_PATHS is — see the note there. */
+const FLATPAK_PATHS = {
+  enable:         ['services.flatpak.enable'],
+  portal:         ['xdg.portal.enable'],
+  portalBackends: ['xdg.portal.extraPortals'],
+};
+const FLATPAK_PORTAL_GTK = 'xdg-desktop-portal-gtk';
+
 const FRONTENDS = {
   'gnome-software': { label: 'GNOME Software',
                       roles: ['services.gnome.gnome-software.enable'] },
@@ -1811,9 +1836,9 @@ const FRONTEND_ROLES = [...new Set(
 async function addFlatpak(key) {
   const front = FRONTENDS[key] || null;
   const steps = [
-    { paths: ['services.flatpak.enable'], value: true },
-    { paths: ['xdg.portal.enable'], value: true },
-    { paths: ['xdg.portal.extraPortals'], value: ['xdg-desktop-portal-gtk'] },
+    { paths: FLATPAK_PATHS.enable, value: true },
+    { paths: FLATPAK_PATHS.portal, value: true },
+    { paths: FLATPAK_PATHS.portalBackends, value: [FLATPAK_PORTAL_GTK] },
   ];
   const added = [], missing = [];
   for (const step of steps) {
@@ -1917,6 +1942,26 @@ $('#btn-region').addEventListener('click', () => {
    default: `false` is the proprietary kernel module, which works on every
    card the driver supports. `true` is faster to say and wrong on anything
    before Turing. */
+/* The option paths this preset writes, lifted out of the function that writes
+   them. Two reasons, and the second is the one that pays: a preset's contract
+   with the catalogue is readable in one place, and `tools/catalogue_check.py`
+   can see it. That checker reads these tables out of the live page, so a name
+   left inside a function body is a name nothing verifies against the channel
+   — which is precisely the name that will still be there, silently doing
+   nothing, six months after nixpkgs renames it. **A path a preset writes
+   belongs in a table like this one.** Declared above the literal that uses
+   it, per the temporal-dead-zone rule. Candidates first-hit-wins, as
+   everywhere else. */
+const GPU_PATHS = {
+  enable:        ['hardware.graphics.enable', 'hardware.opengl.enable'],
+  enable32Bit:   ['hardware.graphics.enable32Bit',
+                  'hardware.opengl.driSupport32Bit'],
+  extras:        ['hardware.graphics.extraPackages'],
+  drivers:       ['services.xserver.videoDrivers'],
+  nvidiaModeset: ['hardware.nvidia.modesetting.enable'],
+  nvidiaOpen:    ['hardware.nvidia.open'],
+};
+
 const GPUS = {
   amd: { label: 'AMD', extras: [] },
   intel: { label: 'Intel', extras: ['intel-media-driver'] },
@@ -1948,20 +1993,19 @@ async function addGpu(key) {
   const g = GPUS[key];
   if (!g) return;
   const steps = [
-    { paths: ['hardware.graphics.enable', 'hardware.opengl.enable'], value: true },
-    { paths: ['hardware.graphics.enable32Bit', 'hardware.opengl.driSupport32Bit'],
-      value: true },
+    { paths: GPU_PATHS.enable, value: true },
+    { paths: GPU_PATHS.enable32Bit, value: true },
   ];
   if (g.extras.length) {
-    steps.push({ paths: ['hardware.graphics.extraPackages'], value: g.extras });
+    steps.push({ paths: GPU_PATHS.extras, value: g.extras });
   }
   if (g.drivers) {
-    steps.push({ paths: ['services.xserver.videoDrivers'], value: g.drivers });
+    steps.push({ paths: GPU_PATHS.drivers, value: g.drivers });
   }
   if (g.nvidia) {
     steps.push(
-      { paths: ['hardware.nvidia.modesetting.enable'], value: true },
-      { paths: ['hardware.nvidia.open'], value: false });
+      { paths: GPU_PATHS.nvidiaModeset, value: true },
+      { paths: GPU_PATHS.nvidiaOpen, value: false });
   }
 
   /* The previous card's pieces leave when the card does, the same rule the
@@ -1972,12 +2016,12 @@ async function addGpu(key) {
      a videoDrivers card holding anything but exactly ["nvidia"] is the
      user's and stays. */
   if (!g.nvidia) {
-    dropIfOurs('hardware.nvidia.modesetting.enable', true);
-    dropIfOurs('hardware.nvidia.open', false);
-    dropIfOurs('services.xserver.videoDrivers', ['nvidia']);
+    dropIfOurs(GPU_PATHS.nvidiaModeset[0], true);
+    dropIfOurs(GPU_PATHS.nvidiaOpen[0], false);
+    dropIfOurs(GPU_PATHS.drivers[0], ['nvidia']);
   }
   if (key !== 'intel') {
-    dropIfOurs('hardware.graphics.extraPackages', ['intel-media-driver']);
+    dropIfOurs(GPU_PATHS.extras[0], ['intel-media-driver']);
   }
 
   const added = [], missing = [];
@@ -2152,12 +2196,21 @@ $('#btn-audio').addEventListener('click', () => {
    example uses. When kernel.org names a new LTS, it goes on the front of this
    list; until then the newest one nixpkgs still ships is what comes out, and
    the status line says which version that was so a stale list is visible. */
+const KERNEL_PATHS = { packages: ['boot.kernelPackages'] };
+
 const KERNELS = {
   standard: { label: 'Standard', try: [
     { probe: 'linux', expr: 'pkgs.linuxPackages' } ] },
   latest: { label: 'Latest', try: [
     { probe: 'linux_latest', expr: 'pkgs.linuxPackages_latest' } ] },
-  lts: { label: 'LTS', try: ['6_12', '6_6', '6_1', '5_15', '5_10'].map(s => (
+  // Newest first; the first the channel still ships wins. Which series are
+  // longterm is kernel.org's designation and nothing in the index records it,
+  // so this list is the one thing here that a human has to keep current —
+  // `tools/catalogue_check.py` prints the series the channel ships that are
+  // newer than the head of this list, which is how 6.18 was caught: it had
+  // been longterm since 2025-11-30 and shipped by the channel, while LTS here
+  // still handed out 6.12.
+  lts: { label: 'LTS', try: ['6_18', '6_12', '6_6', '6_1', '5_15', '5_10'].map(s => (
     { probe: `linuxKernel.kernels.linux_${s}`,
       expr: `pkgs.linuxKernel.packages.linux_${s}` })) },
   zen: { label: 'Zen', try: [
@@ -2179,7 +2232,7 @@ async function addKernel(key) {
       `何も追加していません。`), 'bad');
     return;
   }
-  const used = await addWithValue(['boot.kernelPackages'], pick.expr);
+  const used = await addWithValue(KERNEL_PATHS.packages, pick.expr);
   if (!used) {
     setStatus(say(
       'This release has no boot.kernelPackages. Nothing was added.',
@@ -2229,7 +2282,20 @@ $('#btn-kernel').addEventListener('click', () => {
    cinnamon-* packages are the desktop itself. Two more were dropped for a
    duller reason — `nemo-with-extensions` and `evolutionWithPlugins` are
    wrappers the catalogue holds no description or version for, so they would
-   arrive as blank rows, and plain `nemo` and `evolution` are already here. */
+   arrive as blank rows, and plain `nemo` and `evolution` are already here.
+
+   **An entry is a name, or an array of spellings for one app** — the same
+   candidate rule the desktop roles follow, and for the same reason: nixgen
+   offers the current release and the two before it, and nixpkgs renames
+   things between them. `['thunar', 'xfce.thunar']` is one app under the name
+   it has now and the name it had before the `xfce.*` scope was flattened; the
+   endpoint returns only the ones that exist, so the row appears once.
+   Writing the pair as two flat entries did the same thing on screen and lost
+   the fact that they are one app — which left
+   `tools/catalogue_check.py` unable to tell a spelling kept on purpose from
+   one that had gone stale, and a checker that cries wolf is one nobody runs.
+   Group a rename here and the checker stays quiet until something is really
+   missing. */
 const APPS = {
   browser: ['firefox', 'chromium', 'google-chrome', 'librewolf', 'brave',
             'ungoogled-chromium', 'epiphany'],
@@ -2238,42 +2304,47 @@ const APPS = {
             'abiword', 'xournalpp', 'papers', 'kdePackages.okular', 'xreader',
             'cosmic-reader', 'gnome-calendar', 'gnome-contacts',
             'tradingview'],
-  media:   ['vlc', 'mpv', 'parole', 'xfce.parole', 'showtime', 'celluloid',
+  media:   ['vlc', 'mpv', ['parole', 'xfce.parole'], 'showtime', 'celluloid',
             'cosmic-player', 'obs-studio', 'audacity', 'kdePackages.kdenlive',
             'davinci-resolve', 'handbrake', 'gpu-screen-recorder-gtk',
             'strawberry', 'kdePackages.elisa', 'gnome-music', 'decibels',
             'snapshot', 'pavucontrol', 'ffmpeg-full'],
   graphics:['gimp', 'gimp-with-plugins', 'inkscape', 'krita', 'darktable',
-            'blender', 'freecad', 'ristretto', 'xfce.ristretto', 'loupe',
+            'blender', 'freecad', ['ristretto', 'xfce.ristretto'], 'loupe',
             'kdePackages.gwenview', 'xviewer', 'pix', 'simple-scan',
             'rawtherapee'],
   games:   ['steam', 'lutris', 'prismlauncher', 'protonup-qt', 'steam-run',
-            'goverlay', 'mangohud', 'moonlight-qt', 'supertuxkart',
-            'superTuxKart', 'zeroad', 'retroarch'],
+            'goverlay', 'mangohud', 'moonlight-qt',
+            ['supertuxkart', 'superTuxKart'], 'zeroad', 'retroarch'],
   comms:   ['discord', 'signal-desktop', 'element-desktop', 'telegram-desktop',
             'dropbox', 'nextcloud-client', 'syncthing', 'warpinator',
             'localsend'],
-  accessories: ['flameshot', 'kdePackages.spectacle', 'xfce4-screenshooter',
-                'xfce.xfce4-screenshooter', 'gnome-screenshot',
+  accessories: ['flameshot', 'kdePackages.spectacle',
+                ['xfce4-screenshooter', 'xfce.xfce4-screenshooter'],
+                'gnome-screenshot',
                 'cosmic-screenshot', 'copyq', 'gnome-calculator',
                 'kdePackages.kcalc', 'galculator', 'file-roller', 'xarchiver',
-                'kdePackages.ark', 'xfburn', 'xfce.xfburn', 'gnome-text-editor',
-                'cosmic-edit', 'mousepad', 'xfce.mousepad', 'bulky', 'catfish',
-                'xfce.catfish', 'xfce4-appfinder', 'xfce.xfce4-appfinder',
-                'gigolo', 'xfce.gigolo', 'orage', 'xfce.orage', 'plank',
+                'kdePackages.ark', ['xfburn', 'xfce.xfburn'],
+                'gnome-text-editor',
+                'cosmic-edit', ['mousepad', 'xfce.mousepad'], 'bulky',
+                ['catfish', 'xfce.catfish'],
+                ['xfce4-appfinder', 'xfce.xfce4-appfinder'],
+                ['gigolo', 'xfce.gigolo'], ['orage', 'xfce.orage'], 'plank',
                 'gnome-clocks', 'gnome-weather', 'gnome-maps',
                 'gnome-font-viewer', 'gnome-disk-utility', 'gnome-characters',
                 'gucharmap', 'orca', 'onboard'],
-  files:   ['nautilus', 'kdePackages.dolphin', 'thunar', 'xfce.thunar', 'nemo',
+  files:   ['nautilus', 'kdePackages.dolphin', ['thunar', 'xfce.thunar'],
+            'nemo',
             'cosmic-files', 'pcmanfm', 'yazi', 'ranger', 'nnn', 'mc',
             'doublecmd'],
   terminal:['alacritty', 'kitty', 'wezterm', 'ghostty', 'foot', 'rio',
             'kdePackages.konsole', 'gnome-console', 'gnome-terminal',
-            'cosmic-term', 'xfce4-terminal', 'xfce.xfce4-terminal', 'tilix',
+            'cosmic-term', ['xfce4-terminal', 'xfce.xfce4-terminal'], 'tilix',
             'terminator'],
   system:  ['htop', 'btop', 'gnome-system-monitor',
-            'kdePackages.plasma-systemmonitor', 'xfce4-taskmanager',
-            'xfce.xfce4-taskmanager', 'gparted', 'keepassxc', 'seahorse',
+            'kdePackages.plasma-systemmonitor',
+            ['xfce4-taskmanager', 'xfce.xfce4-taskmanager'],
+            'gparted', 'keepassxc', 'seahorse',
             'kdePackages.kwalletmanager', 'baobab', 'timeshift', 'fastfetch',
             'inxi', 'lm_sensors', 'lshw', 'pciutils', 'blueman',
             'kdePackages.kinfocenter', 'gnome-logs', 'solaar', 'piper',
@@ -2295,7 +2366,9 @@ async function showApps(key) {
   const attrs = APPS[key];
   $('#appshint').hidden = !attrs;
   if (!attrs) { runSearch(); return; }
-  const url = '/api/packages?attrs=' + encodeURIComponent(attrs.join(','));
+  // An entry may be several spellings of one app; ask about all of them and
+  // let the endpoint answer with the ones that exist, in the order asked.
+  const url = '/api/packages?attrs=' + encodeURIComponent(attrs.flat().join(','));
   const { results } = await fetch(url).then(r => r.json());
   paintPackages(results);
 }
@@ -2726,10 +2799,16 @@ function renderEditor() {
   if (!state.selected.size) return;
 
   // The package list is the one people come back to, so it stays on top.
-  const entries = [...state.selected.values()].sort((a, b) =>
-    (b.path === TOP_OPTION ? 1 : 0) - (a.path === TOP_OPTION ? 1 : 0));
+  // Keyed, not just valued: the × below has to delete the card that was
+  // clicked, and `entry.path` is not the map key. An import files repeats
+  // under a suffixed key while leaving `entry.path` as the catalogue path
+  // with its `<name>` intact, so a file with two users or two vhosts has
+  // several cards answering to one path — and deleting by path took the
+  // first of them, whichever was clicked.
+  const entries = [...state.selected.entries()].sort((a, b) =>
+    (b[1].path === TOP_OPTION ? 1 : 0) - (a[1].path === TOP_OPTION ? 1 : 0));
 
-  for (const entry of entries) {
+  for (const [key, entry] of entries) {
     const card = el('div', 'card'
       + (entry.path === state.lastTouched ? ' touched' : '')
       + (entry.verbatim ? ' verbatim' : ''));
@@ -2750,7 +2829,7 @@ function renderEditor() {
     const drop = el('button', 'drop', '×');
     drop.title = 'Remove from module';
     drop.addEventListener('click', () => {
-      remember(); state.selected.delete(entry.path); rerender(); runSearch();
+      remember(); state.selected.delete(key); rerender(); runSearch();
     });
     head.appendChild(drop);
     card.appendChild(head);

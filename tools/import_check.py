@@ -224,6 +224,25 @@ CASES = [
         "expect": {"networking.firewall.allowedTCPPorts": ("expression", None)},
     },
     {
+        # nixgen writes this line itself: the PulseAudio preset sets
+        # `services.pipewire.enable = lib.mkForce false` because a desktop may
+        # switch PipeWire on with a plain `true`, and two plain definitions is
+        # a build refusal. Folding the wrapper away turned Import generated.nix
+        # on nixgen's own output into a file nixos-rebuild rejects — two button
+        # presses, in the order the five steps suggest. `mkForce` and
+        # `mkOverride` carry a decision and are kept; `mkDefault` is still
+        # folded, because every line of the configuration.nix this tool writes
+        # wears one and the Setup fields have to read their own file back.
+        "name": "mkForce keeps its wrapper; mkDefault is still folded",
+        "body": '''  services.pipewire.enable = lib.mkForce false;
+  networking.hostName = lib.mkDefault "workstation";
+''',
+        "expect": {
+            "services.pipewire.enable": ("expression", None),
+            "networking.hostName": ("matched", "workstation"),
+        },
+    },
+    {
         "name": "a name with a dot and a space in it",
         "body": '''  services.nginx.virtualHosts."my site.example.com".root = "/srv/www";
 ''',

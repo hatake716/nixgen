@@ -16,6 +16,81 @@ reached it yet.
 
 ## English
 
+## v1.0.0-dev.10 — 2026-08-12
+
+Landed on `development` first, merged into `main` since. A maintenance pass:
+one new check, the presets made declarative, and ten defects — three of them
+in code shipped days earlier, found by the new check and the audit that
+preceded it.
+
+### build 2026-08-12x
+
+**Preparing for the six-month release cadence.** NixOS ships a numbered
+release every half year, and nixpkgs renames things between them. nixgen
+already survives that without crashing — a preset names candidates and takes
+the first the catalogue has — and that is exactly the problem: a name that has
+gone stale produces no error, just a setting quietly not written, or a row
+quietly missing from a category.
+
+- **`tools/catalogue_check.py`** asks the running app for every option path
+  and package name its presets promise, asks the index which of them still
+  exist, and names what does not. It reads the preset tables out of the live
+  page rather than parsing the source, so it cannot drift from the thing it
+  checks. It separates a spelling kept on purpose — nixgen offers three
+  releases, so the old name is what keeps the older ones working — from one
+  that has really gone, because a checker that cries wolf is one nobody runs.
+  It runs in CI on every push.
+- **CLAUDE.md gained a "when a new NixOS release lands" runbook**: build the
+  new channel's index, run the one command, act on what it prints, then the
+  harnesses in the order that makes each one trustworthy.
+- **Every preset's option paths now live in a table** (`GPU_PATHS`,
+  `LANG_PATHS`, `FLATPAK_PATHS`, `SHELL_PATHS`, `KERNEL_PATHS`,
+  `REGION_PATHS`) instead of inside the function that writes them. Each
+  preset's contract with the catalogue is readable in one place, and the
+  checker can see it: coverage went from 56 groups to 71.
+- **A renamed app is one entry with two spellings** — `['thunar',
+  'xfce.thunar']` — the same candidate rule the desktop roles already follow.
+
+**Defects fixed.**
+
+- **LTS was handing out a two-year-old kernel.** 6.18 has been longterm since
+  2025-11-30 and this channel ships it, but the list still led with 6.12. The
+  new check is what caught it, which is the argument for the check.
+- **Importing nixgen's own PulseAudio output produced a file that would not
+  build.** The importer folded `lib.mkForce` away, and `lib.mkForce false` on
+  PipeWire is the whole reason that preset writes what it writes — a plain
+  `false` beside a desktop's plain `true` is the conflict it exists to avoid.
+  `mkForce` and `mkOverride` are kept as written now; `mkDefault` still folds,
+  because every line of the configuration.nix nixgen writes wears one and the
+  Setup fields have to read their own file back. Both halves are pinned by a
+  new fixed case, through both readers.
+- **Every package icon was served at the worst size the theme had.** The sort
+  that ranks icon directories ran in reverse, so 16×16 overwrote 256×256 — the
+  code did the opposite of the comment above it. Firefox now comes from
+  128×128, VLC from 256×256, GIMP from the SVG.
+- **The module card's × could delete the wrong card.** It deleted by option
+  path, and an imported file that sets one option twice — two users, two
+  vhosts — files those under distinct keys that share a path.
+- **Three preset dropdowns were missing from the machine-translation guard**,
+  including Region's eighteen bilingual labels.
+- A bad query parameter got no answer at all: `do_GET` now has the wrapper
+  `do_POST` has had. `?limit=-1` returned the whole catalogue, because SQLite
+  reads a negative limit as no limit. And offline, the "unused index" list
+  offered a live channel's index for deletion — the fence that knows a channel
+  is still on offer failed open when the probe answered nothing.
+- **A mistyped host name was invisible in dark mode** (1.17:1, a colour that
+  predated dark mode), and the reindex-failure message was the last
+  hard-coded colour left in `app.js`.
+- **The sweep could pass while the app was broken.** `check_syntax` polled a
+  status bar it had not cleared, and the handler can return without writing
+  one, so a verdict from an earlier point was sitting there to be read as this
+  one's; and `settled()` returning false was discarded, so an assertion could
+  be measured against the previous file.
+
+Verified: fuzz, the importer through both readers, the eleven-point sweep, the
+new catalogue check, and `eval_check` on both a fresh bundle and the
+round-tripped module.
+
 ## v1.0.0-dev.9 — 2026-08-12
 
 Landed on `development` first, merged into `main` since. Everything between
@@ -1783,6 +1858,32 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+## v1.0.0-dev.10 — 2026-08-12
+
+`development` ブランチに先に入り、その後 `main` に統合された内容です。保守のための一巡: 検査ツールを1つ追加し、プリセットを宣言的にし、不具合を10件修正しました。うち3件は数日前に出したばかりのコードの中にあり、新しい検査とその前の監査が見つけたものです。
+
+### build 2026-08-12x
+
+**半年ごとのリリース周期への備え。** NixOS は半年ごとに新リリースを出し、その間に nixpkgs は名前を変えます。nixgen は既にそれで落ちない作りです(プリセットは候補を並べ、カタログにある最初のものを採る) — そして**それこそが問題**です。古くなった名前は例外を出さず、設定が1つ静かに書かれないだけ、分類から1行静かに消えるだけだからです。
+
+- **`tools/catalogue_check.py`** は、動いているアプリにプリセットが名指ししている全オプション名・パッケージ名を尋ね、索引にどれが現存するかを問い合わせ、無いものを名指しします。ソースを解析するのではなく**生きているページから表を読む**ので、検査対象との食い違いが原理的に起きません。**意図して残した旧綴り**(nixgen は3リリースを提供するので、旧綴りが古いチャンネルを支えています)と**本当に消えた名前**を区別します。狼少年になる検査は誰も走らせないからです。CI で毎プッシュ実行されます。
+- **CLAUDE.md に「新しい NixOS リリースが出たとき」のランブック**を追加しました。新チャンネルの索引を作り、1つのコマンドを流し、出力に従って直し、そのあと各ハーネスを「前段が通って初めて次が信用できる」順に流す、という手順です。
+- **各プリセットのオプションパスを表に引き上げました**(`GPU_PATHS`・`LANG_PATHS`・`FLATPAK_PATHS`・`SHELL_PATHS`・`KERNEL_PATHS`・`REGION_PATHS`)。関数本体に埋まっていたものが1か所で読めるようになり、検査ツールからも見えます — 対象は56群から**71群**に増えました。
+- **改名されたアプリは「2つの綴りを持つ1項目」**になりました(`['thunar', 'xfce.thunar']`)。デスクトップのロールが既に使っている候補方式と同じです。
+
+**修正した不具合。**
+
+- **LTS が2年古いカーネルを渡していました。** 6.18 は 2025-11-30 から longterm で、このチャンネルも配布しているのに、一覧の先頭は 6.12 のままでした。**新しい検査が捕まえた**もので、この検査を作った理由そのものです。
+- **nixgen 自身の PulseAudio 出力を取り込むと、ビルドできないファイルになっていました。** インポータが `lib.mkForce` を畳んで落としていたためです。PipeWire に対する `lib.mkForce false` は、あのプリセットがそう書く理由そのもの — 素の `false` はデスクトップの素の `true` と衝突するので、それを避けるために存在します。今後 `mkForce` と `mkOverride` は書かれたまま保存し、`mkDefault` は従来どおり畳みます(nixgen が書く configuration.nix は全行が mkDefault で、Setup タブは自分のファイルを読み戻す必要があるため)。両方を固定ケースで、**2つのリーダー両方**で固定しました。
+- **すべてのパッケージアイコンが、テーマが持つ最低サイズで配信されていました。** アイコンディレクトリを順位付けする並べ替えが逆向きで、16×16 が 256×256 を上書きしていました — 直上のコメントが述べる意図と正反対の動作です。Firefox は 128×128、VLC は 256×256、GIMP は SVG から出るようになりました。
+- **モジュールカードの × が別のカードを消すことがありました。** オプションのパスで消していたためで、同じオプションを2回設定するファイル(ユーザー2人、vhost 2つ)は、同じパスを共有する別々のキーで登録されます。
+- **プリセットのプルダウン3つが機械翻訳よけの保護リストから漏れていました**(Region の18個の日英併記ラベルを含みます)。
+- 不正なクエリパラメータに対して**何も返していませんでした**。`do_GET` にも `do_POST` と同じ例外ラッパを付けました。`?limit=-1` はカタログ全件を返していました(SQLite は負の LIMIT を「無制限」と読みます)。またオフライン時、「未使用の索引」一覧が**現役チャンネルの索引を削除候補として提示**していました。チャンネルが現役かを知る唯一の柵が、探索が空を返したときに開いてしまうためです。
+- **ダークモードでホスト名の入力ミスが見えませんでした**(1.17:1。ダークモード以前からの色指定)。再索引失敗のメッセージは `app.js` に残る最後のハードコード色でした。
+- **スイープがアプリの故障中に合格しうる状態でした。** `check_syntax` はステータス欄を消さずに読んでおり、ハンドラは何も書かずに返ることがあるので、前の項目の判定がそのまま今回の合格として読まれえました。`settled()` が返す false も捨てていたので、前のファイルに対して検証してしまう可能性がありました。
+
+検証: fuzz、インポータ(両リーダー)、11項目スイープ、新しいカタログ検査、そして新規生成の束と往復後モジュールの両方に対する `eval_check`。
 
 ## v1.0.0-dev.9 — 2026-08-12
 
