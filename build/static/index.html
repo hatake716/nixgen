@@ -7,6 +7,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>nixgen — NixOS configuration generator</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%224%2018%2084%2084%22%20fill%3D%22none%22%20stroke%3D%22%231b2027%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cg%20transform%3D%22rotate%280%2046%2060%29%22%3E%3Cpath%20d%3D%22M34.5%2060L8%2060%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%280%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2053.31%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%280%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2066.69%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%2860%2046%2060%29%22%3E%3Cpath%20d%3D%22M34.5%2060L8%2060%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%2860%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2053.31%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%2860%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2066.69%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28120%2046%2060%29%22%3E%3Cpath%20d%3D%22M34.5%2060L8%2060%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28120%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2053.31%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28120%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2066.69%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28180%2046%2060%29%22%3E%3Cpath%20d%3D%22M34.5%2060L8%2060%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28180%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2053.31%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28180%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2066.69%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28240%2046%2060%29%22%3E%3Cpath%20d%3D%22M34.5%2060L8%2060%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28240%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2053.31%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28240%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2066.69%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28300%2046%2060%29%22%3E%3Cpath%20d%3D%22M34.5%2060L8%2060%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28300%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2053.31%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28300%2046%2060%29%22%3E%3Cpath%20d%3D%22M21.25%2060L13.82%2066.69%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M57.5%2060L51.75%2069.96L40.25%2069.96L34.5%2060L40.25%2050.04L51.75%2050.04Z%22%2F%3E%3Cpath%20d%3D%22M52.33%2060L49.16%2065.48L42.84%2065.48L39.67%2060L42.84%2054.52L49.16%2054.52Z%22%2F%3E%3Cpath%20d%3D%22M46%2060L46%2066.33%22%2F%3E%3Cpath%20d%3D%22M46%2060L40.52%2056.84%22%2F%3E%3Cpath%20d%3D%22M46%2060L51.48%2056.84%22%2F%3E%3C%2Fsvg%3E">
+<script>
+/* Before the stylesheet paints, so a dark launch never flashes white: the
+   saved choice wins, otherwise the system's. The saved theme is the one
+   thing nixgen keeps in the browser — CLAUDE.md says why. */
+try {
+  var t = localStorage.getItem('theme');
+  if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) {
+    document.documentElement.dataset.theme = 'dark';
+  }
+} catch (e) {}
+</script>
 <link rel="stylesheet" href="/app.css">
 </head>
 <body>
@@ -24,6 +35,10 @@
       <input type="file" id="file-gen" accept=".nix" hidden>
       <button class="btn" id="btn-import">Import configuration.nix</button>
       <input type="file" id="file" accept=".nix" hidden>
+      <!-- Names the theme it switches TO; app.js keeps the label, the
+           favicon and the saved choice in step. -->
+      <button class="btn" id="btn-theme"
+              title="Switch between light and dark. — 表示をライトとダークで切り替えます。">Dark</button>
       <span class="sep" aria-hidden="true"></span>
       <button class="btn" id="btn-check"><span class="stepnum">4</span>Check syntax</button>
       <span class="sep" aria-hidden="true"></span>

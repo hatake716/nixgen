@@ -16,6 +16,37 @@ reached it yet.
 
 ## English
 
+## v1.0.0-dev.7 — 2026-08-12
+
+Landed on `development` first, merged into `main` since. Everything between
+this heading and `v1.0.0-dev.6` is what it added.
+
+### build 2026-08-12u
+
+- **Dark mode.** The page follows your system's preference by itself, and a
+  header button switches it by hand — the choice is remembered, and with
+  nothing chosen the page keeps following the system live. Dark is the same
+  room with the lights off: the file pane was already night-coloured, so it
+  does not change, and the rest of the page moves into its family. The
+  native parts — dropdowns, checkboxes, scrollbars — turn dark with it.
+- **The marks switch too.** The header flake is drawn in the text colour
+  and follows by itself; the artwork above the five steps is pure black in
+  the alpha channel, so inverting it yields a clean white original, the
+  same fact the README's dark-theme logo rests on; and the favicon's ink is
+  swapped so the browser tab matches. The System update button keeps its
+  amber warning colour in both themes — it is the one button that changes
+  the machine.
+- **Checked, not assumed:** a dark system gets a dark page unasked, the
+  toggle flips and survives reloads in both directions, the inverted logo
+  and swapped favicon were read back from the running page, every probed
+  text/background pair in the dark clears 4.5:1 contrast (the faint labels
+  failed at 3.6:1 on the first try and were brightened), no width scrolls
+  sideways, and the eleven-point sweep passes. One `background:#fff` was
+  hiding in an inline style and turned up in a screenshot, not in the CSS.
+- The saved theme is the one thing nixgen now keeps in the browser. A
+  toggle that resets on every launch reads as broken; everything that
+  matters still lives in memory and nothing else is stored.
+
 ## v1.0.0-dev.6 — 2026-08-12
 
 Landed on `development` first, merged into `main` since. Everything between
@@ -1676,6 +1707,17 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+## v1.0.0-dev.7 — 2026-08-12
+
+`development` ブランチに先に入り、その後 `main` に統合された内容です。この見出しから `v1.0.0-dev.6` までが、この版で加わった内容です。
+
+### build 2026-08-12u
+
+- **ダークモードを実装しました。** ページはまず OS の設定に自動で従い、ヘッダのボタンで手動でも切り替えられます。選んだ結果は記憶され、何も選んでいなければ OS の変更に**その場で**追従し続けます。ダークは「同じ部屋の照明を消しただけ」です: ファイル欄はもともと夜の配色なので変わらず、残りのページがその色の家族に移ります。ネイティブ部品(プルダウン・チェックボックス・スクロールバー)も一緒に暗くなります。
+- **ロゴとアイコンも切り替わります。** ヘッダの雪の結晶は文字色で描かれているので自動で追従します。5つの手順の上のアートワークはアルファチャンネルだけの純黒なので、反転すると**にじみのない白の原画**になります(README のダークテーマ用ロゴと同じ事実に依っています)。ファビコンもインクを差し替えるので、ブラウザのタブも揃います。System update ボタンは両テーマで琥珀色のまま — マシンを変更する唯一のボタンだからです。
+- **推測ではなく確認しました:** ダーク設定の OS では何もせずダークで開き、切り替えは両方向ともリロードを生き延び、反転ロゴとファビコンの差し替えは動いているページから読み戻し、ダークで検査した全ての文字/背景の組がコントラスト 4.5:1 を満たし(淡色ラベルが最初 3.6:1 で落ちたので明るくしました)、どの幅でも横スクロールは出ず、11項目のスイープも全て通っています。`background:#fff` が1つインラインスタイルに隠れていて、CSS の走査ではなく**スクリーンショットで**見つかりました。
+- 記憶したテーマは、nixgen がブラウザに保存する唯一のものです。起動のたびにリセットされる切り替えボタンは壊れて見えます。大事なものは今までどおりすべてメモリの中にあり、それ以外は何も保存しません。
 
 ## v1.0.0-dev.6 — 2026-08-12
 

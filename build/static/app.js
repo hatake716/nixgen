@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-12t';
+const BUILD = '2026-08-12u';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -2392,7 +2392,7 @@ function packagePicker(initial, onPick, clearAfter) {
   const box = el('div', 'pkgpick');
   const i = el('input'); i.type = 'text'; i.value = initial || '';
   i.placeholder = 'search nixpkgs…'; i.spellcheck = false;
-  i.style.cssText = 'width:100%;padding:6px 8px;border:1px solid var(--rule);border-radius:3px;background:#fff;font-family:var(--mono);font-size:12px';
+  i.style.cssText = 'width:100%;padding:6px 8px;border:1px solid var(--rule);border-radius:3px;background:var(--card);font-family:var(--mono);font-size:12px';
   const sug = el('div', 'sugg'); sug.style.display = 'none';
   let t;
   const close = () => { sug.style.display = 'none'; };
@@ -3781,6 +3781,44 @@ window.addEventListener('pageshow', sayAlive);
 window.addEventListener('pagehide', () => {
   navigator.sendBeacon('/api/bye', PAGE_ID);
 });
+
+/* ------------------------------------------------------------------ theme */
+
+/* Light and dark are the same page with different variables; the switch is
+   a data-theme attribute on <html>, set before the first paint by the
+   inline script in index.html. Three things CSS cannot reach are kept in
+   step from here: the favicon (a data URI cannot read variables, so its ink
+   is swapped for the dark palette's), the button's label (it names the
+   theme you would switch to), and the saved choice. The choice is the one
+   thing nixgen stores in the browser — a toggle that resets on every launch
+   reads as broken — and with nothing saved the page follows the system,
+   live. */
+const FAVICON_LINK = document.querySelector('link[rel="icon"]');
+const FAVICON_INK = FAVICON_LINK.href;
+const FAVICON_SNOW = FAVICON_INK.replace('%231b2027', '%23dbe2ea');
+
+function themeIsDark() {
+  return document.documentElement.dataset.theme === 'dark';
+}
+
+function applyTheme(dark) {
+  if (dark) document.documentElement.dataset.theme = 'dark';
+  else delete document.documentElement.dataset.theme;
+  FAVICON_LINK.href = dark ? FAVICON_SNOW : FAVICON_INK;
+  $('#btn-theme').textContent = dark ? 'Light' : 'Dark';
+}
+
+$('#btn-theme').addEventListener('click', () => {
+  const dark = !themeIsDark();
+  applyTheme(dark);
+  try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+  let saved = null;
+  try { saved = localStorage.getItem('theme'); } catch (err) {}
+  if (!saved) applyTheme(e.matches);
+});
+applyTheme(themeIsDark());
 
 /* The verdict in both languages. A failure carries the parser's own words
    after it — those are Nix's, in Nix's English, and translating them would

@@ -800,7 +800,33 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   zone, boot aborted, and two sweep points later Check syntax was parsing
   an empty configuration.nix. The TDZ bullet below already told this story;
   it happened anyway.
-- No browser storage. State lives in `state` in `app.js`.
+- **Dark mode is the same page with different variables, and the switch is
+  an attribute.** `:root[data-theme="dark"]` overrides the palette; an
+  inline script in `<head>` sets the attribute before the stylesheet paints
+  (the saved choice first, then the system's), so a dark launch never
+  flashes white, and a system-theme change is followed live while nothing
+  is saved. The file pane's night colours (`--code-*`) are the one part
+  that does not change — light mode's right column was already the
+  destination, and the rest of the page moves into its family.
+  **Hard-coded colours are what break this**: every white that predated
+  dark mode now lives in a variable (`--card`, `--hover-bg`, `--hit`,
+  `--accent-fg`, `--danger-bg`…), one-off tints (badges, the verbatim
+  card) get explicit dark overrides, and one `background:#fff` hid in an
+  inline style in `packagePicker` — grep both files, not just the CSS.
+  `color-scheme` is what turns the native half (selects, checkboxes,
+  scrollbars) dark with the rest. Three things CSS cannot reach are kept
+  in step from `applyTheme` in `app.js`: the favicon (a data URI cannot
+  read variables, so its ink is string-swapped), the toggle's label (it
+  names the theme you would switch to), and the saved choice. `/logo.png`
+  in the steps is pure black in the alpha channel, so `invert(1)` is
+  exact, not approximate — the same fact the README's `<picture>` swap
+  rests on. Dark `--ink-faint` was brightened until the eyebrows clear
+  4.5:1 (measured, 3.6 before); check contrast when touching the dark
+  palette, not just how it looks.
+- No browser storage for anything that matters. State lives in `state` in
+  `app.js`. **The saved theme is the single exception** — a toggle that
+  resets on every launch reads as broken — and it is the whole list; the
+  next cosmetic preference does not get to join it quietly.
 
 > 上記はいずれも「見た目は正しいのに後で壊れる」類の落とし穴です。触る前に一読してください。
 
