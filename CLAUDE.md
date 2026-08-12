@@ -778,6 +778,28 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   One SVG cannot be two drawings, so shipping only `scalable` would mean one
   rendition at every size, and it would be the wrong one at the sizes a panel
   and a menu actually ask for.
+- **Undo is a stack of JSON snapshots, and a step is a user action.** One
+  press of the module header's Undo puts on screen what was there before the
+  last add, preset, import, edit or removal. `remember()` runs where actions
+  start — the search-result click, the seven preset buttons, `readInto`, the
+  two removal ×s — and on focus for edits (Setup fields directly, everything
+  in `#editor` through one focusin delegate), so typing is one step per
+  edit, not one per keystroke; a snapshot identical to the top of the stack
+  is not pushed. **The automatic repairs (`ensureImType`, `ensureUnfree`)
+  never create steps** and simply re-apply after a restore, which is what
+  keeps a restored state as valid as a built one — undoing "add steam"
+  takes the auto-added `allowUnfree` with it because nothing needs it any
+  more, and undoing to a state that still names something unfree gets the
+  switch put straight back. A snapshot holds the module, the Setup fields,
+  `unfree` and `carriedImports`; restoring re-dispatches `change` on the
+  fields so the starter and dependent UI follow. `boot()` empties the stack
+  — history recorded against one channel means nothing on another — **and
+  that is why `undoStack` is declared beside `state` at the top of the
+  file**: boot() runs during the initial script pass, and declared beside
+  its own functions further down the const was still in its temporal dead
+  zone, boot aborted, and two sweep points later Check syntax was parsing
+  an empty configuration.nix. The TDZ bullet below already told this story;
+  it happened anyway.
 - No browser storage. State lives in `state` in `app.js`.
 
 > 上記はいずれも「見た目は正しいのに後で壊れる」類の落とし穴です。触る前に一読してください。

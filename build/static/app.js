@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-12q';
+const BUILD = '2026-08-12r';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -108,6 +108,16 @@ const state = {
   stateTouched: false,   // whether stateVersion was typed in by hand
 };
 
+/* The undo stack lives up here with `state`, not next to the functions that
+   use it: boot() clears it, boot() runs during the initial script pass, and
+   a `const` declared below that call site is still in its temporal dead zone
+   — the SWAY_CONFIG_NO_BAR lesson, relearned the hard way. Declaring it
+   after boot() aborted boot with "Cannot access 'undoStack' before
+   initialization", loadStarter never ran, and Check syntax was handed an
+   empty configuration.nix. */
+const UNDO_LIMIT = 50;
+const undoStack = [];
+
 /* system.stateVersion follows the channel until someone types in the box.
    `nixos-26.05` says its version in its name; `nixos-unstable` does not, so the
    index records what the catalogue said — 26.11 today. Leaving 26.05 in the box
@@ -146,6 +156,9 @@ function setStateVersion(release, channel) {
 })();
 
 async function boot() {
+  // History recorded against one channel means nothing on another.
+  undoStack.length = 0;
+  syncUndoButton();
   const meta = await fetch('/api/meta').then(r => r.json());
   state.channel = meta.channel || 'nixos';
   $('#channel').textContent = state.channel;
@@ -497,6 +510,9 @@ SETUP_FIELDS.forEach(id => {
   const n = $('#' + id);
   n.addEventListener('input', onSetupChange);
   n.addEventListener('change', onSetupChange);
+  // The snapshot lands before the first keystroke or the toggle, not after:
+  // focus comes first, and identical snapshots are not stacked.
+  n.addEventListener('focus', () => remember());
 });
 // Once it has been typed in, it stays typed in: switching channel must not
 // quietly rewrite a stateVersion someone chose on purpose.
@@ -647,7 +663,7 @@ function paintOptions(rows, q) {
       b.appendChild(d);
     }
     b.appendChild(ident(r.type_str || '—', 't'));
-    b.addEventListener('click', () => addOption(r.path));
+    b.addEventListener('click', () => { remember(); addOption(r.path); });
     box.appendChild(b);
   });
 }
@@ -742,9 +758,11 @@ function paintPackages(rows) {
     // A greyed row is not a dead one: clicking it takes you to the card the
     // package is already in, the way clicking an option you have flashes its
     // card rather than adding a second.
-    b.addEventListener('click', () => alreadyListed(r.attr)
-      ? flashCard(TOP_OPTION)
-      : addPackage(r.attr, r.unfree));
+    b.addEventListener('click', () => {
+      if (alreadyListed(r.attr)) return flashCard(TOP_OPTION);
+      remember();
+      addPackage(r.attr, r.unfree);
+    });
     box.appendChild(b);
   });
 }
@@ -1563,12 +1581,12 @@ async function addShell(key) {
 
 $('#btn-shell').addEventListener('click', () => {
   const key = $('#s-shell').value;
-  if (key) addShell(key);
+  if (key) { remember(); addShell(key); }
 });
 
 $('#btn-desktop').addEventListener('click', () => {
   const key = $('#s-desktop').value;
-  if (key) addDesktop(key);
+  if (key) { remember(); addDesktop(key); }
 });
 
 /* A language is not one setting. It is the locale, the keymap the console
@@ -1778,16 +1796,16 @@ async function addFlatpak() {
     'https://flathub.org/repo/flathub.flatpakrepo'), 'ok');
 }
 
-$('#btn-flatpak').addEventListener('click', addFlatpak);
+$('#btn-flatpak').addEventListener('click', () => { remember(); addFlatpak(); });
 
 $('#btn-lang').addEventListener('click', () => {
   const key = $('#s-lang').value;
-  if (key) addLanguage(key);
+  if (key) { remember(); addLanguage(key); }
 });
 
 $('#btn-region').addEventListener('click', () => {
   const zone = $('#s-region').value;
-  if (zone) addRegion(zone);
+  if (zone) { remember(); addRegion(zone); }
 });
 
 /* Graphics. `hardware.graphics.enable` is the part every card needs, and
@@ -1917,7 +1935,7 @@ async function addGpu(key) {
 
 $('#btn-gpu').addEventListener('click', () => {
   const key = $('#s-gpu').value;
-  if (key) addGpu(key);
+  if (key) { remember(); addGpu(key); }
 });
 
 /* The kernel. `boot.kernelPackages` is a raw option — its value is Nix source
@@ -1994,7 +2012,7 @@ async function addKernel(key) {
 
 $('#btn-kernel').addEventListener('click', () => {
   const key = $('#s-kernel').value;
-  if (key) addKernel(key);
+  if (key) { remember(); addKernel(key); }
 });
 
 /* A few representative packages per area, for when you know the kind of thing
@@ -2302,7 +2320,9 @@ function widget(node, get, set) {
         c.appendChild(ident(v));
         const x = keep(el('button', null, '×'));
         x.title = 'Remove ' + v;
-        x.addEventListener('click', () => { const a = get(); a.splice(idx, 1); set(a); rerender(); });
+        x.addEventListener('click', () => {
+          remember(); const a = get(); a.splice(idx, 1); set(a); rerender();
+        });
         c.appendChild(x); chips.appendChild(c);
       });
       wrap.appendChild(chips);
@@ -2408,6 +2428,92 @@ function packagePicker(initial, onPick, clearAfter) {
 
 function rerender() { renderEditor(); pushRender(); }
 
+/* ------------------------------------------------------------------- undo */
+
+/* One step back. A step is a user action — a search result clicked, a preset
+   applied, a file imported, a card edited or removed — never one of the
+   automatic repairs (ensureImType, ensureUnfree): those re-apply on the
+   render after a restore, which is what keeps a restored state as valid as a
+   built one. Snapshots are taken when an action starts, so the button puts
+   on screen exactly what was there before the last step. Edits inside a card
+   snapshot on focusin — before the typing, not per keystroke — and a
+   snapshot identical to the top of the stack is not stacked, so focusing
+   without changing anything costs nothing. The stack empties in boot(): a
+   channel switch rebuilds the world the history was recorded against.
+   UNDO_LIMIT and undoStack are declared up beside `state` — boot() touches
+   them during the initial script pass, and a const declared here would
+   still be in its temporal dead zone there. */
+
+function snapState() {
+  return JSON.stringify({
+    selected: [...state.selected.entries()],
+    unfree: [...state.unfree],
+    carriedImports: state.carriedImports,
+    stateTouched: state.stateTouched,
+    setup: Object.fromEntries(SETUP_FIELDS.map(id => {
+      const n = $('#' + id);
+      return [id, n && n.type === 'checkbox' ? n.checked : n ? n.value : ''];
+    })),
+  });
+}
+
+function remember() {
+  const snap = snapState();
+  if (undoStack[undoStack.length - 1] === snap) return;
+  undoStack.push(snap);
+  if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+  syncUndoButton();
+}
+
+function syncUndoButton() {
+  const b = $('#btn-undo');
+  if (b) b.disabled = !undoStack.length;
+}
+
+function undoStep() {
+  // Skip snapshots identical to what is on screen — a focus that led to no
+  // change — so one press always changes something, or says it cannot.
+  let snap = null;
+  const now = snapState();
+  while (undoStack.length) {
+    const top = undoStack.pop();
+    if (top !== now) { snap = top; break; }
+  }
+  syncUndoButton();
+  if (snap === null) {
+    return setStatus(say('Nothing to go back to.', '戻る先がありません。'), 'bad');
+  }
+  const s = JSON.parse(snap);
+  state.selected = new Map(s.selected);
+  state.unfree = new Set(s.unfree || []);
+  state.carriedImports = s.carriedImports || [];
+  state.stateTouched = !!s.stateTouched;
+  for (const [id, v] of Object.entries(s.setup || {})) {
+    const n = $('#' + id);
+    if (!n) continue;
+    if (n.type === 'checkbox') n.checked = !!v;
+    else n.value = v;
+    // The field's own listeners keep dependent UI and the starter in step —
+    // restoring the value alone would leave both where they were.
+    n.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+  syncPresetPickers();
+  renderEditor();
+  pushRender();
+  runSearch();
+  setStatus(say('Went back one step. Press again to go further.',
+                '1つ前の手順に戻しました。もう一度押すと、さらに戻ります。'), 'ok');
+}
+
+$('#btn-undo').addEventListener('click', undoStep);
+// Everything editable lives inside #editor, and a click on any control in
+// there — a textarea, a chip's ×, the card's own × — focuses it first, so
+// one delegated listener snapshots before whatever the click does. The two
+// removal handlers still call remember() themselves: not every browser
+// focuses a button on click, and a missing snapshot there would make undo
+// jump one step too far.
+$('#editor').addEventListener('focusin', () => remember());
+
 function renderEditor() {
   const box = $('#editor');
   box.innerHTML = '';
@@ -2444,7 +2550,9 @@ function renderEditor() {
     }
     const drop = el('button', 'drop', '×');
     drop.title = 'Remove from module';
-    drop.addEventListener('click', () => { state.selected.delete(entry.path); rerender(); runSearch(); });
+    drop.addEventListener('click', () => {
+      remember(); state.selected.delete(entry.path); rerender(); runSearch();
+    });
     head.appendChild(drop);
     card.appendChild(head);
 
@@ -2967,6 +3075,7 @@ $('#file-gen').addEventListener('change', ev => readInto(ev, 'module'));
 async function readInto(ev, into) {
   const f = ev.target.files[0];
   if (!f) return;
+  remember();
   ev.target.value = '';
   const text = await f.text();
   setStatus(say('Reading ' + f.name + '…', f.name + ' を読んでいます…'));
