@@ -443,6 +443,23 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   gets a VAAPI driver because decoding does not work without one, AMD needs
   nothing beyond mesa, and `hardware.nvidia.open = false` is set rather than
   left computed — `true` is wrong on anything before Turing.
+- **The media preset writes one sound server, and "never both" is NixOS's
+  rule, not this preset's.** PipeWire gets its compatibility layers — ALSA
+  with 32-bit for Steam and wine (the graphics preset's enable32Bit
+  reasoning), the PulseAudio socket most applications actually talk to —
+  plus `security.rtkit.enable`, which is what grants realtime scheduling.
+  **The PulseAudio choice writes `services.pipewire.enable = lib.mkForce
+  false` as a raw card**: at this revision GNOME's remote-desktop module
+  switches PipeWire on with a plain `true`, so an ordinary false is a
+  same-priority conflict and the build refuses the file — the module
+  system's own error names mkForce as the lever. Evaluated, not assumed:
+  each server with GNOME, with Plasma, and alone, all as real systems at
+  the indexed revision, which also surfaced that PulseAudio + GDM is
+  scheduled for removal in 26.11 — the status bar says so. Switching drops
+  only values the preset wrote (`dropIfOurs`, shared with the GPU preset),
+  and the mkForce card only while it still says exactly that;
+  `hardware.pulseaudio.*` rides along as a candidate spelling because the
+  name has already moved once.
 - **NVIDIA brings `allowUnfree` with it.** The driver is unfree, so the
   preset writes `nixpkgs.config.allowUnfree = true` as a flat card — the one
   output that could not build as generated, now can, which was evaluated.

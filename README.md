@@ -241,9 +241,9 @@ used in. A first run, concretely:
    `configuration.nix` and `flake.nix` on the right rewrite themselves as you
    type.
 2. Open **Options** and add settings. The dropdowns at the top handle the big
-   ones in one go — a kernel, a shell, a desktop, a graphics driver, a
-   language, Flatpak. For anything else, search: type `timeZone`, click the
-   result, fill in the field that appears in the middle.
+   ones in one go — a kernel, a shell, a desktop, a graphics driver, media
+   playback, a language, Flatpak. For anything else, search: type `timeZone`,
+   click the result, fill in the field that appears in the middle.
 3. Open **Packages** and add software: search for `firefox` and click it, or
    pick a category under **Common apps**. Everything you click lands in
    `environment.systemPackages`.

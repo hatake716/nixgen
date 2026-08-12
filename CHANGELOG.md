@@ -16,6 +16,35 @@ it is part of `main` now.
 
 ## English
 
+## v1.0.0-dev.8 — 2026-08-12
+
+Landed on `development` first, merged into `main` since. Everything between
+this heading and `v1.0.0-rc.3` is what it added.
+
+### build 2026-08-12v
+
+- **A Media playback dropdown, between Graphics and Language: PipeWire or
+  PulseAudio.** PipeWire arrives with its compatibility layers — ALSA with
+  32-bit support for Steam and wine, the PulseAudio socket most
+  applications actually talk to — and rtkit, which grants it realtime
+  scheduling. PulseAudio arrives with 32-bit support and one line that
+  earns its spelling: `services.pipewire.enable = lib.mkForce false`. Some
+  desktops switch PipeWire on themselves with a plain `true` — GNOME's
+  remote desktop does, at this channel's revision — so an ordinary false
+  is a same-priority conflict and the build refuses the file; the module
+  system's own error message names mkForce as the answer. The status bar
+  says what the choice costs (screen sharing and GNOME remote desktop need
+  PipeWire) and that NixOS 26.11 drops PulseAudio with GDM entirely.
+- **Evaluated, not assumed.** Each server with GNOME, with Plasma, and
+  alone — six systems evaluated at the indexed revision, and the
+  plain-false conflict reproduced before mkForce was chosen. In the
+  browser, eleven points: the five PipeWire settings, the PulseAudio
+  replacement, both switch directions leaving one clean definition and a
+  file that parses, the row confined to the Options tab, the labels
+  fitting the closed dropdown (measured on the open tab — a hidden select
+  answers width 0), one-press undo, and an imported PipeWire module
+  selecting the dropdown. The eleven-point sweep passes on top.
+
 ## v1.0.0-rc.3 — 2026-08-12
 
 The third release candidate: `v1.0.0-rc.2.2` plus everything under the four
@@ -1715,6 +1744,15 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+## v1.0.0-dev.8 — 2026-08-12
+
+`development` ブランチに先に入り、その後 `main` に統合された内容です。この見出しから `v1.0.0-rc.3` までが、この版で加わった内容です。
+
+### build 2026-08-12v
+
+- **グラフィックスと言語の間に「メディア再生」のプルダウンを追加しました: PipeWire か PulseAudio です。** PipeWire は互換レイヤーごと入ります — Steam や wine のための 32bit 対応込みの ALSA、そして大半のアプリが実際に話しかける PulseAudio ソケット — さらにリアルタイムスケジューリングを与える rtkit も。PulseAudio は 32bit 対応と、**書き方に理由のある1行**を連れてきます: `services.pipewire.enable = lib.mkForce false`。デスクトップによっては PipeWire を素の `true` で自分から有効化するため(このチャンネルのリビジョンでは GNOME のリモートデスクトップがそうします)、普通の false では同優先度の衝突になってビルドが拒否されます — mkForce を使えというのは、モジュールシステム自身のエラーメッセージの助言です。ステータスバーはこの選択の代償(画面共有や GNOME リモートデスクトップは PipeWire を要する)と、PulseAudio + GDM が NixOS 26.11 で廃止予定であることを伝えます。
+- **推測ではなく評価しました。** それぞれのサーバーを GNOME と、Plasma と、単独で — 計6システムを索引のリビジョンで実際に評価し、素の false の衝突は mkForce を選ぶ**前に**再現させています。ブラウザでは11項目: PipeWire の5設定、PulseAudio への置き換え、双方向の切り替えで定義が1つだけ残り構文も通ること、行が Options タブだけに出ること、ラベルが閉じたプルダウンに収まること(開いたタブで実測 — 隠れた select は幅0を返します)、Undo 1回で丸ごと戻ること、PipeWire 入りモジュールの取り込みでプルダウンが選択されること。仕上げに11項目のスイープも全て通っています。
 
 ## v1.0.0-rc.3 — 2026-08-12
 

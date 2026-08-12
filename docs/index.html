@@ -375,7 +375,7 @@ footer a { margin-right: 14px; }
          middle of the sentence. -->
     <ol class="steps ja">
       <li><b>Setup</b> — マシンそのものです。ホスト名、ユーザー、チャンネル、ブートローダー。インストール直後に足りない <code>configuration.nix</code> と <code>flake.nix</code> は、ここで出てきます。<b>すでに <code>configuration.nix</code> がある場合は</b>、先に <b>Import configuration.nix</b> を押して、そのままここから続けます。</li>
-      <li><b>Options</b> — 設定項目です。探しているものを検索するか、カーネル・シェル・デスクトップ・グラフィックス・言語・Flatpak をプルダウンから選びます。</li>
+      <li><b>Options</b> — 設定項目です。探しているものを検索するか、カーネル・シェル・デスクトップ・グラフィックス・メディア再生・言語・Flatpak をプルダウンから選びます。</li>
       <li><b>Packages</b> — ソフトウェアです。検索するか、<b>Common apps</b> の分野から選びます。選んだものは <code>environment.systemPackages</code> に入ります。</li>
       <li><b>Check syntax</b> — いま書き上がったファイルを、本物のNixパーサに通します。どこで壊れているかは分かりますが、値の<i>型</i>が正しいかどうかは分かりません。</li>
       <li><b>Download all three</b> — <code>configuration.nix</code>・<code>flake.nix</code>・<code>generated.nix</code> が1つの <code>.tar.gz</code> で出てきます。手元の <code>hardware-configuration.nix</code> の隣に展開し、<code>sudo nixos-rebuild dry-build</code> を実行して、問題が無いときだけ切り替えます。</li>
