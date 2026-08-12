@@ -1,4 +1,4 @@
-# CLAUDE.md — working on nixgen
+# AGENTS.md — working on nixgen
 
 Context for picking this project up. The code is readable; what follows is the
 part that is not obvious from reading it — the reasons behind decisions, and the
@@ -1240,20 +1240,6 @@ checklist item.
 
 - `CHANGELOG.md` is the only place entries live. English half on top, Japanese
   half below. `README.md`, `README.ja.md` and `docs/index.html` link to it.
-- **The tag is a plain version; the channels it supports go in the release
-  title.** `v1.0.0`, not `nixgen 26.05 v1.0.0`. Two reasons, and the second is
-  the one that matters. A git ref cannot contain a space, and this tag is
-  pasted into a command — `nix run github:hatake716/nixgen/v1.0.0` — so it has
-  to stay short and typable. And **nixgen is not a one-channel tool**:
-  `releases.KEEP` is 3, so it offers the current release, the two before it
-  and unstable (today `nixos-26.05`, `nixos-25.11`, `nixos-25.05`,
-  `nixos-unstable`), the choice is the user's at runtime, and the index is per
-  channel. A number that named one release would claim the opposite of what
-  the tool does, and would force a new version every six months whether
-  anything changed or not. The release **title** carries the context instead,
-  where prose can be accurate:
-  `nixgen v1.0.0 — NixOS 26.05 / 25.11 / 25.05 + unstable`. Re-read the list
-  from `releases.releases()` before writing it; it moves.
 - **Two branches, and the READMEs differ on purpose.** `main` is the stable one
   and is what a bare `github:hatake716/nixgen` resolves to; `development` is
   where work lands first. On `development` both READMEs carry a note saying so
