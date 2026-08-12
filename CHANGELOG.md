@@ -16,6 +16,22 @@ reached it yet.
 
 ## English
 
+## v1.0.0-dev.6 — 2026-08-12
+
+Landed on `development` first, merged into `main` since. Everything between
+this heading and `v1.0.0-dev.5` is what it added.
+
+### build 2026-08-12t
+
+- **The status bar is twice as tall and its text is bigger.** Every
+  bilingual answer the app gives lands in the bar under the file pane, and
+  it was the smallest text on the page: 11px in a box that hugged two
+  lines. Now 14px in a box held at twice its old measured height (45px →
+  90px), with the scroll limit doubled alongside (160px → 320px) so a long
+  message shows twice as much before it scrolls — and it still scrolls
+  inside its own box rather than pushing the page. Measured, not
+  eyeballed, before and after; no width from 320px up scrolls sideways.
+
 ## v1.0.0-dev.5 — 2026-08-12
 
 Landed on `development` first, merged into `main` since. Everything between
@@ -1660,6 +1676,14 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+## v1.0.0-dev.6 — 2026-08-12
+
+`development` ブランチに先に入り、その後 `main` に統合された内容です。この見出しから `v1.0.0-dev.5` までが、この版で加わった内容です。
+
+### build 2026-08-12t
+
+- **ステータスバーの高さを2倍にし、文字を大きくしました。** アプリが返す日英の答えはすべてファイル欄の下のこのバーに出ますが、ページで一番小さい文字(11px)が、2行ぶんに張り付いた箱に入っていました。今は 14px で、箱の高さは**実測した従来値のちょうど2倍**(45px → 90px)を確保します。スクロールの上限も一緒に倍にした(160px → 320px)ので、長いメッセージはスクロールが始まる前に2倍の量が読めます — そしてページを押し広げるのではなく、今までどおり自分の箱の中でスクロールします。前後とも目分量ではなく実測で確認し、320px 以上のどの幅でも横スクロールは出ません。
 
 ## v1.0.0-dev.5 — 2026-08-12
 
