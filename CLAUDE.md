@@ -385,9 +385,29 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   portal — so `xdg.portal.enable` and `xdg-desktop-portal-gtk` go in with it,
   a spare on GNOME and Plasma and the only backend anywhere else. The thing no
   option covers is the remote: a fresh install has none, so the status bar
-  prints the `flatpak remote-add … flathub` line. A row with no dropdown is
-  right here — there is nothing to choose — and it is a row rather than a
+  prints the `flatpak remote-add … flathub` line. It is a row rather than a
   search result because it is three settings, not one.
+- **The Flatpak row's dropdown chooses the store app, and the empty choice
+  is the old behaviour.** `settings only` writes the three settings and
+  takes any front end back out; the four entries are what the catalogue
+  actually carries, each **built and searched for a flatpak backend rather
+  than trusted by its name** — `libgs_plugin_flatpak.so` in gnome-software,
+  `flatpak-backend.so` in discover, and flatpak in bazaar's and warehouse's
+  runtime closures. Flatseal is not among them because nixpkgs has no such
+  attribute: it is a Flathub app, installed with the tool this row sets up.
+  **GNOME Software is a role, not a package.**
+  `services.gnome.gnome-software.enable` brings the systemd units along with
+  the package (read back out of an evaluated system), and it works on any
+  desktop — Xfce was evaluated. GNOME sets that same option itself the
+  moment `services.flatpak.enable` is on, and **both write `true`, so they
+  merge rather than collide**: that was evaluated before shipping, because
+  the Media playback row had just been bitten by the opposite case. The
+  other three have no option and go in as packages through
+  `/api/packages?attrs=` first. Plasma already ships Discover; picking it
+  there is a duplicate list element, which Nix accepts (evaluated). One
+  store app at a time — switching drops the others through
+  `dropPackagesByName`, and the status bar names what went, because a name
+  the user typed is indistinguishable from one a preset wrote.
 - **The generated file names the nixgen that wrote it.** `render_module` puts
   the build id in the header, guarded by `_BUILD_ID` because it arrives from
   the client and is written into a file the user keeps. It is there because a
