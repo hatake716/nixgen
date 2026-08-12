@@ -8,6 +8,12 @@ Drives the real app rather than mocking anything, so what lands on the homepage
 is what the tool actually does — including the build id and the option counts,
 which is how you can tell at a glance whether a shot is stale.
 
+**Each shot is taken twice, light and dark**, because the homepage carries both
+and swaps them with its own toggle. The dark ones get a `-dark` suffix. The
+theme is set in localStorage before the page loads, which is where the app
+looks first — the same switch a reader would flip, rather than a class poked
+in afterwards.
+
     # in one terminal
     python3 build/server.py --db data/nixgen.sqlite --port 8824 --no-browser
 
@@ -91,10 +97,18 @@ def add_option(page, query, path):
     page.wait_for_timeout(400)
 
 
-with sync_playwright() as p:
-    browser = p.chromium.launch(args=["--hide-scrollbars"])
-    page = browser.new_page(viewport={"width": W, "height": H},
-                            device_scale_factor=1)
+def shoot(browser, theme):
+    """Every shot, in one theme. `suffix` is what tells the files apart."""
+    suffix = "-dark" if theme == "dark" else ""
+    context = browser.new_context(viewport={"width": W, "height": H},
+                                  device_scale_factor=1,
+                                  color_scheme=theme)
+    # Set before any page script runs: the app reads the saved choice first
+    # and only then asks the system, so this is the reader's own switch
+    # rather than something forced on top afterwards.
+    context.add_init_script(
+        "try { localStorage.setItem('theme', %r); } catch (e) {}" % theme)
+    page = context.new_page()
 
     # ----------------------------------------------------------- setup tab
     page.goto(BASE, wait_until="networkidle")
@@ -106,8 +120,8 @@ with sync_playwright() as p:
     page.wait_for_timeout(1200)
     page.click('.filetabs .tab[data-file="configuration.nix"]')
     page.wait_for_timeout(600)
-    page.screenshot(path=f"{OUT}/screenshot-setup.png")
-    print("wrote screenshot-setup.png")
+    page.screenshot(path=f"{OUT}/screenshot-setup{suffix}.png")
+    print(f"wrote screenshot-setup{suffix}.png")
 
     # ---------------------------------------------- the catalogue in use
     page.click('#pane-catalog .tab[data-kind="options"]')
@@ -142,8 +156,8 @@ with sync_playwright() as p:
     page.wait_for_timeout(1000)
     page.click('.filetabs .tab[data-file="generated.nix"]')
     page.wait_for_timeout(1000)
-    page.screenshot(path=f"{OUT}/screenshot.png")
-    print("wrote screenshot.png")
+    page.screenshot(path=f"{OUT}/screenshot{suffix}.png")
+    print(f"wrote screenshot{suffix}.png")
 
     # -------------------------------------------------- reading a file in
     page.goto(BASE, wait_until="networkidle")
@@ -161,7 +175,13 @@ with sync_playwright() as p:
     page.evaluate("const b = document.querySelector('#editor').parentElement;"
                   "if (b) b.scrollTop = 0;")
     page.wait_for_timeout(400)
-    page.screenshot(path=f"{OUT}/screenshot-import.png")
-    print("wrote screenshot-import.png")
+    page.screenshot(path=f"{OUT}/screenshot-import{suffix}.png")
+    print(f"wrote screenshot-import{suffix}.png")
+    context.close()
 
+
+with sync_playwright() as p:
+    browser = p.chromium.launch(args=["--hide-scrollbars"])
+    for theme in ("light", "dark"):
+        shoot(browser, theme)
     browser.close()

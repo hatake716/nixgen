@@ -10,7 +10,10 @@ option name.** Search all 24,557 settings and 144,245 packages, fill in values
 with widgets that know the type, and get a configuration file you can read
 before anything on your machine changes.
 
-![nixgen](docs/screenshot.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-dark.png">
+  <img src="docs/screenshot.png" alt="nixgen">
+</picture>
 
 ### Three reasons
 

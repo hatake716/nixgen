@@ -914,10 +914,20 @@ matter as much as the random part: random sampling did **not** catch the
 negative-number bug when it was deliberately reintroduced, because that seed
 happened not to put a negative number in a list.
 
-`tools/shots.py` retakes the three screenshots by driving the running app, so
+`tools/shots.py` retakes the screenshots by driving the running app, so
 they cannot drift the way they did — they had gone three features out of date,
 because retaking them by hand was a chore nobody remembered. The build id and
 the option counts are visible in every shot, which is how a stale one is spotted.
+**It takes each shot twice, light and dark**, the dark one with a `-dark`
+suffix; the theme is set in `localStorage` before the page loads, which is
+where the app looks first, so it is the reader's own switch rather than a
+class poked in afterwards. The homepage carries both and swaps them on
+`data-theme` — **not** a `<picture>` with `prefers-color-scheme`, which would
+follow the system and ignore the button the reader actually pressed. Both
+`<img>`s carry the same alt, because `display: none` takes the hidden one out
+of the accessibility tree and whichever is showing has to describe itself.
+The READMEs do use `<picture>`, because there is no button there and GitHub
+honours the media query — the same split the logo already lives with.
 
 `tools/import_check.py` reads configurations back in and checks that every line
 is accounted for, comes back as the value it went in as, and rebuilds into a

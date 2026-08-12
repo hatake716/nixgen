@@ -186,6 +186,15 @@ code { font-family: var(--mono); font-size: .9em; background: var(--panel);
 pre code { border: none; background: none; padding: 0; }
 
 figure { margin: 26px 0 0; }
+/* Each screenshot is here twice, light and dark, and the theme decides which
+   one is in the document. A <picture> with a prefers-color-scheme source
+   would follow the system and ignore the button above, which is the one the
+   reader actually pressed. Both carry the same alt: display:none takes the
+   hidden one out of the accessibility tree, so whichever is showing has to be
+   the one that describes itself. */
+figure .shot-dark { display: none; }
+:root[data-theme="dark"] figure .shot-light { display: none; }
+:root[data-theme="dark"] figure .shot-dark { display: block; }
 figure img { width: 100%; display: block; border: 1px solid var(--rule);
              border-radius: 8px; box-shadow: var(--shadow-2); }
 figcaption { font-size: 12px; color: var(--ink-faint); margin-top: 8px; }
@@ -326,7 +335,8 @@ footer a { margin-right: 14px; }
   </div>
 
   <figure>
-    <img src="screenshot.png" alt="nixgen: option catalogue on the left, editable settings in the middle, the generated Nix file on the right">
+    <img class="shot-light" src="screenshot.png" alt="nixgen: option catalogue on the left, editable settings in the middle, the generated Nix file on the right">
+    <img class="shot-dark" src="screenshot-dark.png" alt="nixgen: option catalogue on the left, editable settings in the middle, the generated Nix file on the right">
     <figcaption class="en">Catalogue, form, and the file being generated — all visible at once.</figcaption>
     <figcaption class="ja">カタログ、フォーム、生成中のファイルが同時に見えます。</figcaption>
   </figure>
@@ -573,7 +583,8 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
     <p class="ja">ブートローダーは固定ではなく選択式です。UEFIならsystemd-boot、BIOSならGRUB（ディスクの指定欄が出ます）、他のモジュールに任せるなら「none」。どちらの構成も、実際のNixOSシステムとして評価して確認しています。</p>
 
     <figure>
-      <img src="screenshot-setup.png" alt="The Setup tab: host name, user name and the channel on the left, five steps explaining how the tool works in the middle, and the generated configuration.nix on the right">
+      <img class="shot-light" src="screenshot-setup.png" alt="The Setup tab: host name, user name and the channel on the left, five steps explaining how the tool works in the middle, and the generated configuration.nix on the right">
+      <img class="shot-dark" src="screenshot-setup-dark.png" alt="The Setup tab: host name, user name and the channel on the left, five steps explaining how the tool works in the middle, and the generated configuration.nix on the right">
       <figcaption class="en">Starter files, generated from three fields.</figcaption>
       <figcaption class="ja">3つの入力欄からスターターファイルが生成されます。</figcaption>
     </figure>
@@ -632,7 +643,8 @@ https://channels.nixos.org/nixos-26.05/packages.json.br</pre>
     </div>
 
     <figure>
-      <img src="screenshot-import.png" alt="A configuration read in: a summary at the top saying what was filled into the form and which two options no longer exist in this release, the settings themselves below it, and the lines carried over as written marked in the generated file">
+      <img class="shot-light" src="screenshot-import.png" alt="A configuration read in: a summary at the top saying what was filled into the form and which two options no longer exist in this release, the settings themselves below it, and the lines carried over as written marked in the generated file">
+      <img class="shot-dark" src="screenshot-import-dark.png" alt="A configuration read in: a summary at the top saying what was filled into the form and which two options no longer exist in this release, the settings themselves below it, and the lines carried over as written marked in the generated file">
       <figcaption class="en">Every line is accounted for — the summary says exactly what happened to each.</figcaption>
       <figcaption class="ja">すべての行が計上されます。何がどう扱われたかが一覧で出ます。</figcaption>
     </figure>
