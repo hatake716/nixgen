@@ -242,6 +242,17 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
 - **Adding a package must not replace the value.** When the list came in
   verbatim, the value is a string; overwriting it with `[]` used to wipe every
   package. `appendToNixList` edits the text.
+- **`appendToNixList` must keep what follows the closing bracket.** It rebuilds
+  from the first `[` to the last `]`, and everything after that used to be
+  dropped — which is nothing at all for a bare list, and the closing bracket
+  for `lib.mkForce (with pkgs; [ … ])`. The result was
+  `… ];` and it does not parse. Latent for as long as the function existed and
+  reachable the day the importer began keeping `mkForce` verbatim: before that
+  such a list arrived as a widget and never came through here. Note what does
+  *not* catch it — the render succeeds, so `settled()` is true and the archive
+  downloads clean; only Check syntax says anything. The scope test has to see
+  `(` as well as whitespace for the same shape, or the new element is spelled
+  `pkgs.foo` among neighbours written bare.
 - **The import summary is first in the column, and `environment.systemPackages`
   is first the rest of the time.** Both were wanted and only one can be first in
   the markup, so `#notice` sits after `#editor` in the DOM and is pulled up with

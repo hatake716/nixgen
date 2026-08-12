@@ -46,7 +46,7 @@ away from cleanly is a desktop you can afford to try.
 日本語版: [README.ja.md](./README.ja.md) ·
 Homepage: <https://hatake716.github.io/nixgen/>
 
-> **Release candidate for 1.0 — currently `v1.0.0-rc.4`.** What it generates is checked on every push —
+> **Release candidate for 1.0 — currently `v1.0.0-rc.4.1`.** What it generates is checked on every push —
 > the renderer and importer harnesses, and an eleven-point sweep driving the
 > real app in a browser — and before a release the generated bundle is
 > evaluated as an actual NixOS system and its claims read back out of it.
