@@ -295,7 +295,14 @@ def unused_indexes():
     of them load-bearing: only names nixgen wrote itself, never the database
     in use, and never a channel still on offer.
     """
-    keep = set(releases.releases()) | {get_meta().get("channel")}
+    offered = set(releases.releases())
+    if not offered:
+        # The probe answered with nothing, which means the network did — not
+        # that every channel has been retired. The third fence is the only one
+        # that knows a channel is still live, so with it empty this would offer
+        # a perfectly good index for deletion. Offer none instead.
+        return []
+    keep = offered | {get_meta().get("channel")}
     here = os.path.abspath(DB_PATH)
     out = []
     for channel, path in sorted(releases.indexes(data_dir()).items()):
@@ -716,7 +723,12 @@ def _build_icon_index():
                     apps = os.path.join(a, "apps")
                     if os.path.isdir(apps):
                         found.append(apps)
-            for apps in sorted(found, key=_icon_rank, reverse=True):
+            # Worst first: the loop below overwrites, so the last directory
+            # to hold a name is the one that wins. `reverse=True` here walked
+            # the good sizes first and let 16x16 overwrite every one of them,
+            # so every icon in the app was served at the worst size the theme
+            # had — the code did the exact opposite of the line above it.
+            for apps in sorted(found, key=_icon_rank):
                 try:
                     entries = os.listdir(apps)
                 except OSError:
@@ -907,6 +919,20 @@ class Handler(BaseHTTPRequestHandler):
         self._send(code, json.dumps(obj, ensure_ascii=False))
 
     def do_GET(self):
+        """Answer, or say why not — the same guard do_POST has had.
+
+        A query parameter of the wrong shape reached the handler and raised,
+        and the connection was dropped with the traceback going to a terminal
+        that, since the desktop entry, is usually not there. `?limit=x` is
+        enough to do it. The browser sees a failed fetch either way; a status
+        and a message can be read.
+        """
+        try:
+            return self._get()
+        except (ValueError, TypeError, AttributeError, KeyError) as exc:
+            return self._json({"error": f"{type(exc).__name__}: {exc}"}, 400)
+
+    def _get(self):
         u = urlparse(self.path)
         qs = parse_qs(u.query)
         one = lambda k, d=None: (qs.get(k) or [d])[0]
@@ -945,7 +971,9 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/api/search":
             kind = one("kind", "options")
             q = one("q", "")
-            limit = min(int(one("limit", "60")), 200)
+            # Clamped at both ends: SQLite reads a negative LIMIT as no limit
+            # at all, so `?limit=-1` answered with the whole catalogue.
+            limit = max(1, min(int(one("limit", "60") or 60), 200))
             if kind == "packages":
                 return self._json({"results": with_icons(search_packages(q, limit))})
             return self._json({"results": search_options(q, limit, one("supported") == "1")})

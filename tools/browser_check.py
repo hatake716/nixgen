@@ -73,18 +73,42 @@ def set_select(page, sel, value):
 
 
 def settled_text(page):
-    """Force the debounced render and return the module text."""
-    return page.evaluate("async () => { await settled(); return generatedText; }")
+    """Force the debounced render and return the module text.
+
+    `settled()` answers false when the last render failed, and throwing that
+    away meant every assertion below could be measured against the file as it
+    was before the change — a pass that proves the previous point. The marker
+    goes into the text so the caller fails rather than compares happily.
+    """
+    ok, text = page.evaluate(
+        "async () => { const ok = await settled(); return [ok, generatedText]; }")
+    if not ok:
+        return "RENDER-FAILED\n" + (text or "")
+    return text
 
 
 def check_syntax(page, timeout_ms=10000):
+    """Press Check syntax and read the verdict it puts in the status bar.
+
+    The bar is cleared first, and that is load-bearing: the handler begins
+    `if (!await settled()) return;` and so can answer nothing at all, while
+    this function is called seven times against one cumulative session. Without
+    the clear, a verdict left over from the previous point is sitting there to
+    be read as this point's pass — the sweep could go green on an app that had
+    stopped answering. Every terminal verdict the app can print is listed, so a
+    string this does not know fails on the timeout instead of being mistaken
+    for one it does.
+    """
+    page.evaluate("document.querySelector('#status').textContent = ''")
     page.click("#btn-check")
     for _ in range(timeout_ms // 250):
         page.wait_for_timeout(250)
         s = page.text_content("#status") or ""
-        if "Parses cleanly" in s or "could not parse" in s or "解析でき" in s:
+        if ("Parses cleanly" in s or "All three parse cleanly" in s
+                or "could not parse" in s or "解析でき" in s
+                or "nix-instantiate not found" in s):
             return s
-    return page.text_content("#status") or ""
+    return "NO VERDICT: " + (page.text_content("#status") or "")
 
 
 def import_file(page, selector, name, text, wait_ms=2500):
