@@ -223,7 +223,17 @@ try {
              row rather than something to find in the search. -->
         <div class="presetline" id="flatpakline">
           <span class="plabel">Flatpak<i>アプリ配布基盤</i></span>
-          <span class="grow"></span>
+          <!-- The store app, which is the graphical half of Flatpak. The
+               names are products, so they stay as they are, the way the
+               Graphics and Media playback rows above spell theirs; only the
+               "no store app" choice is a phrase and carries its Japanese. -->
+          <select id="s-flatpak" class="notranslate" translate="no">
+            <option value="">settings only — 設定のみ</option>
+            <option value="gnome-software">GNOME Software</option>
+            <option value="discover">KDE Discover</option>
+            <option value="bazaar">Bazaar</option>
+            <option value="warehouse">Warehouse</option>
+          </select>
           <button class="mini" id="btn-flatpak">Add</button>
         </div>
         <!-- Picking a category fills the results list, so what happens next is

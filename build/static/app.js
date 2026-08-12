@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-12v';
+const BUILD = '2026-08-12w';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -1230,9 +1230,14 @@ function dropAutostart(keep) {
 const PRESET_PACKAGES = [...new Set(
   Object.values(DESKTOPS).flatMap(d => d.packages || []))];
 
-function dropPresetPackages(keep) {
-  const wanted = new Set((DESKTOPS[keep] && DESKTOPS[keep].packages) || []);
-  const gone = PRESET_PACKAGES.filter(a => !wanted.has(a) && alreadyListed(a));
+/* Take these names out of `environment.systemPackages`, whatever shape the
+   list is in, and answer with the ones that were actually there. Split out
+   of dropPresetPackages so the Flatpak front ends can leave the way a
+   desktop's packages do — the same reason dropIfOurs was hoisted out of
+   addGpu. A name the user typed is indistinguishable from one a preset
+   wrote, so every caller names what went in the status bar. */
+function dropPackagesByName(names) {
+  const gone = names.filter(a => alreadyListed(a));
   if (!gone.length) return [];
   const e = findEntry(TOP_OPTION);
   if (Array.isArray(e.value)) {
@@ -1250,6 +1255,11 @@ function dropPresetPackages(keep) {
   }
   gone.forEach(a => state.unfree.delete(a));
   return gone;
+}
+
+function dropPresetPackages(keep) {
+  const wanted = new Set((DESKTOPS[keep] && DESKTOPS[keep].packages) || []);
+  return dropPackagesByName(PRESET_PACKAGES.filter(a => !wanted.has(a)));
 }
 
 /* The same merge-don't-assign rule as the autostart unit: `environment.etc` is
@@ -1764,7 +1774,42 @@ async function addLanguage(key) {
    The command is the part no option covers: a fresh install has no remote, so
    `flatpak install` finds nothing until flathub is added once, by hand. That
    is said in the status bar rather than left to be discovered. */
-async function addFlatpak() {
+/* The store apps — the graphical half of Flatpak, which the settings alone
+   do not give you. Four, because those are the four the catalogue actually
+   carries: each was built and searched for a flatpak backend rather than
+   trusted by its name (gnome-software has libgs_plugin_flatpak.so, discover
+   has flatpak-backend.so, and bazaar and warehouse both carry flatpak in
+   their runtime closure). Flatseal is not here because nixpkgs has no such
+   attribute — it is a Flathub app, installed with the tool this row sets up.
+
+   **GNOME Software is a role, not a package.**
+   `services.gnome.gnome-software.enable` brings the systemd units along
+   with the package, and it works on any desktop (evaluated on Xfce). GNOME
+   sets that same option itself the moment `services.flatpak.enable` is on
+   — both write `true`, and equal values merge rather than collide, which
+   was evaluated before shipping because the Media playback row had just
+   been bitten by the opposite case. The other three have no option of
+   their own and go in as packages, looked up through
+   `/api/packages?attrs=` first so a channel without one writes nothing
+   rather than a line that fails at `nixos-rebuild`.
+
+   Plasma already ships Discover; picking it there is a duplicate element
+   in a list, which Nix is fine with (evaluated) and which keeps the file
+   honest about what it wants. */
+const FRONTENDS = {
+  'gnome-software': { label: 'GNOME Software',
+                      roles: ['services.gnome.gnome-software.enable'] },
+  discover:  { label: 'KDE Discover', packages: ['kdePackages.discover'] },
+  bazaar:    { label: 'Bazaar',       packages: ['bazaar'] },
+  warehouse: { label: 'Warehouse',    packages: ['warehouse'] },
+};
+const FRONTEND_PACKAGES = [...new Set(
+  Object.values(FRONTENDS).flatMap(f => f.packages || []))];
+const FRONTEND_ROLES = [...new Set(
+  Object.values(FRONTENDS).flatMap(f => f.roles || []))];
+
+async function addFlatpak(key) {
+  const front = FRONTENDS[key] || null;
   const steps = [
     { paths: ['services.flatpak.enable'], value: true },
     { paths: ['xdg.portal.enable'], value: true },
@@ -1775,28 +1820,74 @@ async function addFlatpak() {
     const used = await addWithValue(step.paths, step.value);
     used ? added.push(used) : missing.push(step.paths[0]);
   }
+
+  /* One store app at a time: the previous choice leaves, and so does the
+     lot when "settings only" is picked. The role is dropped only while it
+     still says exactly what the preset wrote. */
+  const keepPkgs = new Set((front && front.packages) || []);
+  const keepRoles = new Set((front && front.roles) || []);
+  const gone = dropPackagesByName(FRONTEND_PACKAGES.filter(a => !keepPkgs.has(a)));
+  for (const p of FRONTEND_ROLES) {
+    if (!keepRoles.has(p)) {
+      if (findEntry(p)) gone.push('GNOME Software');
+      dropIfOurs(p, true);
+    }
+  }
+
+  const store = [];
+  if (front) {
+    for (const p of front.roles || []) {
+      const used = await addWithValue([p], true);
+      used ? store.push(front.label) : missing.push(p);
+    }
+    if (front.packages) {
+      const url = '/api/packages?attrs=' +
+        encodeURIComponent(front.packages.join(','));
+      const { results } = await fetch(url).then(r => r.json());
+      const got = [];
+      for (const row of results || []) {
+        await addPackage(row.attr, row.unfree);
+        got.push(row.attr);
+        store.push(row.attr);
+      }
+      front.packages.filter(a => !got.includes(a)).forEach(a => missing.push(a));
+    }
+  }
+
   renderEditor();
   pushRender();
   if (missing.length) {
     setStatus(say(
-      `Flatpak: added ${added.length}, but this release has no ` +
+      `Flatpak: added ${added.length + store.length}, but this release has no ` +
       `${missing.join(', ')}. Check the result before applying it.`,
-      `Flatpak: ${added.length}件を追加しましたが、このリリースには ` +
+      `Flatpak: ${added.length + store.length}件を追加しましたが、このリリースには ` +
       `${missing.join('、')} がありません。適用する前に結果を確認してください。`), 'bad');
     return;
   }
+  const gotStore = store.length
+    ? ` ${store.join(', ')} went in as the store app.` : '';
+  const gotStoreJa = store.length
+    ? `ストアアプリとして ${store.join('、')} を入れました。` : '';
+  const left = gone.length
+    ? ` ${gone.join(', ')} came out — one store app at a time.` : '';
+  const leftJa = gone.length
+    ? `${gone.join('、')} は外しました(ストアアプリは1つずつです)。` : '';
   setStatus(say(
-    'Flatpak: 3 settings added. Nothing is installed from it yet — a fresh ' +
-    'install has no remote, so add flathub once after the rebuild: ' +
-    'flatpak remote-add --if-not-exists flathub ' +
+    `Flatpak: ${added.length} settings added.${gotStore}${left} Nothing is ` +
+    'installed from it yet — a fresh install has no remote, so add flathub ' +
+    'once after the rebuild: flatpak remote-add --if-not-exists flathub ' +
     'https://flathub.org/repo/flathub.flatpakrepo',
-    'Flatpak: 3件の設定を追加しました。まだ何も入れられません。' +
+    `Flatpak: ${added.length}件の設定を追加しました。${gotStoreJa}${leftJa}` +
+    'まだ何も入れられません。' +
     'インストール直後はリモートが1つも無いので、rebuild のあとに flathub を' +
     '一度だけ追加してください: flatpak remote-add --if-not-exists flathub ' +
     'https://flathub.org/repo/flathub.flatpakrepo'), 'ok');
 }
 
-$('#btn-flatpak').addEventListener('click', () => { remember(); addFlatpak(); });
+$('#btn-flatpak').addEventListener('click', () => {
+  remember();
+  addFlatpak($('#s-flatpak').value);
+});
 
 $('#btn-lang').addEventListener('click', () => {
   const key = $('#s-lang').value;
@@ -3387,6 +3478,18 @@ function syncPresetPickers() {
   const pw = findEntry('services.pipewire.enable');
   if (pa && pa.value === true) set('#s-audio', 'pulseaudio');
   else if (pw && pw.value === true) set('#s-audio', 'pipewire');
+
+  /* The Flatpak store app names itself: a role for GNOME Software, a
+     package for the rest. Only the front end is recognised — the row's
+     three settings are not a choice, so there is nothing for them to
+     select. */
+  const gs = findEntry('services.gnome.gnome-software.enable');
+  if (gs && gs.value === true) set('#s-flatpak', 'gnome-software');
+  else {
+    const k = Object.keys(FRONTENDS).find(
+      n => (FRONTENDS[n].packages || []).some(a => alreadyListed(a)));
+    if (k) set('#s-flatpak', k);
+  }
 
   return found;
 }
