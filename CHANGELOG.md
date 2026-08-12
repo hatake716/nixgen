@@ -16,6 +16,43 @@ reached it yet.
 
 ## English
 
+## v1.0.0-dev.4 — 2026-08-12
+
+Landed on `development` first, merged into `main` since. Everything between
+this heading and `v1.0.0-rc.2.2` is what it added.
+
+### build 2026-08-12r
+
+- **An Undo button, in the module pane's header.** One press puts on screen
+  what was there before the last step, and a step is a user action: an
+  option or a package added, a preset applied — one step, however many
+  cards it writes — a file imported (including the Setup fields a
+  `configuration.nix` fills), a card edited or removed. Editing is one step
+  per edit, not one per keystroke: the snapshot is taken when the field is
+  focused, before the typing. Up to fifty steps back; the button sleeps
+  when there is nothing to return to, and pressing again keeps walking
+  back.
+- **The automatic repairs are not steps.** `ensureImType` and
+  `ensureUnfree` re-apply on the render after a restore, so a restored
+  state answers to the same rules as a built one: undoing "add steam"
+  takes the automatically added `allowUnfree` with it, because with steam
+  gone nothing needs it — and undoing to a state that still names
+  something unfree gets the switch put straight back.
+- Verified against the running app, nineteen points: the button wakes and
+  sleeps with the stack, an added option leaves, steam leaves with its
+  automatic switch, a whole desktop preset is one press, an edit reverts
+  while its card stays, a `configuration.nix` import walks back Setup
+  fields and module together, two steps come back in order, and an
+  imported `generated.nix` leaves whole. The eleven-point sweep passes on
+  top.
+- Found by that sweep and fixed before shipping: the stack was first
+  declared beside its own functions, far below `boot()` — which clears it
+  during the initial script pass, where a `const` down there is still in
+  its temporal dead zone. Boot aborted, the starter files never loaded,
+  and the visible symptom was two import checks failing on an empty
+  `configuration.nix` — the `SWAY_CONFIG_NO_BAR` lesson, relearned. The
+  declaration now sits beside `state` at the top of the file.
+
 ## v1.0.0-rc.2.2 — 2026-08-12
 
 `v1.0.0-rc.2.1` plus one improvement to System update: the command it hands
@@ -1591,6 +1628,17 @@ three of these six showed up in only one of the two.
 ---
 
 ## 日本語
+
+## v1.0.0-dev.4 — 2026-08-12
+
+`development` ブランチに先に入り、その後 `main` に統合された内容です。この見出しから `v1.0.0-rc.2.2` までが、この版で加わった内容です。
+
+### build 2026-08-12r
+
+- **モジュール欄のヘッダに Undo ボタンを追加しました。** 1回押すと、直前の手順の前に画面にあった状態へ戻ります。「1手順」はユーザーの操作1回です: オプションやパッケージの追加、プリセットの適用(何枚カードを書いても1手順)、ファイルの取り込み(`configuration.nix` が埋める Setup タブの入力欄も含めて戻ります)、カードの編集や削除。編集は**1編集=1手順**で、1文字ごとではありません — スナップショットは入力欄にフォーカスした瞬間、つまり入力の前に取られます。最大50手順まで遡れ、戻る先が無いときはボタンが眠り、続けて押せばさらに遡ります。
+- **自動修復は手順に数えません。** `ensureImType` と `ensureUnfree` は復元後のレンダリングで再適用されるので、復元された状態も組み立てた状態と同じルールに従います。「steam を追加」を取り消せば、自動で入った `allowUnfree` も一緒に消えます(steam が居なくなれば誰も必要としないからです)。逆に、unfree なものがまだ残っている状態へ戻れば、スイッチは即座に戻されます。
+- 動いているアプリに対して19項目で検証しました: ボタンはスタックに合わせて起き・眠り、追加したオプションが消え、steam は自動スイッチごと消え、デスクトッププリセット一式が1回で戻り、編集は値だけ戻ってカードは残り、`configuration.nix` の取り込みは Setup 入力欄とモジュールが揃って戻り、2手順は順番どおりに2回で戻り、`generated.nix` の取り込みも丸ごと戻ります。仕上げに11項目のスイープも全て通っています。
+- そのスイープが出荷前に1件を捕まえました: スタックの宣言を最初は関数群の隣(ファイル後方)に置いたところ、`boot()` が初期実行の同期パスでそれに触れるため、**`const` の temporal dead zone** で boot が中断 — スターターファイルが読み込まれず、症状は「2つの取り込み検査が空の `configuration.nix` で失敗する」という離れた場所に出ました。`SWAY_CONFIG_NO_BAR` の教訓の再演です。宣言はファイル先頭の `state` の隣に移しました。
 
 ## v1.0.0-rc.2.2 — 2026-08-12
 

@@ -317,6 +317,12 @@ main {
 .mini { border: 1px solid var(--rule); background: var(--panel-2); border-radius: var(--r);
         cursor: pointer; padding: 3px 8px; font-size: 11px; color: var(--ink-soft); flex: none; }
 .mini:hover { background: #fff; color: var(--ink); }
+/* The undo button rides the module pane's header, pushed to the far edge.
+   Disabled is the resting state (nothing to go back to), so it has to look
+   asleep rather than broken — and must not light up on hover. */
+#btn-undo { margin-left: auto; }
+#btn-undo:disabled { opacity: .45; cursor: default; }
+#btn-undo:disabled:hover { background: var(--panel-2); color: var(--ink-soft); }
 
 .nullrow { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-soft); margin-bottom: 6px; }
 

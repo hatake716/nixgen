@@ -321,6 +321,10 @@
     <section class="pane" id="pane-editor">
       <header>
         <div class="eyebrow">Your module — モジュール · <span id="sel-count">0</span></div>
+        <!-- One step back: the last add, edit, import or removal. Disabled
+             until there is a step to go back to; boot() empties the stack. -->
+        <button class="mini" id="btn-undo" disabled
+                title="Go back one step — the last add, edit, import or removal.&#10;1つ前の手順(追加・編集・取り込み・削除)に戻します。">Undo — 1つ戻る</button>
       </header>
       <div class="pane-body">
         <!-- Shown while nothing is set, which is exactly the first thing
