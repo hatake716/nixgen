@@ -2,7 +2,7 @@
 
 [English](#english) · [日本語](#日本語)
 
-Two identifiers, with different jobs. **The build id** (`2026-08-12o`) is in
+Two identifiers, with different jobs. **The build id** (`2026-08-13a`) is in
 the app header and in every file nixgen writes, and it changes whenever the app
 does — it answers "which build wrote this". **The version tag** names a
 snapshot and doubles as a flake ref.
@@ -13,6 +13,76 @@ has held up. A `-dev` heading below is one of those merges: everything under
 it is part of `main` now.
 
 ---
+
+## English
+
+## v1.0.0-dev.13 — 2026-08-13
+
+Landed on `development` first, merged into `main` since.
+
+### build 2026-08-13a
+
+- **Switching desktops now replaces the desktop, not just its login screen.**
+  Reported from a real machine: picking Xfce and then niri + noctalia left
+  Xfce's own settings switched on beside the compositor, and the shell did not
+  come up properly. The switch already removed the previous desktop's display
+  manager, its packages and its autostart unit — the one thing it left was the
+  desktop itself.
+- **Why that broke a session, since two desktops is legal NixOS.** Both systems
+  were evaluated at the indexed revision to find out rather than guess. A
+  leftover Xfce puts 54 packages into the system path, and two of them decide
+  the session: `xfce4-notifyd` ships a D-Bus activation file *and* a user unit
+  that both claim `org.freedesktop.Notifications` — the name noctalia's own
+  notification service has to own — and `xdg-desktop-portal-xapp` joins the
+  portal backends, so the session's portals are Xfce's. The X server comes on
+  for a compositor that does not use one, and the login screen grows an entry
+  nobody asked for. None of that fails a build, which is exactly why nothing
+  had caught it.
+- **Two more defects fell out of the same cause.** The app recognises which
+  desktop the module holds by the option that is that desktop's own, and takes
+  the first it finds — so with two present it was answering with the old one.
+  That set the input method's front end from the wrong session
+  (`fcitx5.waylandFrontend = false` on a Wayland desktop, measured both ways),
+  and made the Options dropdown name the desktop you had just switched away
+  from after an import or an Undo.
+- **A session name outlives the desktop that provided it.** Every desktop but
+  COSMIC overwrites `services.displayManager.defaultSession`; COSMIC has none
+  of its own, because that option only speaks to GDM, LightDM and SDDM. Now
+  that the previous desktop actually leaves, a stale name would be a build
+  failure rather than a leftover, so it comes out too — and only when it is a
+  name one of these presets could have written.
+- The status bar names every setting that went, in both languages, the way it
+  already named the display manager and the packages — and that now includes
+  the autostart unit and the file the preset had replaced in `/etc`, both of
+  which used to leave without a word.
+- **The audit that followed the fix found four more, and they are fixed too.**
+  A spelling a rename left behind is no longer written beside its replacement:
+  a file from before `services.xserver.displayManager.defaultSession` moved
+  used to end up with the old line saying `xfce` and the new one saying `niri`
+  — one attribute, two values, and a file that parses and then fails to build.
+  A preset writing into a line your file had kept verbatim no longer puts
+  JavaScript in it: `services.xserver.enable = True;` and
+  `i18n.defaultLocale = ja_JP.UTF-8;` both used to reach `generated.nix` that
+  way, and a `lib.mkForce` around such a value is now kept rather than lost.
+  The Wayland front end is reported from the value that was written instead of
+  the one the desktop would have asked for, so the sentence cannot contradict
+  the file. And a preset that fails half way through says so and points at
+  Undo, instead of leaving a half-switched module and a line in the console.
+- **Two states the switch can no longer produce still arrive from a file**, so
+  the app now says so on every render: a module that enables two desktops, and
+  a login screen told to start a session no enabled desktop provides. The
+  second is refused by `nixos-rebuild` while naming an option rather than the
+  card that is wrong.
+- **The checks were the other half of this.** All ninety ordered pairs of the
+  ten desktops were driven through the real app: every one of them failed
+  before the fix and passes after it. The sweep's desktop walk had been going
+  green on the broken state, because it counted display managers and looked for
+  the shell — both of which were right. It now reads the desktop table out of
+  the page and asserts, after every pick, that nothing the previous desktop
+  wrote is still defined, that exactly one desktop is enabled, that the session
+  named is one an enabled desktop provides, and that no other desktop's packages
+  are in the list — and it walks every desktop the dropdown offers rather than
+  four of them. `eval_check` gained the cheap half of the same question.
 
 ## English
 
@@ -1955,6 +2025,23 @@ three of these six showed up in only one of the two.
   from the published type data, and a live view of the file being generated.
 
 ---
+
+## 日本語
+
+## v1.0.0-dev.13 — 2026-08-13
+
+`development` ブランチに先に入り、その後 `main` に統合された内容です。
+
+### build 2026-08-13a
+
+- **デスクトップの切り替えが、ログイン画面だけでなくデスクトップ本体を入れ替えるようになりました。** 実機からの報告です。Xfce を選んだあとに niri + noctalia を選ぶと、**Xfce 自身の設定が有効なまま**コンポジタと並んで残り、シェルがうまく起動しませんでした。切り替え処理は前のデスクトップのディスプレイマネージャもパッケージも自動起動ユニットも既に外していて、唯一残していたのがデスクトップそのものでした。
+- **デスクトップ2つは NixOS として合法なのに、なぜセッションが壊れたのか。** 推測せず、索引と同じリビジョンで**両方を実際の NixOS システムとして評価**して確かめました。Xfce が残ると**54個のパッケージ**がシステムのパスに入り、そのうち2つがセッションを左右します。`xfce4-notifyd` は D-Bus の activation ファイルと user unit の**両方**で `org.freedesktop.Notifications` を名乗ります。これは noctalia 自身の通知サービスが取るべき名前です。さらに `xdg-desktop-portal-xapp` がポータルのバックエンドに加わるため、セッションのポータルが Xfce のものになります。加えて、X を使わないコンポジタのために X サーバーが有効になり、ログイン画面には頼んでいない項目が増えます。**どれもビルドは通ります。**だからこそ、これまで何も検知できませんでした。
+- **同じ原因から、さらに2件。** このアプリは「そのデスクトップ固有のオプション」でどのデスクトップかを判別し、最初に見つかったものを採ります。2つあると**古いほう**を答えていました。そのため入力メソッドのフロントエンドが誤ったセッション向けに設定され(Wayland のデスクトップなのに `fcitx5.waylandFrontend = false`。両方向を実測しました)、インポートや Undo のあとには Options のプルダウンが**切り替える前のデスクトップ名**を表示していました。
+- **セッション名は、それを提供していたデスクトップより長く残ります。** COSMIC 以外はすべて `services.displayManager.defaultSession` を上書きします。COSMIC だけは自前の名前を持ちません(このオプションは GDM・LightDM・SDDM にしか効かないためです)。前のデスクトップが実際に消えるようになった以上、古い名前が残るとビルドが**失敗**します。そのため、これも外すようにしました。ただし**このプリセット群が書き得た名前のときだけ**です。
+- 外した設定は、ディスプレイマネージャやパッケージと同様に、ステータス欄で英日両方に名前を挙げます。**自動起動の user service と、プリセットが差し替えていた `/etc` のファイル**も対象に加えました。これまではこの2つだけ、何も言わずに消えていました。
+- **修正後の監査でさらに4件見つかり、こちらも直しました。** ①改名前の綴りが、新しい綴りの隣にそのまま残らなくなりました。`services.xserver.displayManager.defaultSession` が移動する前に書かれたファイルでは、古い行が `xfce`、新しい行が `niri` と言う状態になっていました。**同じ属性に2つの値**で、構文は通り、ビルドで落ちます。②ファイルから「そのまま保持」された行にプリセットが書き込むとき、JavaScript の値が入らなくなりました。`services.xserver.enable = True;` や `i18n.defaultLocale = ja_JP.UTF-8;` が実際に `generated.nix` に出ていました。**値を囲っている `lib.mkForce` は保持**します(中身だけ差し替えます)。③Wayland フロントエンドの説明を、**実際に書いた値**から作るようにしました。デスクトップ側の想定値ではないので、文とファイルが食い違うことがなくなります。④プリセットが途中で失敗した場合、その旨と Undo を案内します。以前はモジュールが中途半端なまま、コンソールに1行出るだけでした。
+- **切り替えでは作れなくなった2つの状態も、ファイルからは入ってきます。** そこで毎回のレンダリング時に指摘するようにしました。「デスクトップが2つ有効」と「有効なデスクトップが提供しないセッション名をログイン画面に指定している」の2つです。後者は `nixos-rebuild` が拒否しますが、そのときエラーが指すのはオプション名で、原因のカードではありません。
+- **検査もこの修正の半分です。** 10種類のデスクトップの**順序付き90通り**すべてを実アプリで実行しました。修正前は**90通り全部が不合格**、修正後は全部が合格です。11項目スイープのデスクトップ巡回は、この壊れた状態でも合格していました。ディスプレイマネージャの数とシェルの有無を見ていて、そこはどちらも正しかったからです。いまはデスクトップ表をページから読み出し、選択のたびに「前のデスクトップが書いたものが残っていないこと」「有効なデスクトップがちょうど1つであること」「指しているセッション名を有効なデスクトップが提供していること」「他のデスクトップのパッケージが残っていないこと」を確認します。巡回対象も4つからプルダウンにある全デスクトップに広げました。`eval_check` にも同じ問いの簡易版を追加しています。
 
 ## 日本語
 

@@ -280,20 +280,75 @@ with sync_playwright() as p:
             fh.write(after)
 
     # ---- 4. the desktop walk ------------------------------------------------
+    """The walk used to count display managers and look for noctalia, which is
+    exactly the half that was already right: the greeters and the packages had
+    cleanups and the desktops themselves did not. Xfce -> niri left
+    services.desktopManager.xfce.enable and services.xserver.enable standing,
+    the file parsed, one DM was present, noctalia was there — and the walk went
+    green while the machine came up with two desktops' worth of daemons. So the
+    tables are read out of the page and every path a desktop preset can write
+    is now checked against the one that was chosen."""
+    tables = page.evaluate("""() => ({
+        desktops: Object.fromEntries(Object.entries(DESKTOPS).map(([k, d]) => [k, {
+            session: d.session || null,
+            want: [...d.roles.flat(), ...(d.marker || [])],
+            marker: d.marker || [], packages: d.packages || [],
+        }])),
+        paths: [...new Set(Object.values(DESKTOPS).flatMap(
+            d => [...d.roles.flat(), ...(d.marker || [])]))],
+        packages: [...new Set(Object.values(DESKTOPS).flatMap(d => d.packages || []))],
+    })""")
+    # An option this channel does not have was never written, so its absence
+    # is not a cleanup — ask, the way the presets themselves do.
+    live = set(page.evaluate(
+        "async ps => (await (await fetch('/api/options?paths=' + "
+        "encodeURIComponent(ps.join(',')))).json()).results.map(r => r.path)",
+        tables["paths"]))
+
+    # Every desktop the dropdown offers, in its own order, so one added later
+    # is walked without this file being edited — and COSMIC again at the end,
+    # because it is the one with no session of its own and the transition that
+    # matters for that is from a desktop that has one.
+    walk = page.eval_on_selector(
+        "#s-desktop", "s => [...s.options].map(o => o.value).filter(Boolean)")
+    walk = walk + ["cosmic"] if "cosmic" in walk else walk
+
     walk_ok, walk_detail = True, []
-    for desk in ["gnome", "niri", "xfce", "cosmic"]:
+    for desk in walk:
         pick_preset(page, "#s-desktop", desk, "#btn-desktop", 1500)
         t = settled_text(page)
+        d = tables["desktops"][desk]
         dm = sum(1 for line in DM_LINES if line in t)
         noctalia = t.count("noctalia")
+        # Every preset path the chosen desktop does not want, still defined.
+        stale = [p for p in tables["paths"]
+                 if p not in d["want"] and p in live and f"\n  {p} = " in t]
+        # Exactly one desktop is enabled — read by marker, the option that is
+        # each desktop's own, since the shared roles cannot tell them apart.
+        on = [k for k, v in tables["desktops"].items()
+              if any(f"\n  {m} = " in t for m in v["marker"])]
+        # A session name outlives its desktop, and NixOS checks it at eval time.
+        m = re.search(r'defaultSession = "([^"]+)"', t)
+        session_ok = not m or any(
+            tables["desktops"][k]["session"] == m.group(1) for k in on)
+        strays = [a for a in tables["packages"]
+                  if a not in d["packages"] and f"pkgs.{a}\n" in t]
+        # Which desktop wants a shell is the table's answer, not this file's.
+        # Walking only gnome/niri/xfce/cosmic let "noctalia iff niri" stand as
+        # a literal; the walk covers every desktop now, and Sway wants it too.
+        wants_shell = "noctalia-shell" in d["packages"]
         good = (dm == 1 and "nixpkgs.config.allowUnfree = true" in t
-                and (noctalia > 0 if desk == "niri" else noctalia == 0)
-                and (("xwayland-satellite" in t) == (desk == "niri")))
+                and (noctalia > 0) == wants_shell
+                and not stale and on == [desk] and session_ok and not strays)
         walk_ok &= good
-        walk_detail.append(f"{desk}: dm={dm} noctalia={noctalia}")
+        walk_detail.append(f"{desk}: dm={dm} shell={noctalia > 0}/{wants_shell} on={on}"
+                           + (f" stale={stale}" if stale else "")
+                           + (f" strays={strays}" if strays else "")
+                           + ("" if session_ok else " session=stale"))
     status = check_syntax(page)
     report(walk_ok and "Parses cleanly" in status,
-           "desktop walk: one DM, unfree kept, no leftovers", "; ".join(walk_detail))
+           "desktop walk: one desktop, one DM, unfree kept, no leftovers",
+           "; ".join(walk_detail))
 
     # ---- 5. the System update dialog ---------------------------------------
     page.click("#btn-update")
