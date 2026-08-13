@@ -16,6 +16,34 @@ reached it yet.
 
 ## English
 
+## v1.0.0-dev.12 — 2026-08-13
+
+Landed on `development` first, merged into `main` since.
+
+### build 2026-08-12z
+
+- **A Flatpak browser can open the application window now.** Reported from a
+  real machine: after switching the default browser to the Flatpak Google
+  Chrome, the icon started opening an ordinary tab with a menu bar again. The
+  cause is that a Flatpak puts nothing on PATH, so the lookup that finds a
+  Chromium-family browser found nothing — and somebody who has moved to the
+  Flatpak build has usually removed the native one, which leaves the list
+  empty and drops the launch back to a plain browser window.
+- The same five browsers are now also named by Flatpak application id
+  (Chromium, Chrome, Brave, Edge, Vivaldi) and tried **after** the PATH list,
+  because `flatpak run` costs an extra layer of startup and a native browser
+  should win when both are installed. Nothing is added to the closure: it is
+  whatever is already on the machine, and a machine with neither behaves
+  exactly as before.
+- The flags need no translation — everything after the application id is
+  passed through — and the sandbox is not in the way, because these carry
+  network access and `127.0.0.1` is the host's loopback. Verified from a
+  machine with no Chromium binary on PATH at all: the window came up under
+  the app-mode class, maximised on both axes, with no tabs and no address
+  bar.
+
+## English
+
 ## v1.0.0-dev.11 — 2026-08-12
 
 Landed on `development` first, merged into `main` since.
@@ -1927,6 +1955,18 @@ three of these six showed up in only one of the two.
   from the published type data, and a live view of the file being generated.
 
 ---
+
+## 日本語
+
+## v1.0.0-dev.12 — 2026-08-13
+
+`development` ブランチに先に入り、その後 `main` に統合された内容です。
+
+### build 2026-08-12z
+
+- **Flatpak 版のブラウザでも専用ウィンドウが開くようになりました。** 実機からの報告です。既定のブラウザを Flatpak 版の Google Chrome に切り替えたところ、アイコンからの起動でメニューバー付きの通常のタブが出るようになっていました。原因は、**Flatpak は PATH に何も置かない**ことです。Chromium 系ブラウザを探す処理が何も見つけられず、しかも Flatpak 版に移行した人はたいていネイティブ版を外しているので、候補が空になって通常のブラウザ起動に落ちていました。
+- 同じ5つのブラウザを **Flatpak のアプリケーション ID でも**名指しするようにしました(Chromium・Chrome・Brave・Edge・Vivaldi)。試すのは PATH の一覧の**後**です。`flatpak run` は起動が一段重く、両方入っているならネイティブ版が勝つべきだからです。**このために追加した依存はありません** — マシンに既にあるものを使うだけで、どちらも無いマシンの挙動は従来どおりです。
+- フラグの読み替えは不要でした。アプリケーション ID より後ろの引数はそのまま渡るためです。サンドボックスも障害になりません。これらは network の権限を持っており、`127.0.0.1` はホストのループバックだからです。**PATH に Chromium 系のバイナリが1つも無い状態から起動して確認**しました。アプリモードのクラスで、縦横とも最大化、タブもアドレスバーもありません。
 
 ## 日本語
 

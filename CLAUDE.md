@@ -1147,6 +1147,26 @@ checklist item.
   stdout would bury the line saying where nixgen is. `startupNotify` stays
   false either way: the window belongs to the browser, not to this process,
   so the desktop cannot match a notification to it.
+- **A Flatpak browser is invisible to `shutil.which`, and that is the whole
+  bug.** A Flatpak puts nothing on PATH, so the `_APP_BROWSERS` loop finds
+  nothing — and somebody who has moved to the Flatpak build has usually
+  removed the native one, which leaves the list empty and drops the launch
+  back to an ordinary tab with a menu bar. Reported from a real machine after
+  switching the default browser to the Flatpak Chrome. `_APP_FLATPAKS` names
+  the same browsers by application id and is tried **after** the PATH list,
+  because `flatpak run` costs an extra layer of startup and a native browser
+  should win when both are there. Detection is one `flatpak list` rather than
+  a `flatpak info` per candidate — one process instead of five, and it covers
+  user and system installations together; any failure answers "none" and the
+  fallback is exactly what it was. **The flags need no translation**:
+  everything after the application id is passed through, so `--app` and
+  `--start-maximized` reach Chromium as they do natively, and the sandbox is
+  not in the way either — these carry `shared=network`, so `127.0.0.1` is the
+  host's loopback. Verified by launching from a machine with no Chromium
+  binary on PATH at all: the window came up under the app-mode class,
+  `MAXIMIZED_HORZ` + `MAXIMIZED_VERT`, no `FULLSCREEN`. **`_app_argv` exists
+  so the two launchers cannot drift**: only one of them runs on any given
+  machine, so a flag added to one and not the other would go untested.
 - **Unstable is a channel like any other, and picking it makes everything
   unstable** — options, packages, `flake.nix`, `system.stateVersion`. What
   unblocked it was pinning the flake to the indexed snapshot and showing how old

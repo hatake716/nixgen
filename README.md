@@ -191,9 +191,10 @@ just the page. There is no terminal to keep open, and nothing else to type.
 Four things are worth knowing about the menu entry:
 
 - **The window needs a Chromium-family browser** — Chromium, Chrome, Brave,
-  Edge or Vivaldi, whichever is already installed. On a machine with only
-  Firefox it opens an ordinary browser tab instead, which works the same; the
-  window is the nicer of the two, not the working one.
+  Edge or Vivaldi, whichever is already installed, **and a Flatpak build of
+  any of them counts**. On a machine with only Firefox it opens an ordinary
+  browser tab instead, which works the same; the window is the nicer of the
+  two, not the working one.
 - **Closing the window stops it.** The page is the application: a few
   seconds after the last nixgen page closes, the server exits by itself and
   nothing is left running in the background. A reload does not count, and

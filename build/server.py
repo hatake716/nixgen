@@ -1239,30 +1239,85 @@ _APP_BROWSERS = ["chromium", "chromium-browser", "google-chrome-stable",
                  "google-chrome", "brave", "microsoft-edge-stable",
                  "vivaldi-stable"]
 
+# The same browsers again, as Flatpaks. A Flatpak puts nothing on PATH, so
+# `shutil.which` cannot see one — and somebody who has moved to the Flatpak
+# build has usually removed the native one, which leaves the list above empty
+# and drops the launch back to an ordinary tab with a menu bar. That was
+# reported from a real machine after switching to the Flatpak Chrome.
+#
+# The flags go through unchanged: everything after the application id is
+# passed to the application, so `--app` and `--start-maximized` reach Chromium
+# exactly as they do natively (verified — the window comes up under the
+# `…Google-chrome` app-mode class, MAXIMIZED_HORZ + MAXIMIZED_VERT, no
+# FULLSCREEN). The sandbox is not in the way either: these carry
+# `shared=network`, so 127.0.0.1 is the host's loopback.
+#
+# Same order as the list above, and tried only after it: `flatpak run` costs
+# an extra layer of startup, so a native browser wins when both are there.
+_APP_FLATPAKS = ["org.chromium.Chromium", "com.google.Chrome",
+                 "com.brave.Browser", "com.microsoft.Edge",
+                 "com.vivaldi.Vivaldi"]
+
+# `--app` and the window state, in one place: the two launchers must not
+# drift apart, because only one of them runs on any given machine and the
+# other would go untested.
+def _app_argv(url):
+    # Maximised, not fullscreen: the app is three columns beside one another
+    # and the default app window is narrow enough to stack them.
+    # `--start-maximized` asks the window manager for the ordinary maximised
+    # state — the title bar and its buttons stay, so it can be restored —
+    # where `--start-fullscreen` would take the frame away and leave the same
+    # trap as `--kiosk`.
+    return [f"--app={url}", "--start-maximized"]
+
+
+def _spawn(argv):
+    """Start a browser and stop caring about it. True if it started.
+
+    Detached, and with its output discarded: this process is a web server,
+    and a browser writing to its stdout for the rest of the session would
+    bury the one line that says where nixgen is.
+    """
+    try:
+        subprocess.Popen(argv, stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL, start_new_session=True)
+        return True
+    except OSError:
+        return False
+
+
+def installed_flatpaks():
+    """Application ids of the Flatpaks on this machine, as a set.
+
+    One `flatpak list` rather than a `flatpak info` per candidate: it is one
+    process instead of five, and the answer covers user and system
+    installations together. Any failure — no flatpak, no permission, a slow
+    call — answers "none", and the caller falls back exactly as it did before
+    this existed.
+    """
+    if not shutil.which("flatpak"):
+        return set()
+    try:
+        out = subprocess.run(
+            ["flatpak", "list", "--app", "--columns=application"],
+            capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return set()
+    if out.returncode != 0:
+        return set()
+    return {line.strip() for line in out.stdout.splitlines() if line.strip()}
+
 
 def open_app_window(url):
     """Show `url` as its own window. True if a browser took it."""
     for exe in _APP_BROWSERS:
         path = shutil.which(exe)
-        if not path:
-            continue
-        try:
-            # Detached, and with its output discarded: this process is a web
-            # server, and a browser writing to its stdout for the rest of the
-            # session would bury the one line that says where nixgen is.
-            # Maximised, not fullscreen: the app is three columns beside one
-            # another and the default app window is narrow enough to stack
-            # them. `--start-maximized` asks the window manager for the
-            # ordinary maximised state — the title bar and its buttons stay,
-            # so it can be restored — where `--start-fullscreen` would take
-            # the frame away and leave the same trap as `--kiosk`.
-            subprocess.Popen(
-                [path, f"--app={url}", "--start-maximized"],
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                start_new_session=True)
+        if path and _spawn([path] + _app_argv(url)):
             return True
-        except OSError:
-            continue
+    have = installed_flatpaks()
+    for app_id in _APP_FLATPAKS:
+        if app_id in have and _spawn(["flatpak", "run", app_id] + _app_argv(url)):
+            return True
     return False
 
 
