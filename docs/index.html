@@ -488,12 +488,13 @@ sudo nixos-rebuild dry-build   <span class="p"># then: sudo nixos-rebuild switch
           clicking the icon again starts it fresh.</p>
         <p class="ja"><b>コマンドを一度だけ</b> — <code>nix profile install github:hatake716/nixgen</code> — 実行すると、アプリメニューの「システム」にこのアイコンで nixgen が並びます。そこからは、マシンにある他のアプリケーションと同じ使い勝手です。起動すると専用のウィンドウが最大化した状態で開き、タブもアドレスバーも戻る・進むもありません — あるのはページと、通常のウィンドウ操作だけです。ウィンドウを閉じれば、数秒後にサーバーも自分で終了して裏には何も残りません。もう一度アイコンをクリックすれば、新しく起動します。</p>
         <p class="tiny en">The window uses whichever Chromium-family browser is already
-          installed — Chromium, Chrome, Brave, Edge or Vivaldi. With only
+          installed — Chromium, Chrome, Brave, Edge or Vivaldi, and a Flatpak
+          build of any of them counts. With only
           Firefox it opens as an ordinary browser tab instead, which works the
           same. One Nix-wide caveat: an icon pinned to a dock stores a store
           path, and store paths never change — so after an upgrade, remove the
           pin and add it again. The menu entry itself is always current.</p>
-        <p class="tiny ja">ウィンドウには、既に入っている Chromium 系ブラウザ(Chromium・Chrome・Brave・Edge・Vivaldi)が使われます。Firefox しか無い場合は通常のブラウザのタブで開きます(動作は同じです)。Nix 全般の注意を1つ: ドックに登録したアイコンは変わらないストアパスを保存するので、更新したらアイコンを登録し直してください。アプリメニューの項目自体は常に最新です。</p>
+        <p class="tiny ja">ウィンドウには、既に入っている Chromium 系ブラウザ(Chromium・Chrome・Brave・Edge・Vivaldi)が使われます。Flatpak 版でも構いません。Firefox しか無い場合は通常のブラウザのタブで開きます(動作は同じです)。Nix 全般の注意を1つ: ドックに登録したアイコンは変わらないストアパスを保存するので、更新したらアイコンを登録し直してください。アプリメニューの項目自体は常に最新です。</p>
       </div>
     </div>
   </div>
