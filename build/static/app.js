@@ -2,7 +2,7 @@
 
 /* Shown in the header. Bump it whenever this file changes, so "the fix did not
    work" can be told apart from "the old file is still being served". */
-const BUILD = '2026-08-12z';
+const BUILD = '2026-08-13a';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -1060,13 +1060,60 @@ async function addWithValue(paths, value) {
   const opt = (results || [])[0];
   if (!opt) return null;
   const path = opt.path;
+  /* The spellings this release does not use name the *same option*, so a card
+     under one of them is a second definition of the one being written. A file
+     from before a rename brings exactly that — `services.xserver.displayManager
+     .defaultSession = "xfce"` arrives as a verbatim card, the live spelling is
+     written beside it, and the two say different things about one attribute.
+     Check syntax sees nothing: the paths differ, so the file parses, and it is
+     `nixos-rebuild` that refuses it. `GREETERS` has always listed every
+     spelling and dropped them all; this is that rule where it belongs, so
+     every candidate list in the file gets it at once. */
+  for (const other of paths) {
+    if (other === path) continue;
+    for (const [key, e] of [...state.selected]) {
+      if (resolvePath(e) === other) state.selected.delete(key);
+    }
+  }
   if (state.selected.has(path)) flashCard(path);
   else placeOption(path, opt);
   const entry = state.selected.get(path);
   if (value !== undefined) {
-    entry.value = entry.type.kind === 'nullable' ? { __null: false, v: value } : value;
+    /* A card an import kept verbatim holds Nix source, whatever the catalogue
+       says the option is — and a preset hands over a form value. Assigning one
+       into the other put JavaScript in the file and Python in the render:
+       `services.xserver.enable = True;` and `i18n.defaultLocale = ja_JP.UTF-8;`
+       both reached generated.nix this way (reproduced, and the second is what
+       finally made Check syntax complain — the first parses as a variable
+       name). So the value is rendered as source when the card is one of those,
+       and a priority call wrapped around a plain literal is kept, because
+       `lib.mkForce` is a decision and the preset is only replacing what it
+       decides about. Anything more involved than a wrapped literal cannot hold
+       a value at all and is replaced outright; Undo is one press away, and the
+       alternative is a preset that says it wrote a setting and did not. */
+    const raw = entry.type.kind === 'raw' && opt.type.kind !== 'raw';
+    if (raw) {
+      const m = PRIORITY_LITERAL.exec(String(entry.value ?? ''));
+      const lit = nixLiteral(value);
+      // A function replacer, so a `$` in the value is not read as a backreference.
+      entry.value = m ? String(entry.value).replace(m[1], () => lit) : lit;
+    } else {
+      entry.value = entry.type.kind === 'nullable' ? { __null: false, v: value } : value;
+    }
   }
   return path;
+}
+
+/* A form value as Nix source, for the one place that has to write into a card
+   holding source rather than a widget's value. */
+function nixLiteral(v) {
+  if (typeof v === 'boolean') return v ? 'true' : 'false';
+  if (typeof v === 'number') return String(v);
+  if (Array.isArray(v)) return '[ ' + v.map(nixLiteral).join(' ') + ' ]';
+  if (v && typeof v === 'object' && '__null' in v) {
+    return v.__null ? 'null' : nixLiteral(v.v);
+  }
+  return JSON.stringify(String(v));
 }
 
 /* Has an input method actually been chosen? A `null or one of …` option can be
@@ -1317,11 +1364,21 @@ function dropFromAncestors(segments) {
     const aPath = segments.slice(0, k).join('.');
     for (const [key, e] of [...state.selected]) {
       if (resolvePath(e) !== aPath) continue;
-      if (e.value && typeof e.value === 'object' && !Array.isArray(e.value)
-          && Object.prototype.hasOwnProperty.call(e.value, segments[k])) {
-        delete e.value[segments[k]];
+      /* Unwrap the nullable first. The form holds such a value as
+         `{__null: false, v: …}`, so the leaf key is never an own property of
+         `e.value` and the leaf survived inside the ancestor while a flat
+         sibling was written beside it — the two-shapes collision, reached
+         through the wrapper. Every other value inspection in this file
+         unwraps; this one did not. */
+      let v = e.value;
+      if (v && typeof v === 'object' && !Array.isArray(v) && '__null' in v) {
+        v = v.__null ? null : v.v;
+      }
+      if (v && typeof v === 'object' && !Array.isArray(v)
+          && Object.prototype.hasOwnProperty.call(v, segments[k])) {
+        delete v[segments[k]];
         touched = true;
-        if (!Object.keys(e.value).length) state.selected.delete(key);
+        if (!Object.keys(v).length) state.selected.delete(key);
       }
     }
   }
@@ -1376,25 +1433,91 @@ function dropEtc(keep) {
   const gone = [];
   for (const name of ETC_KEYS) {
     if (wanted.has(name)) continue;
-    if (dropRawCard(['environment', 'etc', name, 'source'])) gone.push(name);
+    /* The whole entry, not just the `.source` leaf. `environment.etc` is an
+       attribute set of submodules and the importer flattens a submodule into
+       one card per leaf, so a file that also set `mode` or `user` left those
+       behind describing an /etc entry with no source — and belonging to a
+       desktop the module no longer holds. dropRawCard already takes every
+       sibling leaf with the prefix. */
+    if (dropRawCard(['environment', 'etc', name])) gone.push(name);
   }
   return gone;
 }
 
-function dropOtherGreeters(keep) {
-  const dropped = [];
-  for (const [name, paths] of Object.entries(GREETERS)) {
-    if (name === keep) continue;
-    for (const p of paths) {
-      for (const [key, e] of [...state.selected]) {
-        if (resolvePath(e) === p) {
-          state.selected.delete(key);
-          dropped.push(p);
-        }
+/* Every option path any desktop preset can write, and every session name any
+   of them can name. A switch has to be able to take the previous desktop out,
+   and the only way to know what it put in is to ask the table. */
+const DESKTOP_PRESET_PATHS = [...new Set(Object.values(DESKTOPS).flatMap(
+  d => [...d.roles.flat(), ...(d.marker || [])]))];
+
+const GREETER_PATHS = new Set(Object.values(GREETERS).flat());
+
+const PRESET_SESSIONS = new Set(
+  Object.values(DESKTOPS).map(d => d.session).filter(Boolean));
+
+/* The desktop being replaced leaves — all of it, not just its greeter.
+   Reported from a real machine: picking Xfce and then niri + noctalia left
+   `services.xserver.desktopManager.xfce.enable` and `services.xserver.enable`
+   standing beside the compositor, and noctalia did not come up properly.
+   Both systems were evaluated at the indexed revision to see what the leftover
+   actually does, because "two desktops is legal" — which is what this used to
+   rest on — is true and beside the point. Xfce puts 54 packages into the
+   system path, and two of them are the reason: `xfce4-notifyd` ships a D-Bus
+   activation file and a user unit that both claim
+   **`org.freedesktop.Notifications`**, which is the name noctalia's own
+   notification service has to own, and `xdg-desktop-portal-xapp` joins
+   `xdg.portal.extraPortals`, so the session's portal backend is Xfce's. The X
+   server comes on for a compositor that does not use one, and the login screen
+   grows an Xfce entry. None of that is a build error; all of it is somebody's
+   desktop not working.
+
+   Two desktops is still legal Nix, so nothing here is about parsing — it is
+   about the picker meaning what it says. `dropOtherGreeters` used to do this
+   for the display managers alone; it is folded in, because every greeter path
+   is also some entry's role and one pass cannot disagree with itself. The
+   value is not compared: everything a desktop preset writes is `true`, so a
+   card holding it is indistinguishable from one the user added from the search
+   box — the same position the greeters and the preset packages have always
+   been in, and the answer is the same one, which is that the status bar names
+   what went. A key folded into an ancestor attrs card by an import comes out
+   too; that shape is the oldest family of bugs in this file. */
+function dropOtherDesktops(keep) {
+  const d = DESKTOPS[keep];
+  const wanted = new Set([...((d && d.roles) || []).flat(), ...((d && d.marker) || [])]);
+  const gone = [];
+  for (const p of DESKTOP_PRESET_PATHS) {
+    if (wanted.has(p)) continue;
+    for (const [key, e] of [...state.selected]) {
+      if (resolvePath(e) === p) { state.selected.delete(key); gone.push(p); }
+    }
+    if (dropFromAncestors(p.split('.'))) gone.push(p);
+  }
+  return [...new Set(gone)];
+}
+
+/* A session name outlives the desktop that provided it, and NixOS checks the
+   name at evaluation time — `defaultSession` naming a session no enabled
+   desktop offers fails the build outright. Every desktop with a `session`
+   overwrites the value, so only the ones without leave a stale name: COSMIC,
+   which has none because the option speaks to GDM, LightDM and SDDM and COSMIC
+   boots through its own greeter. This was harmless for as long as the previous
+   desktop stayed enabled — which was the bug above.
+
+   Only a name a preset could have written is removed. `defaultSession` holding
+   something else is the user's answer to a question this tool did not ask. */
+function dropStaleSession() {
+  for (const p of DESKTOP_PATHS.defaultSession) {
+    for (const [key, e] of [...state.selected]) {
+      if (resolvePath(e) !== p) continue;
+      let v = e.value;
+      if (v && typeof v === 'object' && !Array.isArray(v) && '__null' in v) {
+        v = v.__null ? null : v.v;
       }
+      const name = String(v ?? '').trim().replace(/^"|"$/g, '');
+      if (PRESET_SESSIONS.has(name)) { state.selected.delete(key); return p; }
     }
   }
-  return dropped;
+  return null;
 }
 
 /* The desktop the module holds, read from the module rather than remembered:
@@ -1412,26 +1535,48 @@ function pickedDesktop() {
    Wayland apps misbehave. `waylandFrontend = true` drops those variables so
    apps use the text-input protocol — read out of two evaluated systems, not
    assumed. This keeps the input method's front end matched to the session of
-   whichever desktop the module holds. */
-async function syncImFrontend(added) {
-  const d = pickedDesktop();
-  if (!d || typeof d.wayland !== 'boolean') return false;
+   whichever desktop the module holds.
+
+   **The desktop is passed in when the caller knows it**, and read from the
+   module only when nobody does — the language preset's case. addDesktop used
+   to leave it to `pickedDesktop()` even though it had just been handed the
+   answer, and while two desktops could be enabled at once that read the stale
+   one: the flag written and the sentence the status bar printed came from two
+   different desktops, so the bar could say the front end now matches this
+   session while the file said the opposite. It returns the flag it wrote, so
+   the sentence cannot disagree with the file even in principle. */
+async function syncImFrontend(added, desk) {
+  const d = desk || pickedDesktop();
+  if (!d || typeof d.wayland !== 'boolean') return null;
   const im = findEntry('i18n.inputMethod.fcitx5.addons') ||
              findEntry('i18n.inputMethod.type') ||
              findEntry('i18n.inputMethod.enabled');
-  if (!im) return false;
-  const used = await addWithValue(LANG_PATHS.imWayland,
-                                  d.wayland);
+  if (!im) return null;
+  const used = await addWithValue(LANG_PATHS.imWayland, d.wayland);
   if (used) added.push(used);
-  return !!used;
+  return used ? d.wayland : null;
 }
 
 async function addDesktop(key) {
   const d = DESKTOPS[key];
   if (!d) return;
-  const dropped = dropOtherGreeters(d.greeter);
-  dropAutostart(d.autostart);
-  dropEtc(d.etc);
+  /* The previous desktop goes out before this one comes in, so that everything
+     below — syncImFrontend most of all — reads one desktop rather than two.
+     pickedDesktop() answers with the first entry in DESKTOPS order whose marker
+     is present, so with Xfce still standing it called an Xfce, and the input
+     method's Wayland front end was set from it. */
+  const gone = dropOtherDesktops(key);
+  const dropped = gone.filter(p => GREETER_PATHS.has(p));
+  const droppedRoles = gone.filter(p => !GREETER_PATHS.has(p));
+  /* Both of these answer with what they took out and both answers used to be
+     thrown away, so the one cleanup the user could not have predicted — a
+     user service and a file in /etc — was the one that left in silence.
+     dropAutostart matches on the service name and never on the unit's text,
+     deliberately, which means a unit somebody edited in the card goes on the
+     same terms as one this tool wrote. That is precisely a removal that has
+     to be named. */
+  const droppedUnits = dropAutostart(d.autostart);
+  const droppedEtc = dropEtc(d.etc);
   const droppedPkgs = dropPresetPackages(key);
   const added = [], missing = [];
   for (const candidates of d.roles) {
@@ -1450,12 +1595,20 @@ async function addDesktop(key) {
      LightDM and SDDM, and COSMIC boots through its own greeter — which shows
      the one session it has anyway. The option is `null or session name` with
      a raw inside, so the value is Nix source and arrives quoted. */
+  let wroteSession = null;
   if (d.session) {
-    const used = await addWithValue(DESKTOP_PATHS.defaultSession,
-                                    JSON.stringify(d.session));
-    used ? added.push(used) : missing.push(DESKTOP_PATHS.defaultSession[0]);
+    wroteSession = await addWithValue(DESKTOP_PATHS.defaultSession,
+                                      JSON.stringify(d.session));
+    wroteSession ? added.push(wroteSession)
+                 : missing.push(DESKTOP_PATHS.defaultSession[0]);
   }
-  const imSynced = await syncImFrontend(added);
+  /* Whatever name is still sitting there belongs to the desktop that just
+     left. This runs only when nothing was written over it — COSMIC sets no
+     session, and a release without the option cannot either — because the
+     name just written is itself one of the preset's, and dropStaleSession
+     recognises the preset's names by design. */
+  const staleSession = wroteSession ? null : dropStaleSession();
+  const imSynced = await syncImFrontend(added, d);
   /* A desktop that needs a package as well as its settings. Looked up rather
      than written, the way the app categories are: a name this channel does not
      have is absent from the answer and therefore from the file, instead of
@@ -1507,18 +1660,33 @@ async function addDesktop(key) {
   } else {
     const extra = (pkgs.length
       ? ` ${pkgs.join(', ')} went into environment.systemPackages with it.` : '')
-      + (imSynced
+      // The flag that was written, not the one this desktop would have asked
+      // for. They were two reads of two different things and could disagree.
+      + (imSynced !== null
       ? ` The input method's Wayland frontend now matches this session` +
-        ` (${d.wayland ? 'on' : 'off'}).` : '')
+        ` (${imSynced ? 'on' : 'off'}).` : '')
       + (dropped.length
       ? ` The previous desktop's display manager came out ` +
         `(${dropped.join(', ')}) — NixOS refuses two at once.` : '')
+      + (droppedRoles.length
+      ? ` The previous desktop's own settings came out too ` +
+        `(${droppedRoles.join(', ')}), so this machine has one desktop and ` +
+        `not two.` : '')
+      + (staleSession
+      ? ` ${staleSession} named the previous desktop's session and would fail ` +
+        `the build now that it is gone, so it came out; ${d.label} sets no ` +
+        `session of its own.` : '')
       + (autostarted
       ? ` ${d.autostart} starts with the session, through a user service bound ` +
         `to graphical-session.target.` : '')
       + (droppedPkgs.length
       ? ` The previous desktop's own packages came out of ` +
         `environment.systemPackages (${droppedPkgs.join(', ')}).` : '')
+      + (droppedUnits.length
+      ? ` Its autostart unit came out too (${droppedUnits.join(', ')}).` : '')
+      + (droppedEtc.length
+      ? ` So did the file it replaced in /etc ` +
+        `(${droppedEtc.map(n => '/etc/' + n).join(', ')}).` : '')
       + (etced
       ? ` /etc/sway/config is replaced with the package's own minus its ` +
         `swaybar block, so the only bar on screen is noctalia's.` : '')
@@ -1527,18 +1695,30 @@ async function addDesktop(key) {
         `so applications can store credentials.` : '');
     const extraJa = (pkgs.length
       ? `あわせて ${pkgs.join('、')} を environment.systemPackages に入れました。` : '')
-      + (imSynced
+      + (imSynced !== null
       ? `入力メソッドの Wayland フロントエンドも、このセッションに合わせて` +
-        `${d.wayland ? '有効' : '無効'}にしました。` : '')
+        `${imSynced ? '有効' : '無効'}にしました。` : '')
       + (dropped.length
       ? `前のデスクトップのディスプレイマネージャ(${dropped.join('、')})は` +
         `外しました。NixOS は2つ同時を受け付けません。` : '')
+      + (droppedRoles.length
+      ? `前のデスクトップ自体の設定(${droppedRoles.join('、')})も外しました。` +
+        `このマシンのデスクトップは1つです。` : '')
+      + (staleSession
+      ? `${staleSession} は前のデスクトップのセッション名を指していました。` +
+        `そのデスクトップを外した以上ビルドが通らなくなるため、これも` +
+        `外しました。${d.label} は自前のセッション名を設定しません。` : '')
       + (autostarted
       ? `${d.autostart} は graphical-session.target に紐づけた user service で、` +
         `セッションと一緒に起動します。` : '')
       + (droppedPkgs.length
       ? `前のデスクトップ専用のパッケージ(${droppedPkgs.join('、')})は ` +
         `environment.systemPackages から外しました。` : '')
+      + (droppedUnits.length
+      ? `自動起動の user service(${droppedUnits.join('、')})も外しました。` : '')
+      + (droppedEtc.length
+      ? `差し替えていた /etc のファイル` +
+        `(${droppedEtc.map(n => '/etc/' + n).join('、')})も戻しました。` : '')
       + (etced
       ? `/etc/sway/config は、パッケージ同梱のものから swaybar のブロックだけを` +
         `除いたものに差し替えました。画面に出るバーは noctalia のものだけに` +
@@ -1610,9 +1790,30 @@ $('#btn-shell').addEventListener('click', () => {
   if (key) { remember(); addShell(key); }
 });
 
+/* A preset is a sequence of awaited requests, so one that fails part way
+   leaves the module half-switched — the old desktop already removed, the new
+   one not yet written. Nothing said so: the promise rejected into the console
+   and the screen looked like a finished switch that had simply done less.
+   The state is not rolled back, because Undo is one press away and it is the
+   user's call; what changes is that the bar says which press to make. */
+function presetFailed(label, err) {
+  renderEditor();
+  pushRender();
+  setStatus(say(
+    `${label} did not finish — ${err && err.message ? err.message : 'a request ' +
+    'to nixgen failed'}. The module may be part way through the change; ` +
+    `press Undo to put it back.`,
+    `${label} を最後まで適用できませんでした(${err && err.message ? err.message :
+    'nixgen への要求が失敗しました'})。モジュールが変更の途中で止まっている` +
+    `可能性があります。Undo を押すと元に戻せます。`), 'bad');
+}
+
 $('#btn-desktop').addEventListener('click', () => {
   const key = $('#s-desktop').value;
-  if (key) { remember(); addDesktop(key); }
+  if (key) {
+    remember();
+    addDesktop(key).catch(err => presetFailed(DESKTOPS[key].label, err));
+  }
 });
 
 /* A language is not one setting. It is the locale, the keymap the console
@@ -1762,14 +1963,13 @@ async function addLanguage(key) {
       }
       const addons = await addWithValue(LANG_PATHS.imAddons, L.addons);
       if (addons) added.push(addons);
-      // Match the front end to the desktop's session if one is already picked;
-      // otherwise picking a desktop later sets it (addDesktop re-syncs).
-      const d = pickedDesktop();
-      if (d && typeof d.wayland === 'boolean') {
-        const fe = await addWithValue(
-          ['i18n.inputMethod.fcitx5.waylandFrontend'], d.wayland);
-        if (fe) added.push(fe);
-      }
+      /* Match the front end to the desktop's session if one is already picked;
+         otherwise picking a desktop later sets it (addDesktop re-syncs). The
+         rule lived here a second time, spelled out — the same three lines with
+         the path written by hand rather than through LANG_PATHS — so the two
+         halves of one sync could drift. It is one function now, and this side
+         names no desktop because from here there is none to name. */
+      await syncImFrontend(added);
     } else {
       missing.push('i18n.inputMethod.type');
     }
@@ -3110,6 +3310,52 @@ async function doRender() {
       `別のカードの中でも定義されています: ${nested.join('、')}。Nix は同じ属性を` +
       `2回定義したファイルを拒否するので、ビルドが失敗します。不要なほうを` +
       `削除してください。`));
+  }
+  /* Two desktops, and a session name with no desktop behind it. The preset
+     cannot produce either any more — it drops the one it is replacing — but
+     these arrive by other routes: a hand-written file that enables two, a
+     `generated.nix` from a build before this one, or a desktop card deleted by
+     hand while `defaultSession` stays. Neither is a parse error. The first is
+     what stopped noctalia coming up on a real machine (the leftover installs
+     `xfce4-notifyd`, which claims the notification bus name the shell needs);
+     the second NixOS refuses at evaluation, naming an option rather than the
+     card that is wrong. Regenerated on every render, so nothing can wipe them
+     — the lesson from the NVIDIA reminder. */
+  const onNow = Object.entries(DESKTOPS).filter(
+    ([, v]) => (v.marker || []).some(p => findEntry(p)));
+  if (onNow.length > 1) {
+    notes.push(say(
+      `Two desktops are enabled here: ${onNow.map(([, v]) => v.label).join(', ')}. ` +
+      `That builds, and it is usually not what anyone wants — both are ` +
+      `installed, both appear on the login screen, and pieces that expect to ` +
+      `be the only one of their kind (the notification service, the portal ` +
+      `backend) collide inside the session. Pick one from the Desktop row, ` +
+      `which now removes the other, or delete the cards you do not want.`,
+      `デスクトップが2つ有効になっています: ${onNow.map(([, v]) => v.label).join('、')}。` +
+      `ビルドは通りますが、たいていは意図しない状態です。両方がインストールされ、` +
+      `ログイン画面に両方が並び、セッション内で「1つしか居られない」部品` +
+      `(通知サービスやポータルのバックエンド)がぶつかります。Desktop の行で` +
+      `選び直す(いまは前のほうを外します)か、不要なカードを削除してください。`));
+  }
+  const sessCard = DESKTOP_PATHS.defaultSession.map(p => findEntry(p)).find(Boolean);
+  if (sessCard) {
+    let sv = sessCard.value;
+    if (sv && typeof sv === 'object' && !Array.isArray(sv) && '__null' in sv) {
+      sv = sv.__null ? null : sv.v;
+    }
+    const name = String(sv ?? '').trim().replace(/^"|"$/g, '');
+    if (name && PRESET_SESSIONS.has(name)
+        && !onNow.some(([, v]) => v.session === name)) {
+      notes.push(say(
+        `The login screen is told to start "${name}", but no desktop enabled ` +
+        `here provides that session. NixOS checks the name while it builds, ` +
+        `so this one fails — pick the desktop again, or remove ` +
+        `${resolvePath(sessCard)}.`,
+        `ログイン画面が "${name}" を開始するよう指定されていますが、ここで有効に` +
+        `なっているデスクトップはそのセッションを提供しません。NixOS はビルド時に` +
+        `この名前を検査するため、このままでは失敗します。デスクトップを選び直すか、` +
+        `${resolvePath(sessCard)} を削除してください。`));
+    }
   }
   const clashes = [...state.starterDefines].filter(
     p => new RegExp('^  ' + p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ' =', 'm').test(res.text));

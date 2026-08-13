@@ -135,6 +135,24 @@ def main():
             report(m.group(1) in names,
                    f'the login screen offers "{m.group(1)}"', str(names))
 
+        # One desktop, not two. A switch that leaves the previous desktop
+        # enabled still evaluates and still parses — the module system merges
+        # two desktops happily and the login screen simply grows an entry —
+        # so nothing above this line can see it. What it costs is the session:
+        # a leftover Xfce puts 54 packages in the system path, and xfce4-notifyd
+        # claims org.freedesktop.Notifications, which is the name the shell the
+        # compositor presets install has to own. Reported from a real machine.
+        # A pattern rather than a list of names, so a renamed desktop still
+        # matches; the table-driven version of this check is in browser_check.
+        DESK = re.compile(
+            r"^\s*(services\.(?:xserver\.)?desktopManager\.[A-Za-z0-9_]+\.enable"
+            r"|services\.xserver\.windowManager\.[A-Za-z0-9_]+\.enable"
+            r"|programs\.(?:niri|sway|hyprland)\.enable)\s*=\s*true", re.M)
+        on = sorted({g.group(1) for g in DESK.finditer(module)})
+        if on:
+            report(len(on) == 1, "the module enables one desktop, not two",
+                   str(on))
+
         if "enableGnomeKeyring" in module:
             r = nix(tmp, "build", "--no-link", "--print-out-paths",
                     f'{ref}.environment.etc."pam.d/login".source')

@@ -465,6 +465,16 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   xserver, sddm, defaultSession — cannot tell desktops apart, which is why
   every `DESKTOPS` entry carries `marker`: the option that is that desktop's
   own. A new desktop needs all three of `wayland`, `session` and `marker`.
+  **`pickedDesktop` answers with the first entry in `DESKTOPS` order whose
+  marker is present, so it is only ever right while one desktop is enabled.**
+  With Xfce still standing beside niri it answered Xfce — Xfce is third in the
+  table and niri ninth — so `syncImFrontend` wrote
+  `fcitx5.waylandFrontend = false` onto a Wayland session (measured both ways:
+  `false` before the fix, `true` after), and `syncPresetPickers`, which runs on
+  an import and on Undo, showed Xfce in the dropdown for a file whose session
+  is niri. That is why `dropOtherDesktops` runs at the very top of
+  `addDesktop`, before a single role is written: everything below it reads the
+  module and has to find one desktop there.
 - **The language preset stops where it stops, on purpose.** Locale, console
   keymap, X layout, and an input method for Japanese, Korean and Chinese.
   **Not fonts:** `fonts.packages` is a `list of absolute path`, so the form
@@ -544,6 +554,34 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   ordinary option cards rather than writing into the starter file — the starter
   has no catalogue to check against, and a preset nobody can see or edit is the
   wrong shape for this tool.
+- **The spellings a candidate list does not use are the same option, so a card
+  under one of them has to go.** `addWithValue` writes the first spelling the
+  channel has and now deletes any card sitting at the others. A file written
+  before a rename brings exactly that: `services.xserver.displayManager
+  .defaultSession = "xfce"` arrives as a verbatim card, the live spelling is
+  written beside it, and one attribute is defined twice with two different
+  values — which parses, so Check syntax says nothing and `nixos-rebuild`
+  refuses it (reproduced). `GREETERS` has always listed every spelling and
+  dropped them all; this is that rule moved to where every candidate list gets
+  it — the desktop roles, the markers, `xkb.layout`, `hardware.graphics.enable`
+  and the input method's two interfaces. **Every multi-name list in this file
+  is alternative names for one option**; a list of options that can coexist
+  would break this, so do not add one.
+- **A preset value written into a verbatim card must be rendered as Nix
+  source.** A card an import kept verbatim holds source whatever the catalogue
+  says the option is, and a preset hands over a form value; assigning one into
+  the other put JavaScript in the card and Python in the file —
+  `services.xserver.enable = True;` and `i18n.defaultLocale = ja_JP.UTF-8;`
+  both reached `generated.nix` (reproduced by importing a module with
+  `lib.mkForce` on those two paths and then picking GNOME and Japanese). Note
+  which one Check syntax caught: the second, because `True` parses fine as a
+  variable name. `nixLiteral` renders the value, and **a priority call wrapped
+  around a plain literal is kept** — `lib.mkForce true` stays `lib.mkForce
+  true`, the value replaced inside the wrapper — because that call is a
+  decision and the preset is only replacing what it decides about. Anything
+  more involved than a wrapped literal cannot hold a value at all and is
+  replaced outright; Undo is one press away, and the alternative is a preset
+  that reports a setting it did not write.
 - **A desktop preset may need a package, and it is looked up like any other.**
   The three Wayland compositors carry one: each is a compositor and nothing
   else, so `packages: ['noctalia-shell']` puts the panel, launcher and
@@ -735,14 +773,71 @@ at `nixos-rebuild`, which is the least helpful place for it to surface.
   and each carries `noctalia-shell` as a package. Where a preset stops short of
   a role, `note`/`note_ja` says so in the status bar rather than the gap being
   filled with a guess.
-- **Only one greeter survives a desktop switch, and only nixgen's own paths are
-  touched.** Two display managers is `conflicting definition values` at build
-  time (gdm force-disables the rest — evaluated to prove it), so `addDesktop`
-  drops the `GREETERS` paths that are not the new desktop's, sddm taking its
-  wayland switch along. The desktop cards themselves stay: two desktops is two
-  sessions on one login screen, which is legal and was evaluated
-  (`sessionNames` lists both). A greeter someone enabled by hand under a path
-  not in `GREETERS` is not nixgen's to remove.
+- **A desktop switch replaces the desktop — all of it, not just the greeter.**
+  `dropOtherDesktops` takes out every path in `DESKTOP_PRESET_PATHS` (the union
+  of every entry's `roles` and `marker`) that the incoming desktop does not
+  want, which is what `dropOtherGreeters` used to do for the display managers
+  alone; the greeter paths are all roles too, so one pass cannot disagree with
+  itself, and `GREETER_PATHS` survives only as the classifier that keeps the
+  "NixOS refuses two at once" sentence. **This reverses the rule that stood
+  here before**, which was that the desktop cards stay because two desktops is
+  two sessions on one login screen and that is legal. Legal it is; the report
+  that overturned it is Xfce → niri + noctalia on a real machine, where the
+  shell did not come up properly. Both systems were then evaluated at the
+  indexed revision to find out why, and the answer is not the module system:
+  **a leftover Xfce puts 54 packages into the system path**, two of which
+  decide the session. `xfce4-notifyd` ships a D-Bus activation file *and* a
+  user unit that both claim **`org.freedesktop.Notifications`** — the name
+  noctalia's own notification service has to own — and
+  `xdg-desktop-portal-xapp` joins `xdg.portal.extraPortals`, so the portal
+  backend is Xfce's. The X server comes on for a compositor that does not use
+  one, and the login screen grows an entry. **None of that fails a build**,
+  which is exactly why nothing caught it: this is the "it does not crash is not
+  it works" failure in its purest form. The value is not compared before
+  dropping — everything a desktop preset writes is `true`, so a card holding it
+  cannot be told from one added out of the search box, which is the position
+  the greeters and the preset packages were always in, and the answer is the
+  same: the status bar names what went. A desktop someone enabled by hand under
+  a path no entry lists is still not nixgen's to remove.
+- **A session name outlives the desktop that provided it, and COSMIC is the one
+  that leaves it behind.** Every entry with a `session` overwrites
+  `defaultSession`, so only an entry without one — COSMIC, because the option
+  speaks to GDM, LightDM and SDDM — lets the previous name stand. That was
+  harmless only for as long as the previous desktop stayed enabled, so fixing
+  the bullet above is what makes it bite: NixOS checks the name at evaluation
+  time, and one no enabled desktop provides fails the build. `dropStaleSession`
+  removes it, and **only when the value is a name some `DESKTOPS` entry could
+  have written** — a `defaultSession` holding anything else is the user's
+  answer to a question this tool did not ask.
+- **The two states a switch can no longer produce still arrive by other
+  routes, so `doRender` names them.** A module with two desktops enabled, and a
+  `defaultSession` naming a session no enabled desktop provides. Neither is a
+  parse error; the first is the reported failure and the second is refused at
+  evaluation, naming an option rather than the card that is wrong. They reach
+  the form from a hand-written file, from a `generated.nix` an older build
+  produced, and from deleting a desktop card by hand. Both notes regenerate on
+  every render — the NVIDIA reminder's lesson, that a warning said once from
+  the place that raised it is wiped by the next render. Verified to fire on
+  each state and to stay quiet on a clean one-desktop module.
+- **A preset is a sequence of awaited requests, and one that fails part way
+  leaves the module half-switched.** The old desktop is already out and the new
+  one is not in; the rejection went to the console and the screen looked like a
+  switch that had merely done less. `presetFailed` catches it at the button and
+  says which press puts it back. It does not roll back — Undo exists and it is
+  the user's call — but silence was not an option that survived being written
+  down.
+- **Two desktops are invisible to every check that is not looking for them.**
+  The file parses, the module system merges the two, `nixos-rebuild` succeeds,
+  one display manager is present, the shell's package and unit are there. The
+  sweep's desktop walk went green on exactly that state. It now reads `DESKTOPS`
+  out of the page and asserts, after every pick, that no preset path the chosen
+  desktop does not want is still defined, that exactly one `marker` is on, that
+  the session named is one an enabled desktop provides, and that no other
+  desktop's packages are in the list — and it walks **every desktop the
+  dropdown offers**, in the dropdown's own order, so a new entry is covered
+  without editing the test. `eval_check` carries the cheap half as a pattern
+  over the module text. The literal that had to go was "noctalia iff niri":
+  which desktop wants a shell is the table's answer, and Sway wants one too.
 - **The session names in `DESKTOPS` came out of evaluated systems, and NixOS
   checks them.** Every desktop preset sets
   `services.displayManager.defaultSession`; the names (`gnome`, `plasma`,
@@ -1080,6 +1175,8 @@ checklist item.
 | the same error from importing nixgen's own generated.nix back in | the replace step compared exact rendered paths, and the importer changes shape — a flat line folds into an attrs card, a set flattens into leaves — so one leaf lived in two cards |
 | the first screen is blank and says nothing | one failed fetch ended the boot sequence before the Setup pane was shown |
 | `allowUnfree` vanishes when AMD or Intel is picked | the takes-it-out check only knew UI-added packages, so anything unfree that arrived by import did not count |
+| the shell does not come up after switching Xfce → niri | the switch dropped the greeter, the packages and the unit, and left the desktop itself enabled — `xfce4-notifyd` then claims `org.freedesktop.Notifications`, which is the shell's |
+| the desktop dropdown names the desktop you switched *away* from | `pickedDesktop` answers with the first `DESKTOPS` entry whose marker is present, and two were |
 
 ---
 
